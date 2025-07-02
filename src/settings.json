@@ -1,0 +1,29 @@
+{
+  "name": "Raol-Api's",
+  "version": "v1.0.0",
+  "description": "Simple and easy to use API.",
+  "bannerImage": "/src/banner.jpg",
+  "header": {
+    "status": "Active!"
+  },
+  "apiSettings": {
+    "creator": "VGX Team",
+    "apikey": ["vgx-team"]
+  },
+  "categories": [
+    {
+      "name": "Artificial Intelligence",
+      "items": [
+        {
+          "name": "LuminAI",
+          "desc": "Talk with luminai - Advanced AI assistant",
+          "path": "/ai/luminai?text=",
+          "status": "ready",
+          "params": {
+            "text": "Text for luminai to respond to"
+          }
+        }
+      ]
+    }
+  ]
+}

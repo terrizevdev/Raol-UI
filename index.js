@@ -1,0 +1,186 @@
+const express = require("express")
+const chalk = require("chalk")
+const fs = require("fs")
+const cors = require("cors")
+const path = require("path")
+
+const app = express()
+const PORT = process.env.PORT || 4000
+
+app.enable("trust proxy")
+app.set("json spaces", 2)
+
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+app.use(cors())
+
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff")
+  res.setHeader("X-Frame-Options", "DENY")
+  res.setHeader("X-XSS-Protection", "1; mode=block")
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin")
+  next()
+})
+
+const requestCounts = new Map()
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000
+const RATE_LIMIT_MAX = 100
+
+app.use((req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress
+  const now = Date.now()
+
+  if (!requestCounts.has(ip)) {
+    requestCounts.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
+  } else {
+    const data = requestCounts.get(ip)
+    if (now > data.resetTime) {
+      data.count = 1
+      data.resetTime = now + RATE_LIMIT_WINDOW
+    } else {
+      data.count++
+      if (data.count > RATE_LIMIT_MAX) {
+        return res.status(429).json({
+          status: false,
+          error: "Too many requests from this IP, please try again later.",
+        })
+      }
+    }
+  }
+  next()
+})
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, data] of requestCounts.entries()) {
+    if (now > data.resetTime) {
+      requestCounts.delete(ip)
+    }
+  }
+}, RATE_LIMIT_WINDOW)
+
+app.get("/assets/styles.css", (req, res) => {
+  res.setHeader("Content-Type", "text/css")
+  res.sendFile(path.join(__dirname, "api-page", "styles.css"))
+})
+
+app.get("/assets/script.js", (req, res) => {
+  res.setHeader("Content-Type", "application/javascript")
+  res.sendFile(path.join(__dirname, "api-page", "script.js"))
+})
+
+app.get("/api/settings", (req, res) => {
+  try {
+    const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "settings.json"), "utf-8"))
+    res.json(settings)
+  } catch (error) {
+    res.status(500).json({ status: false, error: "Failed to load settings" })
+  }
+})
+
+app.get("/api/notifications", (req, res) => {
+  try {
+    const notifications = JSON.parse(fs.readFileSync(path.join(__dirname, "api-page", "notifications.json"), "utf-8"))
+    res.json(notifications)
+  } catch (error) {
+    res.status(500).json({ status: false, error: "Failed to load notifications" })
+  }
+})
+
+app.use((req, res, next) => {
+  const blockedPaths = [
+    "/api-page/",
+    "/src/settings.json",
+    "/api-page/notifications.json",
+    "/api-page/styles.css",
+    "/api-page/script.js",
+  ]
+
+  const isBlocked = blockedPaths.some((blocked) => {
+    if (blocked.endsWith("/")) {
+      return req.path.startsWith(blocked)
+    }
+    return req.path === blocked
+  })
+
+  if (isBlocked) {
+    return res.status(403).json({
+      status: false,
+      error: "Access denied to this resource",
+    })
+  }
+  next()
+})
+
+app.use("/src", (req, res, next) => {
+  if (req.path.match(/\.(jpg|jpeg|png|gif|svg|ico)$/i)) {
+    express.static(path.join(__dirname, "src"))(req, res, next)
+  } else {
+    res.status(403).json({
+      status: false,
+      error: "Access denied to this resource",
+    })
+  }
+})
+
+const settingsPath = path.join(__dirname, "./src/settings.json")
+const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
+
+app.use((req, res, next) => {
+  const originalJson = res.json
+  res.json = function (data) {
+    if (data && typeof data === "object") {
+      const responseData = {
+        status: data.status ?? true,
+        creator: settings.apiSettings.creator || "VGX Team",
+        ...data,
+      }
+      return originalJson.call(this, responseData)
+    }
+    return originalJson.call(this, data)
+  }
+  next()
+})
+
+let totalRoutes = 0
+const apiFolder = path.join(__dirname, "./src/api")
+fs.readdirSync(apiFolder).forEach((subfolder) => {
+  const subfolderPath = path.join(apiFolder, subfolder)
+  if (fs.statSync(subfolderPath).isDirectory()) {
+    fs.readdirSync(subfolderPath).forEach((file) => {
+      const filePath = path.join(subfolderPath, file)
+      if (path.extname(file) === ".js") {
+        require(filePath)(app)
+        totalRoutes++
+        console.log(
+          chalk
+            .bgHex("#FFFF99")
+            .hex("#333")
+            .bold(` Loaded Route: ${path.basename(file)} `),
+        )
+      }
+    })
+  }
+})
+
+console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! ✓ "))
+console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Total Routes Loaded: ${totalRoutes} `))
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "api-page", "index.html"))
+})
+
+app.use((req, res, next) => {
+  res.status(404).sendFile(path.join(__dirname, "api-page", "404.html"))
+})
+
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
+})
+
+app.listen(PORT, () => {
+  console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Server is running on port ${PORT} `))
+})
+
+module.exports = app
