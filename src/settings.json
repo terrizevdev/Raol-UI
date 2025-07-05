@@ -3,10 +3,8 @@
   "version": "v1.0.0",
   "description": "Simple and easy to use API.",
   "maintenance": {
-    "enabled": true,
-    "gifUrl": "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif",
-    "title": "Website Under Maintenance",
-    "message": "We're currently upgrading our systems to serve you better.<br>Please check back in a few hours."
+    "enabled": false,
+    "gifUrl": "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif"
   },
   "bannerImage": "/src/banner.jpg",
   "header": {
