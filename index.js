@@ -1,8 +1,14 @@
-const express = require("express")
-const chalk = require("chalk")
-const fs = require("fs")
-const cors = require("cors")
-const path = require("path")
+import express from "express"
+import chalk from "chalk"
+import fs from "fs"
+import cors from "cors"
+import path from "path"
+import { fileURLToPath, pathToFileURL } from "url"
+import { createRequire } from "module"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const require = createRequire(import.meta.url)
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -144,24 +150,42 @@ app.use((req, res, next) => {
 
 let totalRoutes = 0
 const apiFolder = path.join(__dirname, "./src/api")
-fs.readdirSync(apiFolder).forEach((subfolder) => {
-  const subfolderPath = path.join(apiFolder, subfolder)
-  if (fs.statSync(subfolderPath).isDirectory()) {
-    fs.readdirSync(subfolderPath).forEach((file) => {
-      const filePath = path.join(subfolderPath, file)
-      if (path.extname(file) === ".js") {
-        require(filePath)(app)
-        totalRoutes++
-        console.log(
-          chalk
-            .bgHex("#FFFF99")
-            .hex("#333")
-            .bold(` Loaded Route: ${path.basename(file)} `),
-        )
+
+// Load API routes dynamically
+const loadApiRoutes = async () => {
+  const subfolders = fs.readdirSync(apiFolder)
+
+  for (const subfolder of subfolders) {
+    const subfolderPath = path.join(apiFolder, subfolder)
+    if (fs.statSync(subfolderPath).isDirectory()) {
+      const files = fs.readdirSync(subfolderPath)
+
+      for (const file of files) {
+        const filePath = path.join(subfolderPath, file)
+        if (path.extname(file) === ".js") {
+          try {
+            const module = await import(pathToFileURL(filePath).href)
+            const routeHandler = module.default
+            if (typeof routeHandler === "function") {
+              routeHandler(app)
+              totalRoutes++
+              console.log(
+                chalk
+                  .bgHex("#FFFF99")
+                  .hex("#333")
+                  .bold(` Loaded Route: ${path.basename(file)} `),
+              )
+            }
+          } catch (error) {
+            console.error(`Error loading route ${file}:`, error)
+          }
+        }
       }
-    })
+    }
   }
-})
+}
+
+await loadApiRoutes()
 
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! ✓ "))
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Total Routes Loaded: ${totalRoutes} `))
@@ -183,4 +207,4 @@ app.listen(PORT, () => {
   console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Server is running on port ${PORT} `))
 })
 
-module.exports = app
+export default app
