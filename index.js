@@ -62,18 +62,15 @@ setInterval(() => {
   }
 }, RATE_LIMIT_WINDOW)
 
-// Maintenance mode middleware
 app.use((req, res, next) => {
   try {
     const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
 
-    // Skip maintenance check for settings API and static assets
     const skipPaths = ["/api/settings", "/assets/", "/src/"]
     const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
 
     if (settings.maintenance && settings.maintenance.enabled && !shouldSkip) {
-      // For API endpoints (including subfolders like /api/ai/), return JSON response
-      if (req.path.startsWith("/api/")) {
+      if (req.path.startsWith("/api/") || req.path.startsWith("/ai/")) {
         return res.status(503).json({
           status: false,
           error: "Service temporarily unavailable",
@@ -83,7 +80,6 @@ app.use((req, res, next) => {
         })
       }
 
-      // For web pages, show maintenance page
       return res.status(503).sendFile(path.join(__dirname, "api-page", "maintenance.html"))
     }
 
@@ -174,7 +170,6 @@ app.use((req, res, next) => {
 let totalRoutes = 0
 const apiFolder = path.join(__dirname, "./src/api")
 
-// Load API routes dynamically
 const loadApiRoutes = async () => {
   const subfolders = fs.readdirSync(apiFolder)
 
@@ -217,7 +212,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "api-page", "index.html"))
 })
 
-// Custom error handling middleware
 app.use((req, res, next) => {
   res.status(404).sendFile(path.join(__dirname, "api-page", "404.html"))
 })
@@ -225,7 +219,6 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   console.error(err.stack)
 
-  // Handle different error types
   if (err.status === 400) {
     res.status(400).sendFile(path.join(__dirname, "api-page", "400.html"))
   } else if (err.status === 401) {
