@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Maintenance Mode</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <style>
+            body {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                font-family: 'Inter', sans-serif;
+                overflow: hidden;
+            }
+            
+            .morph-item {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                animation: float 6s ease-in-out infinite;
+            }
+            
+            .morph-button {
+                backdrop-filter: blur(10px);
+                border-radius: 12px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+            
+            .morph-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            }
+            
+            .morph-button:active {
+                transform: scale(0.95);
+            }
+            
+            @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-20px); }
+            }
+            
+            @keyframes snowfall {
+                0% {
+                    transform: translateY(-100vh) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+            
+            .snowflake {
+                position: absolute;
+                top: -10px;
+                color: rgba(255, 255, 255, 0.8);
+                user-select: none;
+                pointer-events: none;
+                animation: snowfall linear infinite;
+                font-size: 1rem;
+            }
+            
+            #snow-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 1;
+            }
+            
+            .content-container {
+                position: relative;
+                z-index: 10;
+            }
+        </style>
+    </head>
+    <body class="text-white flex items-center justify-center min-h-screen w-full p-4">
+        <div class="content-container text-center morph-item px-6 py-8 max-w-md w-full">
+            <div class="mx-auto mb-6 relative w-32 h-32 sm:w-48 sm:h-48">
+                <img
+                    id="maintenanceGif"
+                    src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif"
+                    alt="Maintenance"
+                    class="object-contain w-full h-full rounded-lg"
+                />
+            </div>
+            
+            <h1 id="maintenanceTitle" class="text-2xl sm:text-3xl font-bold mb-4 text-white">
+                🔧 Under Maintenance
+            </h1>
+            
+            <p id="maintenanceMessage" class="text-sm sm:text-base text-gray-200 mb-6 leading-relaxed">
+                We're currently performing scheduled maintenance to improve our services. Please check back soon!
+            </p>
+            
+            <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <button
+                    onclick="window.location.reload()"
+                    class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition morph-button text-sm sm:text-base font-medium"
+                >
+                    🔄 Retry
+                </button>
+                
+                <button
+                    onclick="window.location.href='/'"
+                    id="homeButton"
+                    class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition morph-button text-sm sm:text-base font-medium"
+                >
+                    🏠 Go Home
+                </button>
+            </div>
+            
+            <div class="mt-6 text-xs text-gray-300">
+                <p>Expected downtime: <span id="expectedTime">30 minutes</span></p>
+            </div>
+        </div>
+        
+        <div id="snow-container"></div>
+        
+        <script>
+            // Snow animation
+            function createSnowflake() {
+                const snowContainer = document.getElementById('snow-container');
+                if (!snowContainer) return;
+                
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                snowflake.textContent = Math.random() > 0.5 ? '❄️' : '✨';
+                
+                const left = Math.floor(Math.random() * 100);
+                const duration = 5 + Math.floor(Math.random() * 10);
+                const scale = 0.5 + Math.floor(Math.random() * 15) / 10;
+                
+                snowflake.style.left = `${left}%`;
+                snowflake.style.animationDuration = `${duration}s`;
+                snowflake.style.transform = `scale(${scale})`;
+                
+                snowContainer.appendChild(snowflake);
+                
+                snowflake.addEventListener('animationend', () => {
+                    snowflake.remove();
+                });
+            }
+            
+            // Start snow animation after page load
+            setTimeout(() => {
+                const sparkleInterval = setInterval(createSnowflake, 500);
+                
+                // Limit max snowflakes
+                const maxSnowflakes = 40;
+                const checkSnowflakesCount = setInterval(() => {
+                    const snowContainer = document.getElementById('snow-container');
+                    if (snowContainer && snowContainer.children.length > maxSnowflakes) {
+                        while (snowContainer.children.length > maxSnowflakes) {
+                            snowContainer.removeChild(snowContainer.firstChild);
+                        }
+                    }
+                }, 2000);
+            }, 1000);
+            
+            // Load maintenance settings
+            fetch('/api/settings')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.maintenance) {
+                        const maintenance = data.maintenance;
+                        
+                        if (maintenance.title) {
+                            document.getElementById('maintenanceTitle').textContent = maintenance.title;
+                        }
+                        
+                        if (maintenance.message) {
+                            document.getElementById('maintenanceMessage').textContent = maintenance.message;
+                        }
+                        
+                        if (maintenance.gifUrl) {
+                            document.getElementById('maintenanceGif').src = maintenance.gifUrl;
+                        }
+                        
+                        if (maintenance.expectedTime) {
+                            document.getElementById('expectedTime').textContent = maintenance.expectedTime;
+                        }
+                        
+                        if (!maintenance.showHomeLink) {
+                            document.getElementById('homeButton').style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('Using default maintenance settings');
+                });
+        </script>
+    </body>
+</html>
