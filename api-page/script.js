@@ -69,59 +69,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Share API Functions ---
   const generateShareLink = (apiData) => {
     const url = new URL(window.location.origin + window.location.pathname)
-
-    // Create share data object
-    const shareData = {
-      path: apiData.path,
-      name: apiData.name,
-      desc: apiData.desc,
-    }
-
-    // Add parameters if they exist
-    if (apiData.params && Object.keys(apiData.params).length > 0) {
-      shareData.params = apiData.params
-    }
-
-    // Add inner description if it exists
-    if (apiData.innerDesc) {
-      shareData.innerDesc = apiData.innerDesc
-    }
-
-    // Convert to base64 to avoid URL encoding issues
-    const shareString = btoa(JSON.stringify(shareData))
-    url.searchParams.set("share", shareString)
-
+    // Remove parameters from the path before sharing
+    const cleanPath = apiData.path.split("?")[0]
+    url.searchParams.set("share", cleanPath)
     return url.toString()
   }
 
   const parseSharedApiFromUrl = () => {
-    const sharedData = getUrlParameter("share")
-    if (!sharedData) return null
-
-    try {
-      // Try to decode base64 first (new format)
-      const decodedData = JSON.parse(atob(sharedData))
-      return decodedData
-    } catch (error) {
-      // Fallback for old format (just path)
-      return { path: sharedData }
-    }
+    const sharedPath = getUrlParameter("share")
+    return sharedPath || null
   }
 
-  const findApiByPath = (pathOrData) => {
+  const findApiByPath = (path) => {
     if (!settings || !settings.categories) return null
-
-    // If it's already a complete data object, return it
-    if (typeof pathOrData === "object" && pathOrData.path) {
-      return pathOrData
-    }
-
-    // Otherwise, search by path
-    const searchPath = typeof pathOrData === "string" ? pathOrData : pathOrData.path
 
     for (const category of settings.categories) {
       for (const item of category.items) {
-        if (item.path === searchPath) {
+        // Compare both full path and clean path (without parameters)
+        const itemCleanPath = item.path.split("?")[0]
+        if (item.path === path || itemCleanPath === path) {
           return {
             path: item.path,
             name: item.name,
@@ -163,34 +129,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const openSharedApi = async (sharedData) => {
+  const openSharedApi = async (sharedPath) => {
     // Wait for settings to be loaded
     if (!settings || !settings.categories) {
-      setTimeout(() => openSharedApi(sharedData), 100)
+      setTimeout(() => openSharedApi(sharedPath), 100)
       return
     }
 
-    let apiData = null
-
-    // Handle both old format (string path) and new format (object)
-    if (typeof sharedData === "string") {
-      // Old format - just path
-      apiData = findApiByPath(sharedData)
-    } else if (typeof sharedData === "object") {
-      // New format - complete data object
-      apiData = sharedData
-
-      // Verify the API still exists in settings
-      const existingApi = findApiByPath(sharedData.path)
-      if (!existingApi) {
-        showToast("The shared API is no longer available", "error", "Share Link")
-        removeUrlParameter("share")
-        return
-      }
-    }
+    // Find the API in settings using the path
+    const apiData = findApiByPath(sharedPath)
 
     if (!apiData) {
       showToast("The shared API is no longer available", "error", "Share Link")
+      // Clean up URL parameter
       removeUrlParameter("share")
       return
     }
@@ -202,15 +153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Show modal after a short delay to ensure DOM is ready
     setTimeout(() => {
       DOM.modal.instance.show()
-
-      // Create detailed share message
-      let shareMessage = `Opened shared API: ${apiData.name}`
-      if (apiData.params && Object.keys(apiData.params).length > 0) {
-        const paramCount = Object.keys(apiData.params).length
-        shareMessage += ` (${paramCount} parameter${paramCount > 1 ? "s" : ""})`
-      }
-
-      showToast(shareMessage, "info", "Share Link")
+      showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
     }, 500)
   }
 
