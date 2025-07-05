@@ -60,6 +60,115 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.history.replaceState({}, "", url)
   }
 
+  const removeUrlParameter = (key) => {
+    const url = new URL(window.location)
+    url.searchParams.delete(key)
+    window.history.replaceState({}, "", url)
+  }
+
+  // --- Share API Functions ---
+  const generateShareLink = (apiData) => {
+    const url = new URL(window.location.origin + window.location.pathname)
+    url.searchParams.set("api", encodeURIComponent(apiData.path))
+    url.searchParams.set("name", encodeURIComponent(apiData.name))
+    url.searchParams.set("desc", encodeURIComponent(apiData.desc))
+    if (apiData.params) {
+      url.searchParams.set("params", encodeURIComponent(JSON.stringify(apiData.params)))
+    }
+    if (apiData.innerDesc) {
+      url.searchParams.set("innerDesc", encodeURIComponent(apiData.innerDesc))
+    }
+    return url.toString()
+  }
+
+  const parseSharedApiFromUrl = () => {
+    const apiPath = getUrlParameter("api")
+    const apiName = getUrlParameter("name")
+    const apiDesc = getUrlParameter("desc")
+    const apiParams = getUrlParameter("params")
+    const apiInnerDesc = getUrlParameter("innerDesc")
+
+    if (apiPath && apiName && apiDesc) {
+      return {
+        path: decodeURIComponent(apiPath),
+        name: decodeURIComponent(apiName),
+        desc: decodeURIComponent(apiDesc),
+        params: apiParams ? JSON.parse(decodeURIComponent(apiParams)) : null,
+        innerDesc: apiInnerDesc ? decodeURIComponent(apiInnerDesc) : null,
+      }
+    }
+    return null
+  }
+
+  const handleShareApi = async () => {
+    if (!currentApiData) return
+
+    const shareLink = generateShareLink(currentApiData)
+
+    try {
+      await navigator.clipboard.writeText(shareLink)
+      showToast("Share link copied to clipboard!", "success", "Share API")
+
+      // Update URL to reflect the shared API
+      const url = new URL(shareLink)
+      window.history.replaceState({}, "", url)
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement("textarea")
+      textArea.value = shareLink
+      document.body.appendChild(textArea)
+      textArea.select()
+      try {
+        document.execCommand("copy")
+        showToast("Share link copied to clipboard!", "success", "Share API")
+      } catch (fallbackErr) {
+        showToast("Failed to copy share link", "error")
+      }
+      document.body.removeChild(textArea)
+    }
+  }
+
+  const openSharedApi = async (sharedApiData) => {
+    // Wait for settings to be loaded
+    if (!settings || !settings.categories) {
+      setTimeout(() => openSharedApi(sharedApiData), 100)
+      return
+    }
+
+    // Find the API in settings to verify it exists
+    let apiExists = false
+    for (const category of settings.categories) {
+      for (const item of category.items) {
+        if (item.path === sharedApiData.path && item.name === sharedApiData.name) {
+          apiExists = true
+          break
+        }
+      }
+      if (apiExists) break
+    }
+
+    if (!apiExists) {
+      showToast("The shared API is no longer available", "error", "Share Link")
+      // Clean up URL parameters
+      removeUrlParameter("api")
+      removeUrlParameter("name")
+      removeUrlParameter("desc")
+      removeUrlParameter("params")
+      removeUrlParameter("innerDesc")
+      return
+    }
+
+    // Set current API data and open modal
+    currentApiData = sharedApiData
+    setupModalForApi(currentApiData)
+
+    // Show modal after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      DOM.modal.instance.show()
+      showToast(`Opened shared API: ${sharedApiData.name}`, "info", "Share Link")
+    }, 500)
+  }
+
   // --- Utility Functions ---
   const showToast = (message, type = "info", title = "Notification") => {
     if (!DOM.notificationToast) return
@@ -208,6 +317,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       populatePageContent()
       renderApiCategories()
       observeApiItems()
+
+      // Check for shared API in URL after everything is loaded
+      const sharedApiData = parseSharedApiFromUrl()
+      if (sharedApiData) {
+        openSharedApi(sharedApiData)
+      }
     } catch (error) {
       console.error("Error loading settings:", error)
       showToast(`Failed to load settings: ${error.message}`, "error")
@@ -670,8 +785,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Hide all footer buttons initially
     const editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
     const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
+    const shareApiBtn = DOM.modal.element.querySelector(".share-api-btn")
     if (editParamsBtn) editParamsBtn.style.display = "none"
     if (downloadImageBtn) downloadImageBtn.style.display = "none"
+    if (shareApiBtn) shareApiBtn.style.display = "none"
+
+    // Create share button if it doesn't exist
+    if (!shareApiBtn) {
+      const newShareBtn = document.createElement("button")
+      newShareBtn.className = "btn btn-info me-2 share-api-btn"
+      newShareBtn.innerHTML = '<i class="fas fa-share-alt me-2"></i> Share API'
+      newShareBtn.onclick = handleShareApi
+
+      // Insert the share button in the modal footer
+      const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+      modalFooter.insertBefore(newShareBtn, DOM.modal.submitBtn)
+    }
+
+    // Always show share button when modal opens
+    const shareBtn = DOM.modal.element.querySelector(".share-api-btn")
+    if (shareBtn) shareBtn.style.display = "inline-block"
 
     const paramsFromPath = new URLSearchParams(apiData.path.split("?")[1])
     const paramKeys = Array.from(paramsFromPath.keys())
