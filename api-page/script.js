@@ -69,32 +69,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Share API Functions ---
   const generateShareLink = (apiData) => {
     const url = new URL(window.location.origin + window.location.pathname)
-    url.searchParams.set("api", encodeURIComponent(apiData.path))
-    url.searchParams.set("name", encodeURIComponent(apiData.name))
-    url.searchParams.set("desc", encodeURIComponent(apiData.desc))
-    if (apiData.params) {
-      url.searchParams.set("params", encodeURIComponent(JSON.stringify(apiData.params)))
-    }
-    if (apiData.innerDesc) {
-      url.searchParams.set("innerDesc", encodeURIComponent(apiData.innerDesc))
-    }
+    // Only use the API path for sharing - much simpler!
+    url.searchParams.set("share", apiData.path)
     return url.toString()
   }
 
   const parseSharedApiFromUrl = () => {
-    const apiPath = getUrlParameter("api")
-    const apiName = getUrlParameter("name")
-    const apiDesc = getUrlParameter("desc")
-    const apiParams = getUrlParameter("params")
-    const apiInnerDesc = getUrlParameter("innerDesc")
+    const sharedPath = getUrlParameter("share")
+    return sharedPath || null
+  }
 
-    if (apiPath && apiName && apiDesc) {
-      return {
-        path: decodeURIComponent(apiPath),
-        name: decodeURIComponent(apiName),
-        desc: decodeURIComponent(apiDesc),
-        params: apiParams ? JSON.parse(decodeURIComponent(apiParams)) : null,
-        innerDesc: apiInnerDesc ? decodeURIComponent(apiInnerDesc) : null,
+  const findApiByPath = (path) => {
+    if (!settings || !settings.categories) return null
+
+    for (const category of settings.categories) {
+      for (const item of category.items) {
+        if (item.path === path) {
+          return {
+            path: item.path,
+            name: item.name,
+            desc: item.desc,
+            params: item.params || null,
+            innerDesc: item.innerDesc || null,
+          }
+        }
       }
     }
     return null
@@ -110,8 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       showToast("Share link copied to clipboard!", "success", "Share API")
 
       // Update URL to reflect the shared API
-      const url = new URL(shareLink)
-      window.history.replaceState({}, "", url)
+      updateUrlParameter("share", currentApiData.path)
     } catch (err) {
       // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement("textarea")
@@ -121,6 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
+        updateUrlParameter("share", currentApiData.path)
       } catch (fallbackErr) {
         showToast("Failed to copy share link", "error")
       }
@@ -128,44 +126,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const openSharedApi = async (sharedApiData) => {
+  const openSharedApi = async (sharedPath) => {
     // Wait for settings to be loaded
     if (!settings || !settings.categories) {
-      setTimeout(() => openSharedApi(sharedApiData), 100)
+      setTimeout(() => openSharedApi(sharedPath), 100)
       return
     }
 
-    // Find the API in settings to verify it exists
-    let apiExists = false
-    for (const category of settings.categories) {
-      for (const item of category.items) {
-        if (item.path === sharedApiData.path && item.name === sharedApiData.name) {
-          apiExists = true
-          break
-        }
-      }
-      if (apiExists) break
-    }
+    // Find the API in settings using the path
+    const apiData = findApiByPath(sharedPath)
 
-    if (!apiExists) {
+    if (!apiData) {
       showToast("The shared API is no longer available", "error", "Share Link")
-      // Clean up URL parameters
-      removeUrlParameter("api")
-      removeUrlParameter("name")
-      removeUrlParameter("desc")
-      removeUrlParameter("params")
-      removeUrlParameter("innerDesc")
+      // Clean up URL parameter
+      removeUrlParameter("share")
       return
     }
 
     // Set current API data and open modal
-    currentApiData = sharedApiData
+    currentApiData = apiData
     setupModalForApi(currentApiData)
 
     // Show modal after a short delay to ensure DOM is ready
     setTimeout(() => {
       DOM.modal.instance.show()
-      showToast(`Opened shared API: ${sharedApiData.name}`, "info", "Share Link")
+      showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
     }, 500)
   }
 
@@ -319,9 +304,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       observeApiItems()
 
       // Check for shared API in URL after everything is loaded
-      const sharedApiData = parseSharedApiFromUrl()
-      if (sharedApiData) {
-        openSharedApi(sharedApiData)
+      const sharedPath = parseSharedApiFromUrl()
+      if (sharedPath) {
+        openSharedApi(sharedPath)
       }
     } catch (error) {
       console.error("Error loading settings:", error)
