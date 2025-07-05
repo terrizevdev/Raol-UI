@@ -63,33 +63,29 @@ setInterval(() => {
 }, RATE_LIMIT_WINDOW)
 
 // Maintenance mode middleware
-app.use(async (req, res, next) => {
+app.use((req, res, next) => {
   try {
-    const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
+    const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "settings.json"), "utf-8"))
 
-    // Skip maintenance check for maintenance status API and static assets
-    if (
-      req.path === "/api/maintenance-status" ||
-      req.path === "/api/settings" ||
-      req.path.startsWith("/assets/") ||
-      req.path.startsWith("/src/") ||
-      req.path === "/maintenance"
-    ) {
-      return next()
-    }
+    // Skip maintenance check for settings API and static assets
+    const skipPaths = ["/api/settings", "/assets/", "/src/", "/api-page/"]
+    const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
 
-    if (settings.maintenance && settings.maintenance.enabled) {
-      // For API requests, return JSON response
+    if (settings.maintenance?.enabled && !shouldSkip) {
+      // For API endpoints, return JSON response
       if (req.path.startsWith("/api/") || req.path.startsWith("/ai/")) {
         return res.status(503).json({
           status: false,
+          error: "Service temporarily unavailable",
+          message:
+            settings.maintenance.message ||
+            "We're currently performing scheduled maintenance to improve our services. Please check back later.",
           maintenance: true,
-          message: settings.maintenance.message || "API is currently under maintenance. Please try again later.",
           estimatedTime: settings.maintenance.estimatedTime || "We'll be back soon!",
         })
       }
 
-      // For web requests, serve maintenance page
+      // For web pages, serve maintenance page
       return res.status(503).sendFile(path.join(__dirname, "api-page", "maintenance.html"))
     }
 
@@ -117,22 +113,6 @@ app.get("/api/settings", (req, res) => {
   } catch (error) {
     res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
   }
-})
-
-app.get("/api/maintenance-status", (req, res) => {
-  try {
-    const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "settings.json"), "utf-8"))
-    res.json({
-      maintenance: settings.maintenance ? settings.maintenance.enabled : false,
-      message: settings.maintenance ? settings.maintenance.message : null,
-    })
-  } catch (error) {
-    res.status(500).json({ maintenance: false, error: "Could not check maintenance status" })
-  }
-})
-
-app.get("/maintenance", (req, res) => {
-  res.sendFile(path.join(__dirname, "api-page", "maintenance.html"))
 })
 
 app.get("/api/notifications", (req, res) => {
@@ -234,6 +214,10 @@ await loadApiRoutes()
 
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! ✓ "))
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Total Routes Loaded: ${totalRoutes} `))
+
+app.get("/maintenance", (req, res) => {
+  res.sendFile(path.join(__dirname, "api-page", "maintenance.html"))
+})
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "api-page", "index.html"))
