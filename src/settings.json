@@ -7,12 +7,8 @@
     "status": "Active!"
   },
   "maintenance": {
-    "enabled": true,
-    "title": "🔧 Under Maintenance",
-    "message": "We're currently performing scheduled maintenance to improve our services. Please check back soon!",
-    "gifUrl": "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif",
-    "expectedTime": "30 minutes",
-    "showHomeLink": true
+    "enabled": false,
+    "showHomeLink": false
   },
   "apiSettings": {
     "creator": "VGX Team",
