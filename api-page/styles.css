@@ -313,6 +313,7 @@ a:hover {
   left: 0;
   top: 0;
   height: 100vh;
+  min-height: 100vh; /* Ensure full viewport height */
   width: var(--side-nav-width);
   min-width: 280px;
   background: linear-gradient(180deg, var(--card-background) 0%, rgba(var(--background-color-rgb), 0.95) 100%);
@@ -439,6 +440,8 @@ a:hover {
   scrollbar-width: thin;
   scrollbar-color: var(--primary-color) transparent;
   padding: 0 var(--space-sm);
+  min-height: 0; /* Allow flex item to shrink */
+  max-height: calc(100vh - 180px); /* Ensure space for logo and padding */
 }
 
 .side-nav-links::-webkit-scrollbar {
