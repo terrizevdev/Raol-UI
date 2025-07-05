@@ -313,7 +313,6 @@ a:hover {
   left: 0;
   top: 0;
   height: 100vh;
-  min-height: 100vh; /* Ensure full viewport height */
   width: var(--side-nav-width);
   min-width: 280px;
   background: linear-gradient(180deg, var(--card-background) 0%, rgba(var(--background-color-rgb), 0.95) 100%);
@@ -325,7 +324,6 @@ a:hover {
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
-  padding: var(--space-lg) 0;
   overflow: hidden;
   transform: translateX(0);
 }
@@ -361,21 +359,17 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 var(--space-lg);
-  margin-bottom: var(--space-xl);
+  padding: var(--space-lg);
   gap: var(--space-md);
   position: relative;
-  min-height: 60px;
+  min-height: 80px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0;
 }
 
 .side-nav-logo::after {
-  content: "";
-  position: absolute;
-  bottom: -15px;
-  left: var(--space-lg);
-  right: var(--space-lg);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+  display: none;
 }
 
 .side-nav-logo #sideNavName {
@@ -402,19 +396,9 @@ a:hover {
   animation: pulse-glow 3s ease-in-out infinite;
 }
 
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 2px 8px rgba(0, 184, 148, 0.3);
-  }
-  50% {
-    box-shadow: 0 4px 16px rgba(0, 184, 148, 0.5);
-  }
-}
-
 .side-nav.collapsed .side-nav-logo {
   justify-content: center;
-  padding: 0 var(--space-sm);
+  padding: var(--space-lg) var(--space-sm);
 }
 
 .side-nav.collapsed .side-nav-logo #sideNavName,
@@ -426,22 +410,15 @@ a:hover {
   overflow: hidden;
 }
 
-.side-nav.collapsed .side-nav-logo::after {
-  left: var(--space-sm);
-  right: var(--space-sm);
-}
-
 .side-nav-links {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--primary-color) transparent;
-  padding: 0 var(--space-sm);
-  min-height: 0; /* Allow flex item to shrink */
-  max-height: calc(100vh - 180px); /* Ensure space for logo and padding */
+  padding: var(--space-md) var(--space-sm) var(--space-lg) var(--space-sm);
 }
 
 .side-nav-links::-webkit-scrollbar {
@@ -470,6 +447,7 @@ a:hover {
   position: relative;
   overflow: hidden;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .side-nav-link::before {
