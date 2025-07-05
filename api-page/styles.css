@@ -39,7 +39,7 @@
   --space-xxl: 48px;
 
   /* Layout */
-  --side-nav-width: 250px;
+  --side-nav-width: 280px;
   --side-nav-collapsed: 70px;
   --header-height: 70px;
 
@@ -308,17 +308,13 @@ a:hover {
   flex-direction: column;
 }
 
-.main-wrapper.nav-collapsed {
-  margin-left: var(--side-nav-collapsed-width);
-}
-
-/* Side Navigation - Enhanced & Responsive */
 .side-nav {
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
   width: var(--side-nav-width);
+  min-width: 280px;
   background: linear-gradient(180deg, var(--card-background) 0%, rgba(var(--background-color-rgb), 0.95) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -331,6 +327,17 @@ a:hover {
   padding: var(--space-lg) 0;
   overflow: hidden;
   transform: translateX(0);
+}
+
+@media (min-width: 1200px) {
+  .side-nav {
+    width: 300px;
+    min-width: 300px;
+  }
+
+  :root {
+    --side-nav-width: 300px;
+  }
 }
 
 .side-nav::before {
