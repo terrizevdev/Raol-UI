@@ -612,11 +612,11 @@ a:hover {
 }
 
 .search-container {
-  max-width: 400px; /* Changed from 320px */
+  max-width: 300px; /* Changed from 400px for better balance */
   width: 100%;
   margin: 0 var(--space-md);
   position: relative;
-  flex-shrink: 1;
+  flex-shrink: 0; /* Changed from flex-shrink: 1 to prevent shrinking */
 }
 
 .input-group {
@@ -791,8 +791,7 @@ a:hover {
   }
 
   .search-container {
-    max-width: 350px;
-    margin: 0 auto 0 var(--space-md);
+    /* Removed responsive overrides for search-container */
   }
 
   .main-header {
@@ -813,8 +812,7 @@ a:hover {
     text-align: center;
   }
   .search-container {
-    max-width: 280px;
-    margin: 0 var(--space-sm);
+    /* Removed responsive overrides for search-container */
   }
   .footer-content {
     flex-direction: column;
@@ -832,31 +830,17 @@ a:hover {
   .main-footer {
     padding: var(--space-md) var(--space-lg);
   }
-  /* Remove this rule to keep footer links side by side */
-  /* .footer-links {
-    flex-direction: column;
-    align-items: center;
-  } */
 }
 
 @media (max-width: 576px) {
   .main-header {
-    padding: 0 var(--space-sm);
+    padding: 0 var(--space-md); /* Changed from var(--space-sm) */
     height: 56px;
   }
 
   .search-container {
     margin: 0 var(--space-xs);
     max-width: calc(100vw - 120px);
-  }
-
-  .input-group {
-    border-radius: var(--border-radius-sm);
-  }
-
-  #searchInput {
-    font-size: 0.9rem;
-    padding: var(--space-sm) 0;
   }
 
   .side-nav {
@@ -2013,8 +1997,7 @@ input:checked + .slider:before {
     display: flex;
   }
   .search-container {
-    max-width: 350px;
-    margin: 0 auto 0 var(--space-md);
+    /* Removed responsive overrides for search-container */
   }
   .api-section,
   .hero-section {
@@ -2042,8 +2025,7 @@ input:checked + .slider:before {
     text-align: center;
   }
   .search-container {
-    max-width: 280px;
-    margin: 0 var(--space-sm);
+    /* Removed responsive overrides for search-container */
   }
   .footer-content {
     flex-direction: column;
@@ -2226,7 +2208,7 @@ input:checked + .slider:before {
 
   .search-container {
     margin: 0 var(--space-sm) 0 auto;
-    max-width: 240px;
+    max-width: 300px; /* Updated to maintain consistent width */
   }
 
   .header-actions {
@@ -2239,41 +2221,3 @@ input:checked + .slider:before {
     font-size: 1.1rem;
   }
 }
-
-/* Remove or comment out these responsive overrides */
-/*
-@media (max-width: 992px) {
-  .search-container {
-    max-width: 350px;
-    margin: 0 auto 0 var(--space-md);
-  }
-}
-
-@media (max-width: 768px) {
-  .search-container {
-    max-width: 280px;
-    margin: 0 var(--space-sm);
-  }
-}
-
-@media (max-width: 576px) {
-  .notification-bell {
-    width: 36px;
-    height: 36px;
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .search-container {
-    margin: 0 var(--space-sm) 0 auto;
-    max-width: 240px;
-  }
-  
-  .notification-bell {
-    width: 32px;
-    height: 32px;
-    font-size: 1.1rem;
-  }
-}
-*/
