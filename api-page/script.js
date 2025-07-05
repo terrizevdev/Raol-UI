@@ -44,6 +44,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   let currentApiData = null // To store API data currently displayed in the modal
   let allNotifications = [] // To store all notifications from JSON
 
+  // --- URL Parameter Functions ---
+  const getUrlParameter = (name) => {
+    const urlParams = new URLSearchParams(window.location.search)
+    return urlParams.get(name)
+  }
+
+  const updateUrlParameter = (key, value) => {
+    const url = new URL(window.location)
+    if (value) {
+      url.searchParams.set(key, value)
+    } else {
+      url.searchParams.delete(key)
+    }
+    window.history.replaceState({}, "", url)
+  }
+
   // --- Utility Functions ---
   const showToast = (message, type = "info", title = "Notification") => {
     if (!DOM.notificationToast) return
@@ -254,11 +270,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- Theme Management ---
   const initTheme = () => {
-    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-    const savedTheme = localStorage.getItem("darkMode")
-    if (savedTheme === "true" || (savedTheme === null && prefersDark)) {
+    // Check URL parameter first
+    const modeParam = getUrlParameter("mode")
+
+    if (modeParam === "dark") {
+      // Force dark mode from URL parameter
       DOM.body.classList.add("dark-mode")
       if (DOM.themeToggle) DOM.themeToggle.checked = true
+      localStorage.setItem("darkMode", "true")
+      showToast("Dark mode activated from URL parameter", "info")
+    } else if (modeParam === "light") {
+      // Force light mode from URL parameter
+      DOM.body.classList.remove("dark-mode")
+      if (DOM.themeToggle) DOM.themeToggle.checked = false
+      localStorage.setItem("darkMode", "false")
+      showToast("Light mode activated from URL parameter", "info")
+    } else {
+      // Use saved preference or system preference
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+      const savedTheme = localStorage.getItem("darkMode")
+
+      if (savedTheme === "true" || (savedTheme === null && prefersDark)) {
+        DOM.body.classList.add("dark-mode")
+        if (DOM.themeToggle) DOM.themeToggle.checked = true
+      }
     }
   }
 
@@ -266,6 +301,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.body.classList.toggle("dark-mode")
     const isDarkMode = DOM.body.classList.contains("dark-mode")
     localStorage.setItem("darkMode", isDarkMode)
+
+    // Update URL parameter
+    updateUrlParameter("mode", isDarkMode ? "dark" : "light")
+
     showToast(`Switched to ${isDarkMode ? "dark" : "light"} mode`, "success")
   }
 
@@ -347,8 +386,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     setPageContent(DOM.appName, settings.name, "Raol Api'S")
     setPageContent(DOM.sideNavName, settings.name || "API")
     setPageContent(DOM.versionBadge, settings.version, "v1.0")
-    setPageContent(DOM.versionHeaderBadge, settings.header?.status, "Aktif!")
-    setPageContent(DOM.appDescription, settings.description, "Dokumentasi API simpel dan mudah digunakan.")
+    setPageContent(DOM.versionHeaderBadge, settings.header?.status, "Active!")
+    setPageContent(DOM.appDescription, settings.description, "Simple and easy to use API documentation.")
 
     // Set banner image
     if (DOM.dynamicImage) {
