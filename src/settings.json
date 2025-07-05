@@ -7,7 +7,7 @@
     "status": "Active!"
   },
   "maintenance": {
-    "enabled": false,
+    "enabled": true,
     "title": "Under Maintenance",
     "message": "We're currently performing scheduled maintenance to improve our services. Please check back later.",
     "estimatedTime": "We'll be back soon!"
