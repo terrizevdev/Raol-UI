@@ -189,13 +189,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const response = await fetch("/api/settings")
       if (!response.ok) throw new Error(`Failed to load settings: ${response.status}`)
       settings = await response.json()
-
-      // Check if maintenance mode is enabled
-      if (settings.maintenance?.enabled) {
-        window.location.href = "/maintenance"
-        return
-      }
-
       populatePageContent()
       renderApiCategories()
       observeApiItems()

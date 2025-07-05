@@ -1,339 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Under Maintenance - Raol Api'S</title>
-    <link rel="icon" href="/src/icon.png" type="image/png">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #6c5ce7;
-            --primary-hover: #5649d1;
-            --secondary-color: #a29bfe;
-            --accent-color: #00cec9;
-            --background-color: #f9fbff;
-            --card-background: #ffffff;
-            --text-color: #2c3e50;
-            --text-muted: #7f8c8d;
-            --border-color: rgba(0, 0, 0, 0.06);
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --border-radius: 12px;
-            --border-radius-lg: 20px;
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .dark-mode {
-            --primary-color: #8b0000;
-            --primary-hover: #a9a9a9;
-            --secondary-color: #8b0000;
-            --accent-color: #8b0000;
-            --background-color: #000000;
-            --card-background: #121212;
-            --text-color: #ffffff;
-            --text-muted: #cccccc;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: "Outfit", sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-            overflow: hidden;
-        }
-
-        .maintenance-container {
-            text-align: center;
-            max-width: 600px;
-            padding: 2rem;
-            background: var(--card-background);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow);
-            position: relative;
-            z-index: 10;
-        }
-
-        .maintenance-gif {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
-            border-radius: var(--border-radius);
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
-        }
-
-        .maintenance-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .maintenance-message {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .maintenance-time {
-            font-size: 1rem;
-            color: var(--primary-color);
-            font-weight: 600;
-            margin-bottom: 2rem;
-            padding: 1rem;
-            background: rgba(108, 92, 231, 0.1);
-            border-radius: var(--border-radius);
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .maintenance-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: var(--card-background);
-            color: var(--text-color);
-            border: 2px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-            transform: translateY(-2px);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: var(--card-background);
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            z-index: 20;
-        }
-
-        .theme-toggle:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-            transform: scale(1.1);
-        }
-
-        .floating-shapes {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            opacity: 0.1;
-            animation: float 10s infinite alternate;
-        }
-
-        .shape-1 {
-            width: 200px;
-            height: 200px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .shape-2 {
-            width: 150px;
-            height: 150px;
-            top: 60%;
-            right: 15%;
-            animation-delay: 2s;
-        }
-
-        .shape-3 {
-            width: 100px;
-            height: 100px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 4s;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-            100% { transform: translateY(0px) rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .maintenance-container {
-                margin: 1rem;
-                padding: 1.5rem;
-            }
-            
-            .maintenance-title {
-                font-size: 2rem;
-            }
-            
-            .maintenance-message {
-                font-size: 1rem;
-            }
-            
-            .maintenance-actions {
-                flex-direction: column;
-            }
-            
-            .theme-toggle {
-                top: 1rem;
-                right: 1rem;
-                width: 40px;
-                height: 40px;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>Maintenance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    .fade-in {
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .pulse-button {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .maintenance-gif {
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    }
+  </style>
 </head>
-<body>
-    <div class="floating-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
+<body class="bg-white min-h-screen flex flex-col justify-center items-center relative overflow-hidden px-4">
+  <!-- Center content -->
+  <div class="flex flex-col items-center max-w-md text-center space-y-6 z-10 fade-in">
+    <div class="w-24 h-24">
+      <img
+        alt="Animated gif showing maintenance with blue and white colors"
+        class="w-full h-full object-contain maintenance-gif"
+        id="maintenanceGif"
+        src="https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif"
+        decoding="async"
+        loading="lazy"
+        onerror="this.style.display='none'; document.getElementById('fallbackIcon').style.display='block';"
+      />
+      <!-- Fallback icon if GIF fails to load -->
+      <div id="fallbackIcon" class="w-full h-full flex items-center justify-center bg-blue-100 rounded-full" style="display: none;">
+        <i class="fas fa-tools text-blue-600 text-3xl"></i>
+      </div>
     </div>
-
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <i class="fas fa-moon" id="themeIcon"></i>
+    
+    <h1 class="text-black text-2xl font-semibold" id="maintenanceTitle">Website Under Maintenance</h1>
+    
+    <p class="text-gray-600 text-sm leading-relaxed" id="maintenanceMessage">
+      We're currently upgrading our systems to serve you better.
+      <br />
+      Please check back in a few hours.
+    </p>
+    
+    <button
+      class="w-full bg-blue-600 text-white py-3 rounded-md text-base font-medium hover:bg-blue-700 transition-all duration-300 pulse-button"
+      type="button"
+      onclick="location.reload()"
+    >
+      <i class="fas fa-sync-alt mr-2"></i>
+      Retry
     </button>
-
-    <div class="maintenance-container">
-        <img src="https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif" 
-             alt="Under Maintenance" 
-             class="maintenance-gif"
-             onerror="this.style.display='none'">
-        
-        <h1 class="maintenance-title" id="maintenanceTitle">Under Maintenance</h1>
-        <p class="maintenance-message" id="maintenanceMessage">
-            We're currently performing scheduled maintenance to improve our services. Please check back later.
-        </p>
-        <div class="maintenance-time" id="maintenanceTime">
-            <i class="fas fa-clock me-2"></i>
-            We'll be back soon!
-        </div>
-        
-        <div class="maintenance-actions">
-            <button onclick="location.reload()" class="btn btn-primary">
-                <i class="fas fa-sync-alt"></i>
-                Refresh Page
-            </button>
-            <a href="https://whatsapp.com/channel/0029VbAi8n811ulGIozTyF3x" target="_blank" class="btn btn-secondary">
-                <i class="fab fa-whatsapp"></i>
-                Contact Support
-            </a>
-        </div>
+    
+    <!-- Additional info -->
+    <div class="text-xs text-gray-400 mt-4">
+      <i class="fas fa-clock mr-1"></i>
+      Last updated: <span id="currentTime"></span>
     </div>
+  </div>
 
-    <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        const body = document.body;
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('darkMode');
-        if (savedTheme === 'true') {
-            body.classList.add('dark-mode');
-            themeIcon.className = 'fas fa-sun';
+  <script>
+    // Update current time
+    function updateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      document.getElementById('currentTime').textContent = timeString;
+    }
+    
+    // Load maintenance settings from server
+    async function loadMaintenanceSettings() {
+      try {
+        const response = await fetch('/api/settings');
+        const settings = await response.json();
+        
+        if (settings.maintenance) {
+          // Update GIF URL
+          if (settings.maintenance.gifUrl) {
+            document.getElementById('maintenanceGif').src = settings.maintenance.gifUrl;
+          }
+          
+          // Update title
+          if (settings.maintenance.title) {
+            document.getElementById('maintenanceTitle').textContent = settings.maintenance.title;
+          }
+          
+          // Update message
+          if (settings.maintenance.message) {
+            document.getElementById('maintenanceMessage').innerHTML = settings.maintenance.message;
+          }
         }
-
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            const isDark = body.classList.contains('dark-mode');
-            
-            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('darkMode', isDark);
-        });
-
-        // Load maintenance settings from API
-        fetch('/api/settings')
-            .then(response => response.json())
-            .then(data => {
-                if (data.maintenance) {
-                    document.getElementById('maintenanceTitle').textContent = data.maintenance.title || 'Under Maintenance';
-                    document.getElementById('maintenanceMessage').textContent = data.maintenance.message || 'We\'re currently performing scheduled maintenance to improve our services. Please check back later.';
-                    document.getElementById('maintenanceTime').innerHTML = `<i class="fas fa-clock me-2"></i>${data.maintenance.estimatedTime || 'We\'ll be back soon!'}`;
-                }
-                document.title = `${data.maintenance?.title || 'Under Maintenance'} - ${data.name || 'Raol Api\'S'}`;
-            })
-            .catch(error => {
-                console.error('Error loading maintenance settings:', error);
-            });
-
-        // Auto refresh every 30 seconds
-        setInterval(() => {
-            fetch('/api/settings')
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.maintenance?.enabled) {
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking maintenance status:', error);
-                });
-        }, 30000);
-    </script>
+      } catch (error) {
+        console.log('Could not load maintenance settings, using defaults');
+      }
+    }
+    
+    // Initialize
+    updateTime();
+    loadMaintenanceSettings();
+    
+    // Update time every minute
+    setInterval(updateTime, 60000);
+    
+    // Auto-retry every 30 seconds
+    setTimeout(() => {
+      location.reload();
+    }, 30000);
+  </script>
 </body>
 </html>
