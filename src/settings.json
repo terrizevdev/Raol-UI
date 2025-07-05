@@ -4,9 +4,9 @@
   "description": "Simple and easy to use API.",
   "maintenance": {
     "enabled": false,
-    "title": "Under Maintenance",
-    "message": "We're currently performing scheduled maintenance to improve our services. Please check back later.",
-    "estimatedTime": "We'll be back soon!"
+    "gifUrl": "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif",
+    "title": "Website Under Maintenance",
+    "message": "We're currently upgrading our systems to serve you better.<br>Please check back in a few hours."
   },
   "bannerImage": "/src/banner.jpg",
   "header": {
