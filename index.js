@@ -28,41 +28,6 @@ app.use((req, res, next) => {
   next()
 })
 
-// Load settings for maintenance check
-const settingsPath = path.join(__dirname, "./src/settings.json")
-let settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
-
-// Maintenance mode middleware
-app.use((req, res, next) => {
-  // Reload settings on each request to check maintenance status
-  try {
-    settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
-  } catch (error) {
-    console.error("Error reloading settings:", error)
-  }
-
-  // Skip maintenance check for assets and settings API
-  const skipPaths = ["/assets/", "/api/settings", "/api/notifications"]
-  const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
-
-  if (!shouldSkip && settings.maintenance && settings.maintenance.enabled) {
-    // For API requests, return JSON response
-    if (req.path.startsWith("/api/") || req.path.startsWith("/ai/")) {
-      return res.status(503).json({
-        status: false,
-        maintenance: true,
-        message: settings.maintenance.message || "API is currently under maintenance. Please try again later.",
-        expectedTime: settings.maintenance.expectedTime || "Unknown",
-      })
-    }
-
-    // For web requests, serve maintenance page
-    return res.status(503).sendFile(path.join(__dirname, "api-page", "maintenance.html"))
-  }
-
-  next()
-})
-
 const requestCounts = new Map()
 const RATE_LIMIT_WINDOW = 1 * 60 * 1000
 const RATE_LIMIT_MAX = 15
@@ -97,6 +62,44 @@ setInterval(() => {
   }
 }, RATE_LIMIT_WINDOW)
 
+// Maintenance mode middleware
+app.use(async (req, res, next) => {
+  try {
+    const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
+
+    // Skip maintenance check for maintenance status API and static assets
+    if (
+      req.path === "/api/maintenance-status" ||
+      req.path === "/api/settings" ||
+      req.path.startsWith("/assets/") ||
+      req.path.startsWith("/src/") ||
+      req.path === "/maintenance"
+    ) {
+      return next()
+    }
+
+    if (settings.maintenance && settings.maintenance.enabled) {
+      // For API requests, return JSON response
+      if (req.path.startsWith("/api/") || req.path.startsWith("/ai/")) {
+        return res.status(503).json({
+          status: false,
+          maintenance: true,
+          message: settings.maintenance.message || "API is currently under maintenance. Please try again later.",
+          estimatedTime: settings.maintenance.estimatedTime || "We'll be back soon!",
+        })
+      }
+
+      // For web requests, serve maintenance page
+      return res.status(503).sendFile(path.join(__dirname, "api-page", "maintenance.html"))
+    }
+
+    next()
+  } catch (error) {
+    console.error("Error checking maintenance mode:", error)
+    next()
+  }
+})
+
 app.get("/assets/styles.css", (req, res) => {
   res.setHeader("Content-Type", "text/css")
   res.sendFile(path.join(__dirname, "api-page", "styles.css"))
@@ -114,6 +117,22 @@ app.get("/api/settings", (req, res) => {
   } catch (error) {
     res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
   }
+})
+
+app.get("/api/maintenance-status", (req, res) => {
+  try {
+    const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "settings.json"), "utf-8"))
+    res.json({
+      maintenance: settings.maintenance ? settings.maintenance.enabled : false,
+      message: settings.maintenance ? settings.maintenance.message : null,
+    })
+  } catch (error) {
+    res.status(500).json({ maintenance: false, error: "Could not check maintenance status" })
+  }
+})
+
+app.get("/maintenance", (req, res) => {
+  res.sendFile(path.join(__dirname, "api-page", "maintenance.html"))
 })
 
 app.get("/api/notifications", (req, res) => {
@@ -154,6 +173,9 @@ app.use("/src", (req, res, next) => {
     res.status(403).sendFile(path.join(__dirname, "api-page", "403.html"))
   }
 })
+
+const settingsPath = path.join(__dirname, "./src/settings.json")
+const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
 
 app.use((req, res, next) => {
   const originalJson = res.json
