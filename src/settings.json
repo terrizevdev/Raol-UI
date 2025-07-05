@@ -1,7 +1,7 @@
 {
   "name": "Raol Api'S",
   "version": "v1.0.0",
-  "description": "Simple and easy to use API.",
+  "description": "Simple and easy to use API documentation interface.",
   "maintenance": {
     "enabled": false,
     "gifUrl": "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif"
@@ -20,11 +20,11 @@
       "items": [
         {
           "name": "LuminAI",
-          "desc": "Talk with luminai - Advanced AI assistant",
+          "desc": "Chat with LuminAI - Advanced AI assistant for conversations",
           "path": "/ai/luminai?text=",
           "status": "ready",
           "params": {
-            "text": "Text for luminai to respond to"
+            "text": "Text message for LuminAI to respond to"
           }
         }
       ]
