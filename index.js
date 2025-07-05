@@ -28,6 +28,41 @@ app.use((req, res, next) => {
   next()
 })
 
+// Load settings for maintenance check
+const settingsPath = path.join(__dirname, "./src/settings.json")
+let settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
+
+// Maintenance mode middleware
+app.use((req, res, next) => {
+  // Reload settings on each request to check maintenance status
+  try {
+    settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
+  } catch (error) {
+    console.error("Error reloading settings:", error)
+  }
+
+  // Skip maintenance check for assets and settings API
+  const skipPaths = ["/assets/", "/api/settings", "/api/notifications"]
+  const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
+
+  if (!shouldSkip && settings.maintenance && settings.maintenance.enabled) {
+    // For API requests, return JSON response
+    if (req.path.startsWith("/api/") || req.path.startsWith("/ai/")) {
+      return res.status(503).json({
+        status: false,
+        maintenance: true,
+        message: settings.maintenance.message || "API is currently under maintenance. Please try again later.",
+        expectedTime: settings.maintenance.expectedTime || "Unknown",
+      })
+    }
+
+    // For web requests, serve maintenance page
+    return res.status(503).sendFile(path.join(__dirname, "api-page", "maintenance.html"))
+  }
+
+  next()
+})
+
 const requestCounts = new Map()
 const RATE_LIMIT_WINDOW = 1 * 60 * 1000
 const RATE_LIMIT_MAX = 15
@@ -119,9 +154,6 @@ app.use("/src", (req, res, next) => {
     res.status(403).sendFile(path.join(__dirname, "api-page", "403.html"))
   }
 })
-
-const settingsPath = path.join(__dirname, "./src/settings.json")
-const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
 
 app.use((req, res, next) => {
   const originalJson = res.json
