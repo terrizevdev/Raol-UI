@@ -667,11 +667,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.modal.submitBtn.disabled = true
     DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
 
-    // Hide edit parameters button initially
+    // Hide all footer buttons initially
     const editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
-    if (editParamsBtn) {
-      editParamsBtn.style.display = "none"
-    }
+    const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
+    if (editParamsBtn) editParamsBtn.style.display = "none"
+    if (downloadImageBtn) downloadImageBtn.style.display = "none"
 
     const paramsFromPath = new URLSearchParams(apiData.path.split("?")[1])
     const paramKeys = Array.from(paramsFromPath.keys())
@@ -832,14 +832,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         img.alt = apiName
         img.className = "response-image img-fluid rounded shadow-sm fade-in"
 
-        const downloadBtn = document.createElement("a")
-        downloadBtn.href = imageUrl
-        downloadBtn.download = `${apiName.toLowerCase().replace(/\s+/g, "-")}.${blob.type.split("/")[1] || "png"}`
-        downloadBtn.className = "btn btn-primary mt-3 w-100"
-        downloadBtn.innerHTML = '<i class="fas fa-download me-2"></i> Download Image'
-
+        // Only add image to content, download button will be in footer
         DOM.modal.content.appendChild(img)
-        DOM.modal.content.appendChild(downloadBtn)
+
+        // Create download button in modal footer
+        let downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
+        if (!downloadImageBtn) {
+          downloadImageBtn = document.createElement("a")
+          downloadImageBtn.className = "btn btn-success me-2 download-image-btn"
+          downloadImageBtn.innerHTML = '<i class="fas fa-download me-2"></i> Download Image'
+          downloadImageBtn.style.textDecoration = "none"
+
+          // Insert the download button before the submit button in the modal footer
+          const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+          modalFooter.insertBefore(downloadImageBtn, DOM.modal.submitBtn)
+        }
+
+        // Update download button properties
+        downloadImageBtn.href = imageUrl
+        downloadImageBtn.download = `${apiName.toLowerCase().replace(/\s+/g, "-")}.${blob.type.split("/")[1] || "png"}`
+        downloadImageBtn.style.display = "inline-block"
       } else if (contentType && contentType.includes("application/json")) {
         const data = await response.json()
         const formattedJson = syntaxHighlightJson(JSON.stringify(data, null, 2))
@@ -877,8 +889,10 @@ document.addEventListener("DOMContentLoaded", async () => {
               '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
             // Hide the response container
             DOM.modal.container.classList.add("d-none")
-            // Hide the edit button
+            // Hide the edit button and download button
             editParamsBtn.style.display = "none"
+            const downloadBtn = DOM.modal.element.querySelector(".download-image-btn")
+            if (downloadBtn) downloadBtn.style.display = "none"
             // Focus on first input
             const firstInput = DOM.modal.queryInputContainer.querySelector("input")
             if (firstInput) firstInput.focus()
