@@ -72,8 +72,8 @@ app.use((req, res, next) => {
     const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
 
     if (settings.maintenance && settings.maintenance.enabled && !shouldSkip) {
-      // For API endpoints, return JSON response
-      if (req.path.startsWith("/api/") || req.path.startsWith("/ai/")) {
+      // For API endpoints (including subfolders like /api/ai/), return JSON response
+      if (req.path.startsWith("/api/")) {
         return res.status(503).json({
           status: false,
           error: "Service temporarily unavailable",
