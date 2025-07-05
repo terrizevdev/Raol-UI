@@ -7,8 +7,10 @@
     "status": "Active!"
   },
   "maintenance": {
-    "enabled": true,
-    "showHomeLink": false
+    "enabled": false,
+    "title": "Under Maintenance",
+    "message": "We're currently performing scheduled maintenance to improve our services. Please check back later.",
+    "estimatedTime": "We'll be back soon!"
   },
   "apiSettings": {
     "creator": "VGX Team",
