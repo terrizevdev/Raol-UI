@@ -111,7 +111,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       showToast("Share link copied to clipboard!", "success", "Share API")
 
       // Update URL to reflect the shared API
-      updateUrlParameter("share", currentApiData.path)
+      // Update URL to reflect the shared API (clean path without parameters)
+      const cleanPath = currentApiData.path.split("?")[0]
+      updateUrlParameter("share", cleanPath)
     } catch (err) {
       // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement("textarea")
@@ -121,7 +123,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
-        updateUrlParameter("share", currentApiData.path)
+        showToast("Share link copied to clipboard!", "success", "Share API")
+        // Update URL to reflect the shared API (clean path without parameters)
+        const cleanPath = currentApiData.path.split("?")[0]
+        updateUrlParameter("share", cleanPath)
       } catch (fallbackErr) {
         showToast("Failed to copy share link", "error")
       }
@@ -859,6 +864,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       DOM.modal.queryInputContainer.appendChild(paramContainer)
       DOM.modal.submitBtn.classList.remove("d-none")
+      DOM.modal.submitBtn.disabled = true
+      DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+
       initializeTooltips(DOM.modal.queryInputContainer)
     } else {
       handleApiRequest(`${window.location.origin}${apiData.path}`, apiData.name)
