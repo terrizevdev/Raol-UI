@@ -1,231 +1,450 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Website Under Maintenance</title>
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-        <style>
-            /* Snowflake Effect */
-            #snow-container {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 1000;
-                overflow: hidden;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="API is currently under maintenance. We'll be back soon!">
+    <meta name="keywords" content="maintenance, API, under construction, scheduled maintenance">
+    <meta name="author" content="Raol API">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Under Maintenance - Raol API">
+    <meta property="og:description" content="We're currently performing scheduled maintenance. Please check back later.">
+    <link rel="icon" href="/src/icon.png" type="image/png">
+    <title>Under Maintenance - Raol API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --primary-hover: #5649d1;
+            --secondary-color: #a29bfe;
+            --accent-color: #00cec9;
+            --success-color: #00b894;
+            --error-color: #ff7675;
+            --warning-color: #fdcb6e;
+            --background-color: #f9fbff;
+            --card-background: #ffffff;
+            --text-color: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-color: rgba(0, 0, 0, 0.06);
+            --highlight-color: rgba(127, 97, 255, 0.1);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            --border-radius: 12px;
+            --border-radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 48px;
+        }
 
-            .snowflake {
-                position: absolute;
-                top: -10px;
-                font-size: 1.5rem;
-                color: #3b82f6; /* Brighter blue color for snowflakes */
-                text-shadow: 0 0 8px rgba(59, 130, 246, 0.7); /* Stronger glow effect */
-                user-select: none;
-                animation: snowfall linear infinite;
-                will-change: transform; /* Improve performance */
-            }
+        .dark-mode {
+            --primary-color: #8b0000;
+            --primary-hover: #a9a9a9;
+            --secondary-color: #8b0000;
+            --accent-color: #8b0000;
+            --background-color: #000000;
+            --card-background: #121212;
+            --text-color: #ffffff;
+            --text-muted: #cccccc;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --highlight-color: rgba(139, 0, 0, 0.3);
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            --hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
 
-            @keyframes snowfall {
-                0% {
-                    transform: translateX(0) translateY(0) rotate(0deg);
-                }
-                100% {
-                    transform: translateX(-30px) translateY(100vh) rotate(360deg);
-                }
-            }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-            /* Control snowflake speed and size */
-            .snowflake {
-                animation-duration: 10s; /* Faster animation */
-                opacity: 0.9; /* More visible */
-            }
+        body {
+            font-family: "Outfit", sans-serif;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            line-height: 1.6;
+            transition: var(--transition);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            /* Increase variability in size and speed */
-            .snowflake:nth-child(odd) {
-                animation-duration: 12s;
-                opacity: 0.8;
-            }
+        .maintenance-container {
+            text-align: center;
+            max-width: 600px;
+            padding: var(--space-xl);
+            background: var(--card-background);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow);
+            margin: var(--space-lg);
+            position: relative;
+            overflow: hidden;
+        }
 
-            .snowflake:nth-child(even) {
-                animation-duration: 15s;
+        .maintenance-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+
+        .maintenance-gif {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: var(--border-radius);
+            margin-bottom: var(--space-xl);
+            box-shadow: var(--shadow);
+        }
+
+        .maintenance-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            margin-bottom: var(--space-lg);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        .maintenance-message {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            color: var(--text-muted);
+            margin-bottom: var(--space-xl);
+            line-height: 1.7;
+        }
+
+        .maintenance-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--warning-color), #f39c12);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: var(--space-xl);
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+        }
+
+        .maintenance-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-lg);
+            justify-content: center;
+            margin-top: var(--space-xl);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--hover-shadow);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--card-background);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--highlight-color);
+            border-color: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
                 opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .maintenance-container {
+                margin: var(--space-lg) 16px;
+                padding: var(--space-lg);
             }
 
-            /* Ensure compatibility with older browsers */
-            @supports (-ms-ime-align: auto) {
-                /* Edge specific fixes */
-                .snowflake {
-                    animation: none; /* Disable animation in Edge if it causes issues */
-                }
+            .maintenance-actions {
+                flex-direction: column;
+                align-items: stretch;
             }
 
-            @supports (-moz-appearance: none) {
-                /* Firefox specific fixes */
-                .snowflake {
-                    will-change: transform; /* Improve performance in Firefox */
-                }
+            .btn {
+                width: 100%;
+                justify-content: center;
             }
+        }
 
-            /* iOS Safari fixes */
-            @supports (-webkit-overflow-scrolling: touch) {
-                .snowflake {
-                    will-change: transform; /* Improve performance in iOS Safari */
-                }
-                #snow-container {
-                    -webkit-transform: translateZ(0); /* Force hardware acceleration */
-                }
-            }
+        /* Loading animation for GIF */
+        .maintenance-gif {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
 
-            /* Responsive adjustments */
-            @media (max-width: 768px) {
-                .snowflake {
-                    font-size: 1.2rem; /* Smaller snowflakes on mobile */
-                }
-            }
+        .maintenance-gif.loaded {
+            background: none;
+            animation: none;
+        }
 
-            @media (max-width: 480px) {
-                .snowflake {
-                    font-size: 1rem; /* Even smaller snowflakes on small mobile */
-                }
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
             }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
 
-            /* Reduce animation on devices that prefer reduced motion */
-            @media (prefers-reduced-motion: reduce) {
-                .snowflake {
-                    animation-duration: 30s !important; /* Much slower animation */
-                }
-                #snow-container {
-                    opacity: 0.5; /* Reduce visibility */
-                }
-            }
-
-            /* Morph item styling */
-            .morph-item {
-                background: rgba(255, 255, 255, 0.9);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                border: 1px solid rgba(0, 0, 0, 0.1);
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            }
-
-            .morph-button {
-                transition: all 0.3s ease;
-                touch-action: manipulation;
-            }
-
-            .morph-button:hover {
-                transform: translateY(-2px);
-            }
-
-            .morph-button:active {
-                transform: scale(0.95);
-            }
-        </style>
-    </head>
-    <body class="bg-white text-gray-900 flex items-center justify-center min-h-screen w-full overflow-hidden fixed inset-0 transition-colors duration-300 p-4">
-        <div class="text-center morph-item px-2 sm:px-4 lg:px-6 max-w-sm sm:max-w-md w-full">
-            <div class="mx-auto mb-4 relative w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56">
-                <img
-                    id="maintenanceGif"
-                    src="https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif"
-                    alt="Maintenance Character"
-                    class="object-contain w-full h-full"
-                />
-            </div>
-            
-            <h1 id="maintenanceTitle" class="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
-                Website Under Maintenance
-            </h1>
-            
-            <p id="maintenanceMessage" class="text-xs sm:text-sm md:text-base text-gray-600 mb-4 leading-relaxed">
-                We're currently upgrading our systems to serve you better. Please check back in a few hours.
-            </p>
-            
-            <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
-                <button
-                    onclick="window.location.reload()"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition morph-button touch-manipulation active:scale-95 text-sm sm:text-base"
-                >
-                    Retry
-                </button>
-                
-                <button
-                    onclick="window.location.href='/'"
-                    id="homeButton"
-                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 transition morph-button touch-manipulation active:scale-95 text-sm sm:text-base inline-block text-center"
-                    style="display: none;"
-                >
-                    Go Home
-                </button>
-            </div>
+    <div class="maintenance-container fade-in">
+        <img 
+            src="https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif" 
+            alt="Under Maintenance" 
+            class="maintenance-gif floating"
+            id="maintenanceGif"
+            onerror="this.style.display='none'; document.getElementById('fallbackIcon').style.display='block';"
+            onload="this.classList.add('loaded')"
+        >
+        
+        <!-- Fallback icon if GIF fails to load -->
+        <div id="fallbackIcon" style="display: none; font-size: 6rem; color: var(--warning-color); margin-bottom: var(--space-xl);">
+            <i class="fas fa-tools"></i>
         </div>
-        
-        <div id="snow-container" class="pointer-events-none"></div>
-        
-        <script>
-            function createSparkle() {
-                const snowContainer = document.getElementById("snow-container");
-                if (!snowContainer) return;
-                
-                const sparkle = document.createElement("div");
-                sparkle.classList.add("snowflake");
-                sparkle.textContent = "❄️"; // Using snowflake emoji like in screenshot
-                
-                const left = Math.floor(Math.random() * 100);
-                const duration = 5 + Math.floor(Math.random() * 10);
-                const scale = 0.5 + Math.floor(Math.random() * 15) / 10;
-                
-                sparkle.style.left = `${left}%`;
-                sparkle.style.animationDuration = `${duration}s`;
-                sparkle.style.transform = `scale(${scale})`;
-                
-                snowContainer.appendChild(sparkle);
-                
-                sparkle.addEventListener("animationend", () => {
-                    sparkle.remove();
-                });
-            }
 
-            // Start sparkle animation
-            const timeoutId = setTimeout(() => {
-                const sparkleInterval = setInterval(createSparkle, 300);
-                
-                // Cleanup function would go here in React
-                // For vanilla JS, we'll let it run
-            }, 1000);
+        <h1 class="maintenance-title" id="maintenanceTitle">Under Maintenance</h1>
+        
+        <div class="maintenance-status pulse">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Service Temporarily Unavailable</span>
+        </div>
 
-            // Load maintenance settings from API (only for overrides)
-            fetch('/api/settings')
+        <p class="maintenance-message" id="maintenanceMessage">
+            We're currently performing scheduled maintenance to improve our services. Please check back later.
+        </p>
+
+        <p class="maintenance-message" id="estimatedTime" style="font-weight: 600; color: var(--primary-color);">
+            We'll be back soon!
+        </p>
+
+        <div class="maintenance-actions">
+            <button class="btn btn-primary" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh Page</span>
+            </button>
+            <a href="mailto:support@example.com" class="btn btn-secondary">
+                <i class="fas fa-envelope"></i>
+                <span>Contact Support</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const body = document.body;
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('darkMode');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme === 'true' || (savedTheme === null && prefersDark)) {
+            body.classList.add('dark-mode');
+            themeIcon.className = 'fas fa-sun';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+        });
+
+        // Load maintenance settings from API
+        fetch('/api/settings')
+            .then(response => response.json())
+            .then(data => {
+                if (data.maintenance) {
+                    const titleEl = document.getElementById('maintenanceTitle');
+                    const messageEl = document.getElementById('maintenanceMessage');
+                    const timeEl = document.getElementById('estimatedTime');
+
+                    if (data.maintenance.title) {
+                        titleEl.textContent = data.maintenance.title;
+                        document.title = data.maintenance.title + ' - ' + (data.name || 'Raol API');
+                    }
+                    if (data.maintenance.message) {
+                        messageEl.textContent = data.maintenance.message;
+                    }
+                    if (data.maintenance.estimatedTime) {
+                        timeEl.textContent = data.maintenance.estimatedTime;
+                    }
+                }
+            })
+            .catch(error => {
+                console.log('Could not load maintenance settings:', error);
+            });
+
+        // Auto refresh every 30 seconds
+        setInterval(() => {
+            fetch('/api/maintenance-status')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.maintenance) {
-                        const maintenance = data.maintenance;
-                        
-                        // Only override if explicitly set in settings
-                        if (maintenance.title && maintenance.title !== "Website Under Maintenance") {
-                            document.getElementById('maintenanceTitle').textContent = maintenance.title;
-                        }
-                        
-                        if (maintenance.message && maintenance.message !== "We're currently upgrading our systems to serve you better. Please check back in a few hours.") {
-                            document.getElementById('maintenanceMessage').textContent = maintenance.message;
-                        }
-                        
-                        if (maintenance.gifUrl && maintenance.gifUrl !== "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif") {
-                            document.getElementById('maintenanceGif').src = maintenance.gifUrl;
-                        }
-                        
-                        if (maintenance.showHomeLink === true) {
-                            document.getElementById('homeButton').style.display = 'inline-block';
-                        }
+                    if (!data.maintenance) {
+                        location.reload();
                     }
                 })
-                .catch(error => {
-                    console.log('Using default maintenance settings');
+                .catch(() => {
+                    // If API is not responding, try to reload anyway
+                    location.reload();
                 });
-        </script>
-    </body>
+        }, 30000);
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add click effect to buttons
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.cssText = `
+                        position: absolute;
+                        width: ${size}px;
+                        height: ${size}px;
+                        left: ${x}px;
+                        top: ${y}px;
+                        background: rgba(255, 255, 255, 0.3);
+                        border-radius: 50%;
+                        transform: scale(0);
+                        animation: ripple 0.6s linear;
+                        pointer-events: none;
+                    `;
+                    
+                    this.style.position = 'relative';
+                    this.style.overflow = 'hidden';
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
 </html>
