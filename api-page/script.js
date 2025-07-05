@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (notificationsToShow.length > 0) {
       notificationsToShow.forEach((notif) => {
-        showToast(notif.message, "notification", `Notification (${new Date(notif.date).toLocaleDateString("id-ID")})`)
+        showToast(notif.message, "notification", `Notification (${new Date(notif.date).toLocaleDateString("en-US")})`)
         addSessionReadNotificationId(notif.id)
       })
     } else {
