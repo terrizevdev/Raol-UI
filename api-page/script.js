@@ -667,6 +667,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.modal.submitBtn.disabled = true
     DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
 
+    // Hide edit parameters button initially
+    const editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
+    if (editParamsBtn) {
+      editParamsBtn.style.display = "none"
+    }
+
     const paramsFromPath = new URLSearchParams(apiData.path.split("?")[1])
     const paramKeys = Array.from(paramsFromPath.keys())
 
@@ -735,10 +741,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       initializeTooltips(DOM.modal.queryInputContainer)
     } else {
       handleApiRequest(`${window.location.origin}${apiData.path}`, apiData.name)
-    }
-    const editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
-    if (editParamsBtn) {
-      editParamsBtn.style.display = "none"
     }
   }
 
@@ -850,9 +852,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         DOM.modal.content.textContent = textData || "Response has no content or unknown format."
       }
 
+      DOM.modal.container.classList.remove("d-none")
+      DOM.modal.content.classList.remove("d-none")
+      DOM.modal.container.classList.add("slide-in-bottom")
       showToast(`Successfully retrieved data for ${apiName}`, "success")
 
-      // Add Edit Parameters button to modal footer if there were parameters
+      // Show Edit Parameters button in footer if there were parameters
       if (currentApiData && currentApiData.path.split("?")[1]) {
         // Check if edit button already exists, if not create it
         let editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
@@ -884,6 +889,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           modalFooter.insertBefore(editParamsBtn, DOM.modal.submitBtn)
         }
         editParamsBtn.style.display = "inline-block"
+      }
+
+      // Reset submit button after successful response
+      if (DOM.modal.submitBtn) {
+        DOM.modal.submitBtn.disabled = false
+        DOM.modal.submitBtn.innerHTML =
+          '<span>Send Again</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
       }
     } catch (error) {
       console.error("API Request Error:", error)
