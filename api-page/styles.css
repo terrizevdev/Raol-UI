@@ -39,7 +39,7 @@
   --space-xxl: 48px;
 
   /* Layout */
-  --side-nav-width: 240px;
+  --side-nav-width: 220px;
   --side-nav-collapsed: 60px;
   --header-height: 64px;
 
@@ -330,12 +330,12 @@ a:hover {
 
 @media (min-width: 1200px) {
   .side-nav {
-    width: 260px;
-    min-width: 260px;
+    width: 240px;
+    min-width: 240px;
   }
 
   :root {
-    --side-nav-width: 260px;
+    --side-nav-width: 240px;
   }
 }
 
@@ -558,9 +558,11 @@ a:hover {
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
   z-index: 100;
   transition: all 0.3s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .main-header::before {
@@ -612,11 +614,12 @@ a:hover {
 }
 
 .search-container {
-  max-width: 320px;
+  max-width: 280px;
   width: 100%;
-  margin: 0 var(--space-md);
+  margin: 0 var(--space-sm);
   position: relative;
   flex-shrink: 1;
+  min-width: 0;
 }
 
 .input-group {
@@ -712,7 +715,8 @@ a:hover {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
+  flex-shrink: 0;
 }
 
 .notification-bell {
@@ -780,6 +784,7 @@ a:hover {
     transform: translateX(-100%);
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
     z-index: 1050;
+    width: 220px;
   }
 
   .side-nav.active {
@@ -788,15 +793,18 @@ a:hover {
 
   .menu-toggle {
     display: flex;
+    flex-shrink: 0;
   }
 
   .search-container {
-    max-width: 350px;
-    margin: 0 auto 0 var(--space-md);
+    max-width: 200px;
+    margin: 0 var(--space-xs);
+    flex-shrink: 1;
+    min-width: 120px;
   }
 
   .main-header {
-    padding: 0 var(--space-md);
+    padding: 0 var(--space-sm);
   }
 }
 
@@ -804,50 +812,60 @@ a:hover {
   html {
     font-size: 15px;
   }
+
   .hero-actions {
     flex-direction: column;
     align-items: stretch;
   }
+
   .hero-actions a {
     width: 100%;
     text-align: center;
   }
+
   .search-container {
-    max-width: 280px;
-    margin: 0 var(--space-sm);
+    max-width: 160px;
+    margin: 0 var(--space-xs);
+    min-width: 100px;
   }
+
   .footer-content {
     flex-direction: column;
     text-align: center;
   }
+
   .category-header {
     font-size: 1.8rem;
   }
+
   .api-item {
     width: 100%;
   }
+
   .main-header {
-    padding: 0 var(--space-md);
+    padding: 0 var(--space-xs);
+    height: 56px;
   }
+
   .main-footer {
     padding: var(--space-md) var(--space-lg);
   }
-  /* Remove this rule to keep footer links side by side */
-  /* .footer-links {
-    flex-direction: column;
-    align-items: center;
-  } */
+
+  .side-nav {
+    width: 200px;
+  }
 }
 
 @media (max-width: 576px) {
   .main-header {
-    padding: 0 var(--space-sm);
-    height: 56px;
+    padding: 0 8px;
+    height: 52px;
   }
 
   .search-container {
-    margin: 0 var(--space-xs);
-    max-width: calc(100vw - 120px);
+    margin: 0 4px;
+    max-width: 140px;
+    min-width: 80px;
   }
 
   .input-group {
@@ -855,12 +873,18 @@ a:hover {
   }
 
   #searchInput {
-    font-size: 0.9rem;
-    padding: var(--space-sm) 0;
+    font-size: 0.85rem;
+    padding: 10px 0;
+  }
+
+  .input-group-text {
+    padding: 0 8px;
+    min-width: 36px;
+    font-size: 1rem;
   }
 
   .side-nav {
-    width: 240px; /* Further reduced for small screens */
+    width: 180px;
   }
 
   .side-nav.active {
@@ -869,14 +893,70 @@ a:hover {
   }
 
   .side-nav-logo #sideNavName {
-    font-size: 1.3rem;
-    max-width: 160px;
+    font-size: 1.2rem;
+    max-width: 120px;
   }
 
   .notification-bell {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .menu-toggle {
     width: 36px;
     height: 36px;
-    font-size: 1.1rem;
+    margin-right: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-header {
+    padding: 0 6px;
+    height: 50px;
+  }
+
+  .search-container {
+    margin: 0 2px;
+    max-width: 120px;
+    min-width: 60px;
+  }
+
+  #searchInput {
+    font-size: 0.8rem;
+    padding: 8px 0;
+  }
+
+  .input-group-text {
+    padding: 0 6px;
+    min-width: 32px;
+    font-size: 0.9rem;
+  }
+
+  .side-nav {
+    width: 160px;
+  }
+
+  .notification-bell {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+
+  .menu-toggle {
+    width: 32px;
+    height: 32px;
+    margin-right: 2px;
+    font-size: 1.2rem;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .footer-links {
+    gap: var(--space-sm);
   }
 }
 
@@ -2037,6 +2117,7 @@ input:checked + .slider:before {
     flex-direction: column;
     align-items: stretch;
   }
+
   .hero-actions a {
     width: 100%;
     text-align: center;
