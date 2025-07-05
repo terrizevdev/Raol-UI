@@ -29,8 +29,8 @@ app.use((req, res, next) => {
 })
 
 const requestCounts = new Map()
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000
-const RATE_LIMIT_MAX = 100
+const RATE_LIMIT_WINDOW = 1 * 60 * 1000
+const RATE_LIMIT_MAX = 15
 
 app.use((req, res, next) => {
   const ip = req.ip || req.connection.remoteAddress
@@ -46,10 +46,7 @@ app.use((req, res, next) => {
     } else {
       data.count++
       if (data.count > RATE_LIMIT_MAX) {
-        return res.status(429).json({
-          status: false,
-          error: "Too many requests from this IP, please try again later.",
-        })
+        return res.status(429).sendFile(path.join(__dirname, "api-page", "429.html"))
       }
     }
   }
@@ -80,7 +77,7 @@ app.get("/api/settings", (req, res) => {
     const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "settings.json"), "utf-8"))
     res.json(settings)
   } catch (error) {
-    res.status(500).json({ status: false, error: "Failed to load settings" })
+    res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
   }
 })
 
@@ -89,7 +86,7 @@ app.get("/api/notifications", (req, res) => {
     const notifications = JSON.parse(fs.readFileSync(path.join(__dirname, "api-page", "notifications.json"), "utf-8"))
     res.json(notifications)
   } catch (error) {
-    res.status(500).json({ status: false, error: "Failed to load notifications" })
+    res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
   }
 })
 
@@ -110,10 +107,7 @@ app.use((req, res, next) => {
   })
 
   if (isBlocked) {
-    return res.status(403).json({
-      status: false,
-      error: "Access denied to this resource",
-    })
+    return res.status(403).sendFile(path.join(__dirname, "api-page", "403.html"))
   }
   next()
 })
@@ -122,10 +116,7 @@ app.use("/src", (req, res, next) => {
   if (req.path.match(/\.(jpg|jpeg|png|gif|svg|ico)$/i)) {
     express.static(path.join(__dirname, "src"))(req, res, next)
   } else {
-    res.status(403).json({
-      status: false,
-      error: "Access denied to this resource",
-    })
+    res.status(403).sendFile(path.join(__dirname, "api-page", "403.html"))
   }
 })
 
@@ -194,13 +185,34 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "api-page", "index.html"))
 })
 
+// Custom error handling middleware
 app.use((req, res, next) => {
   res.status(404).sendFile(path.join(__dirname, "api-page", "404.html"))
 })
 
 app.use((err, req, res, next) => {
   console.error(err.stack)
-  res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
+
+  // Handle different error types
+  if (err.status === 400) {
+    res.status(400).sendFile(path.join(__dirname, "api-page", "400.html"))
+  } else if (err.status === 401) {
+    res.status(401).sendFile(path.join(__dirname, "api-page", "401.html"))
+  } else if (err.status === 403) {
+    res.status(403).sendFile(path.join(__dirname, "api-page", "403.html"))
+  } else if (err.status === 405) {
+    res.status(405).sendFile(path.join(__dirname, "api-page", "405.html"))
+  } else if (err.status === 408) {
+    res.status(408).sendFile(path.join(__dirname, "api-page", "408.html"))
+  } else if (err.status === 429) {
+    res.status(429).sendFile(path.join(__dirname, "api-page", "429.html"))
+  } else if (err.status === 502) {
+    res.status(502).sendFile(path.join(__dirname, "api-page", "502.html"))
+  } else if (err.status === 503) {
+    res.status(503).sendFile(path.join(__dirname, "api-page", "503.html"))
+  } else {
+    res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
+  }
 })
 
 app.listen(PORT, () => {
