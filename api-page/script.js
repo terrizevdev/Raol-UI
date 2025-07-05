@@ -69,22 +69,59 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Share API Functions ---
   const generateShareLink = (apiData) => {
     const url = new URL(window.location.origin + window.location.pathname)
-    // Only use the API path for sharing - much simpler!
-    url.searchParams.set("share", apiData.path)
+
+    // Create share data object
+    const shareData = {
+      path: apiData.path,
+      name: apiData.name,
+      desc: apiData.desc,
+    }
+
+    // Add parameters if they exist
+    if (apiData.params && Object.keys(apiData.params).length > 0) {
+      shareData.params = apiData.params
+    }
+
+    // Add inner description if it exists
+    if (apiData.innerDesc) {
+      shareData.innerDesc = apiData.innerDesc
+    }
+
+    // Convert to base64 to avoid URL encoding issues
+    const shareString = btoa(JSON.stringify(shareData))
+    url.searchParams.set("share", shareString)
+
     return url.toString()
   }
 
   const parseSharedApiFromUrl = () => {
-    const sharedPath = getUrlParameter("share")
-    return sharedPath || null
+    const sharedData = getUrlParameter("share")
+    if (!sharedData) return null
+
+    try {
+      // Try to decode base64 first (new format)
+      const decodedData = JSON.parse(atob(sharedData))
+      return decodedData
+    } catch (error) {
+      // Fallback for old format (just path)
+      return { path: sharedData }
+    }
   }
 
-  const findApiByPath = (path) => {
+  const findApiByPath = (pathOrData) => {
     if (!settings || !settings.categories) return null
+
+    // If it's already a complete data object, return it
+    if (typeof pathOrData === "object" && pathOrData.path) {
+      return pathOrData
+    }
+
+    // Otherwise, search by path
+    const searchPath = typeof pathOrData === "string" ? pathOrData : pathOrData.path
 
     for (const category of settings.categories) {
       for (const item of category.items) {
-        if (item.path === path) {
+        if (item.path === searchPath) {
           return {
             path: item.path,
             name: item.name,
@@ -126,19 +163,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const openSharedApi = async (sharedPath) => {
+  const openSharedApi = async (sharedData) => {
     // Wait for settings to be loaded
     if (!settings || !settings.categories) {
-      setTimeout(() => openSharedApi(sharedPath), 100)
+      setTimeout(() => openSharedApi(sharedData), 100)
       return
     }
 
-    // Find the API in settings using the path
-    const apiData = findApiByPath(sharedPath)
+    let apiData = null
+
+    // Handle both old format (string path) and new format (object)
+    if (typeof sharedData === "string") {
+      // Old format - just path
+      apiData = findApiByPath(sharedData)
+    } else if (typeof sharedData === "object") {
+      // New format - complete data object
+      apiData = sharedData
+
+      // Verify the API still exists in settings
+      const existingApi = findApiByPath(sharedData.path)
+      if (!existingApi) {
+        showToast("The shared API is no longer available", "error", "Share Link")
+        removeUrlParameter("share")
+        return
+      }
+    }
 
     if (!apiData) {
       showToast("The shared API is no longer available", "error", "Share Link")
-      // Clean up URL parameter
       removeUrlParameter("share")
       return
     }
@@ -150,7 +202,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Show modal after a short delay to ensure DOM is ready
     setTimeout(() => {
       DOM.modal.instance.show()
-      showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
+
+      // Create detailed share message
+      let shareMessage = `Opened shared API: ${apiData.name}`
+      if (apiData.params && Object.keys(apiData.params).length > 0) {
+        const paramCount = Object.keys(apiData.params).length
+        shareMessage += ` (${paramCount} parameter${paramCount > 1 ? "s" : ""})`
+      }
+
+      showToast(shareMessage, "info", "Share Link")
     }, 500)
   }
 
