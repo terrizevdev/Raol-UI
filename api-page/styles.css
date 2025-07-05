@@ -39,9 +39,9 @@
   --space-xxl: 48px;
 
   /* Layout */
-  --side-nav-width: 280px;
-  --side-nav-collapsed: 70px;
-  --header-height: 70px;
+  --side-nav-width: 260px;
+  --side-nav-collapsed: 60px;
+  --header-height: 64px;
 
   /* Background values for rgba */
   --background-color-rgb: 248, 249, 253;
@@ -314,7 +314,7 @@ a:hover {
   top: 0;
   height: 100vh;
   width: var(--side-nav-width);
-  min-width: 280px;
+  min-width: 260px;
   background: linear-gradient(180deg, var(--card-background) 0%, rgba(var(--background-color-rgb), 0.95) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -330,12 +330,12 @@ a:hover {
 
 @media (min-width: 1200px) {
   .side-nav {
-    width: 300px;
-    min-width: 300px;
+    width: 280px;
+    min-width: 280px;
   }
 
   :root {
-    --side-nav-width: 300px;
+    --side-nav-width: 280px;
   }
 }
 
@@ -373,7 +373,7 @@ a:hover {
 }
 
 .side-nav-logo #sideNavName {
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
   -webkit-background-clip: text;
@@ -383,6 +383,9 @@ a:hover {
   transition: all 0.3s ease;
   white-space: nowrap;
   letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 #versionHeader {
@@ -609,9 +612,9 @@ a:hover {
 }
 
 .search-container {
-  max-width: 500px;
+  max-width: 400px;
   width: 100%;
-  margin: 0 var(--space-lg);
+  margin: 0 var(--space-md);
   position: relative;
 }
 
@@ -713,18 +716,19 @@ a:hover {
 
 .notification-bell {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: var(--border-radius);
   background: none;
   border: none;
+  flex-shrink: 0;
 }
 
 .notification-bell:hover {
@@ -808,7 +812,7 @@ a:hover {
     text-align: center;
   }
   .search-container {
-    max-width: none;
+    max-width: 280px;
     margin: 0 var(--space-sm);
   }
   .footer-content {
@@ -842,6 +846,7 @@ a:hover {
 
   .search-container {
     margin: 0 var(--space-xs);
+    max-width: calc(100vw - 120px);
   }
 
   .input-group {
@@ -854,7 +859,7 @@ a:hover {
   }
 
   .side-nav {
-    width: 260px; /* Reduced from 280px */
+    width: 240px; /* Further reduced for small screens */
   }
 
   .side-nav.active {
@@ -863,7 +868,8 @@ a:hover {
   }
 
   .side-nav-logo #sideNavName {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
+    max-width: 160px;
   }
 
   .notification-bell {
@@ -1424,10 +1430,9 @@ a:hover {
 
 .footer-links {
   display: flex;
-  gap: 12px; /* kasih jarak antar link */
-  align-items: center;
-  justify-content: center; /* tengahin */
-  flex-wrap: wrap; /* biar responsif kalo kecil */
+  gap: var(--space-md);
+  flex-wrap: wrap; /* Allow wrapping on very small screens */
+  justify-content: center;
 }
 
 .footer-link {
@@ -1544,6 +1549,8 @@ input:checked + .slider:before {
 .footer-links {
   display: flex;
   gap: var(--space-md);
+  flex-wrap: nowrap; /* Prevent wrapping */
+  justify-content: center;
 }
 
 .footer-link {
@@ -2034,7 +2041,7 @@ input:checked + .slider:before {
     text-align: center;
   }
   .search-container {
-    max-width: none;
+    max-width: 280px;
     margin: 0 var(--space-sm);
   }
   .footer-content {
@@ -2052,6 +2059,17 @@ input:checked + .slider:before {
   }
   .main-footer {
     padding: var(--space-md) var(--space-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-content {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .footer-links {
+    gap: var(--space-sm);
   }
 }
 
@@ -2083,12 +2101,6 @@ input:checked + .slider:before {
   .toast {
     min-width: unset;
     width: calc(100% - (var(--space-md) * 2));
-  }
-  .modal-body {
-    max-height: 65vh;
-  }
-  .modal-content {
-    padding: var(--space-md);
   }
 }
 
