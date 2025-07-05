@@ -39,7 +39,7 @@
   --space-xxl: 48px;
 
   /* Layout */
-  --side-nav-width: 240px;
+  --side-nav-width: 260px;
   --side-nav-collapsed: 60px;
   --header-height: 64px;
 
@@ -314,7 +314,7 @@ a:hover {
   top: 0;
   height: 100vh;
   width: var(--side-nav-width);
-  min-width: 240px;
+  min-width: 260px;
   background: linear-gradient(180deg, var(--card-background) 0%, rgba(var(--background-color-rgb), 0.95) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -330,12 +330,12 @@ a:hover {
 
 @media (min-width: 1200px) {
   .side-nav {
-    width: 260px;
-    min-width: 260px;
+    width: 280px;
+    min-width: 280px;
   }
 
   :root {
-    --side-nav-width: 260px;
+    --side-nav-width: 280px;
   }
 }
 
@@ -612,11 +612,10 @@ a:hover {
 }
 
 .search-container {
-  max-width: 320px;
+  max-width: 400px;
   width: 100%;
   margin: 0 var(--space-md);
   position: relative;
-  flex-shrink: 1;
 }
 
 .input-group {
@@ -2216,26 +2215,4 @@ input:checked + .slider:before {
   gap: var(--space-md);
   flex-wrap: nowrap; /* Prevent wrapping */
   justify-content: center;
-}
-
-/* Medium devices (tablets, less than 1024px) */
-@media (max-width: 1024px) {
-  .main-header {
-    padding: 0 var(--space-sm);
-  }
-
-  .search-container {
-    margin: 0 var(--space-sm) 0 auto;
-    max-width: 240px;
-  }
-
-  .header-actions {
-    gap: var(--space-xs);
-  }
-
-  .notification-bell {
-    width: 32px;
-    height: 32px;
-    font-size: 1.1rem;
-  }
 }
