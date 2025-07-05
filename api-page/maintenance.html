@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Maintenance Mode</title>
+        <title>Website Under Maintenance</title>
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
         <style>
             /* Snowflake Effect */
@@ -131,18 +131,18 @@
             <div class="mx-auto mb-4 relative w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56">
                 <img
                     id="maintenanceGif"
-                    src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif"
-                    alt="Maintenance"
+                    src="https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif"
+                    alt="Maintenance Character"
                     class="object-contain w-full h-full"
                 />
             </div>
             
             <h1 id="maintenanceTitle" class="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
-                🔧 Under Maintenance
+                Website Under Maintenance
             </h1>
             
             <p id="maintenanceMessage" class="text-xs sm:text-sm md:text-base text-gray-600 mb-4 leading-relaxed">
-                We're currently performing scheduled maintenance to improve our services. Please check back soon!
+                We're currently upgrading our systems to serve you better. Please check back in a few hours.
             </p>
             
             <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -157,6 +157,7 @@
                     onclick="window.location.href='/'"
                     id="homeButton"
                     class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 transition morph-button touch-manipulation active:scale-95 text-sm sm:text-base inline-block text-center"
+                    style="display: none;"
                 >
                     Go Home
                 </button>
@@ -172,7 +173,7 @@
                 
                 const sparkle = document.createElement("div");
                 sparkle.classList.add("snowflake");
-                sparkle.textContent = "✨";
+                sparkle.textContent = "❄️"; // Using snowflake emoji like in screenshot
                 
                 const left = Math.floor(Math.random() * 100);
                 const duration = 5 + Math.floor(Math.random() * 10);
@@ -197,27 +198,28 @@
                 // For vanilla JS, we'll let it run
             }, 1000);
 
-            // Load maintenance settings from API
+            // Load maintenance settings from API (only for overrides)
             fetch('/api/settings')
                 .then(response => response.json())
                 .then(data => {
                     if (data.maintenance) {
                         const maintenance = data.maintenance;
                         
-                        if (maintenance.title) {
+                        // Only override if explicitly set in settings
+                        if (maintenance.title && maintenance.title !== "Website Under Maintenance") {
                             document.getElementById('maintenanceTitle').textContent = maintenance.title;
                         }
                         
-                        if (maintenance.message) {
+                        if (maintenance.message && maintenance.message !== "We're currently upgrading our systems to serve you better. Please check back in a few hours.") {
                             document.getElementById('maintenanceMessage').textContent = maintenance.message;
                         }
                         
-                        if (maintenance.gifUrl) {
+                        if (maintenance.gifUrl && maintenance.gifUrl !== "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif") {
                             document.getElementById('maintenanceGif').src = maintenance.gifUrl;
                         }
                         
-                        if (!maintenance.showHomeLink) {
-                            document.getElementById('homeButton').style.display = 'none';
+                        if (maintenance.showHomeLink === true) {
+                            document.getElementById('homeButton').style.display = 'inline-block';
                         }
                     }
                 })
