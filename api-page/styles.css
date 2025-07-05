@@ -39,7 +39,7 @@
   --space-xxl: 48px;
 
   /* Layout */
-  --side-nav-width: 260px;
+  --side-nav-width: 240px;
   --side-nav-collapsed: 60px;
   --header-height: 64px;
 
@@ -314,7 +314,7 @@ a:hover {
   top: 0;
   height: 100vh;
   width: var(--side-nav-width);
-  min-width: 260px;
+  min-width: 240px;
   background: linear-gradient(180deg, var(--card-background) 0%, rgba(var(--background-color-rgb), 0.95) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -330,12 +330,12 @@ a:hover {
 
 @media (min-width: 1200px) {
   .side-nav {
-    width: 280px;
-    min-width: 280px;
+    width: 260px;
+    min-width: 260px;
   }
 
   :root {
-    --side-nav-width: 280px;
+    --side-nav-width: 260px;
   }
 }
 
@@ -612,10 +612,11 @@ a:hover {
 }
 
 .search-container {
-  max-width: 400px;
+  max-width: 400px; /* Changed from 320px */
   width: 100%;
   margin: 0 var(--space-md);
   position: relative;
+  flex-shrink: 1;
 }
 
 .input-group {
@@ -716,13 +717,13 @@ a:hover {
 
 .notification-bell {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 48px; /* Changed from 40px */
+  height: 48px; /* Changed from 40px */
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  font-size: 1.2rem;
+  font-size: 1.4rem; /* Changed from 1.2rem */
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: var(--border-radius);
@@ -743,10 +744,10 @@ a:hover {
 
 .notification-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
+  top: 10px; /* Changed from 8px */
+  right: 10px; /* Changed from 8px */
+  width: 14px; /* Changed from 12px */
+  height: 14px; /* Changed from 12px */
   background: linear-gradient(135deg, var(--error-color), #ff4757);
   border-radius: 50%;
   border: 2px solid var(--card-background);
@@ -2216,3 +2217,63 @@ input:checked + .slider:before {
   flex-wrap: nowrap; /* Prevent wrapping */
   justify-content: center;
 }
+
+/* Medium devices (tablets, less than 1024px) */
+@media (max-width: 1024px) {
+  .main-header {
+    padding: 0 var(--space-sm);
+  }
+
+  .search-container {
+    margin: 0 var(--space-sm) 0 auto;
+    max-width: 240px;
+  }
+
+  .header-actions {
+    gap: var(--space-xs);
+  }
+
+  .notification-bell {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Remove or comment out these responsive overrides */
+/*
+@media (max-width: 992px) {
+  .search-container {
+    max-width: 350px;
+    margin: 0 auto 0 var(--space-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    max-width: 280px;
+    margin: 0 var(--space-sm);
+  }
+}
+
+@media (max-width: 576px) {
+  .notification-bell {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .search-container {
+    margin: 0 var(--space-sm) 0 auto;
+    max-width: 240px;
+  }
+  
+  .notification-bell {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+}
+*/
