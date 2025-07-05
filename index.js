@@ -65,27 +65,25 @@ setInterval(() => {
 // Maintenance mode middleware
 app.use((req, res, next) => {
   try {
-    const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "settings.json"), "utf-8"))
+    const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
 
     // Skip maintenance check for settings API and static assets
-    const skipPaths = ["/api/settings", "/assets/", "/src/", "/api-page/"]
+    const skipPaths = ["/api/settings", "/assets/", "/src/"]
     const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
 
-    if (settings.maintenance?.enabled && !shouldSkip) {
+    if (settings.maintenance && settings.maintenance.enabled && !shouldSkip) {
       // For API endpoints, return JSON response
       if (req.path.startsWith("/api/") || req.path.startsWith("/ai/")) {
         return res.status(503).json({
           status: false,
           error: "Service temporarily unavailable",
-          message:
-            settings.maintenance.message ||
-            "We're currently performing scheduled maintenance to improve our services. Please check back later.",
+          message: "The API is currently under maintenance. Please try again later.",
           maintenance: true,
-          estimatedTime: settings.maintenance.estimatedTime || "We'll be back soon!",
+          creator: settings.apiSettings?.creator || "VGX Team",
         })
       }
 
-      // For web pages, serve maintenance page
+      // For web pages, show maintenance page
       return res.status(503).sendFile(path.join(__dirname, "api-page", "maintenance.html"))
     }
 
@@ -214,10 +212,6 @@ await loadApiRoutes()
 
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! ✓ "))
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Total Routes Loaded: ${totalRoutes} `))
-
-app.get("/maintenance", (req, res) => {
-  res.sendFile(path.join(__dirname, "api-page", "maintenance.html"))
-})
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "api-page", "index.html"))
