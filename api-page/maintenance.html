@@ -3,39 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="API is currently under maintenance. We'll be back soon!">
-    <meta name="keywords" content="maintenance, API, under construction, scheduled maintenance">
-    <meta name="author" content="Raol API">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Under Maintenance - Raol API">
-    <meta property="og:description" content="We're currently performing scheduled maintenance. Please check back later.">
+    <title>Under Maintenance - Raol Api'S</title>
     <link rel="icon" href="/src/icon.png" type="image/png">
-    <title>Under Maintenance - Raol API</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #6c5ce7;
             --primary-hover: #5649d1;
             --secondary-color: #a29bfe;
             --accent-color: #00cec9;
-            --success-color: #00b894;
-            --error-color: #ff7675;
-            --warning-color: #fdcb6e;
             --background-color: #f9fbff;
             --card-background: #ffffff;
             --text-color: #2c3e50;
             --text-muted: #7f8c8d;
             --border-color: rgba(0, 0, 0, 0.06);
-            --highlight-color: rgba(127, 97, 255, 0.1);
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
             --border-radius: 12px;
             --border-radius-lg: 20px;
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --space-lg: 24px;
-            --space-xl: 32px;
-            --space-xxl: 48px;
         }
 
         .dark-mode {
@@ -48,9 +34,7 @@
             --text-color: #ffffff;
             --text-muted: #cccccc;
             --border-color: rgba(255, 255, 255, 0.08);
-            --highlight-color: rgba(139, 0, 0, 0.3);
             --shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-            --hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
         }
 
         * {
@@ -61,37 +45,25 @@
 
         body {
             font-family: "Outfit", sans-serif;
-            color: var(--text-color);
             background-color: var(--background-color);
-            line-height: 1.6;
-            transition: var(--transition);
-            overflow-x: hidden;
+            color: var(--text-color);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: var(--transition);
+            overflow: hidden;
         }
 
         .maintenance-container {
             text-align: center;
             max-width: 600px;
-            padding: var(--space-xl);
+            padding: 2rem;
             background: var(--card-background);
             border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow);
-            margin: var(--space-lg);
             position: relative;
-            overflow: hidden;
-        }
-
-        .maintenance-container::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            z-index: 10;
         }
 
         .maintenance-gif {
@@ -99,72 +71,67 @@
             max-width: 400px;
             height: auto;
             border-radius: var(--border-radius);
-            margin-bottom: var(--space-xl);
+            margin-bottom: 2rem;
             box-shadow: var(--shadow);
         }
 
         .maintenance-title {
-            font-size: clamp(2rem, 5vw, 3rem);
+            font-size: 2.5rem;
             font-weight: 800;
-            margin-bottom: var(--space-lg);
+            margin-bottom: 1rem;
             background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-fill-color: transparent;
         }
 
         .maintenance-message {
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-size: 1.2rem;
             color: var(--text-muted);
-            margin-bottom: var(--space-xl);
-            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
 
-        .maintenance-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, var(--warning-color), #f39c12);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
+        .maintenance-time {
+            font-size: 1rem;
+            color: var(--primary-color);
             font-weight: 600;
-            margin-bottom: var(--space-xl);
-            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(108, 92, 231, 0.1);
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
         }
 
         .maintenance-actions {
             display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-lg);
+            gap: 1rem;
             justify-content: center;
-            margin-top: var(--space-xl);
+            flex-wrap: wrap;
         }
 
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
+            padding: 0.75rem 1.5rem;
             border: none;
             border-radius: var(--border-radius);
-            font-weight: 500;
+            font-weight: 600;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             transition: var(--transition);
             cursor: pointer;
-            font-size: 1rem;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--hover-shadow);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
             color: white;
         }
 
@@ -175,17 +142,18 @@
         }
 
         .btn-secondary:hover {
-            background: var(--highlight-color);
+            background: var(--primary-color);
+            color: white;
             border-color: var(--primary-color);
-            color: var(--text-color);
+            transform: translateY(-2px);
         }
 
         .theme-toggle {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 2rem;
+            right: 2rem;
             background: var(--card-background);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -194,169 +162,148 @@
             justify-content: center;
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: var(--shadow);
-            color: var(--text-color);
-            font-size: 1.2rem;
+            z-index: 20;
         }
 
         .theme-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
             transform: scale(1.1);
-            box-shadow: var(--hover-shadow);
         }
 
-        .pulse {
-            animation: pulse 2s infinite;
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            opacity: 0.1;
+            animation: float 10s infinite alternate;
         }
 
-        .fade-in {
-            animation: fadeIn 0.8s ease-out;
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
         }
 
-        .floating {
-            animation: floating 3s ease-in-out infinite;
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
         }
 
-        @keyframes floating {
-            0% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-            100% {
-                transform: translateY(0px);
-            }
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
         }
 
         @media (max-width: 768px) {
             .maintenance-container {
-                margin: var(--space-lg) 16px;
-                padding: var(--space-lg);
+                margin: 1rem;
+                padding: 1.5rem;
             }
-
+            
+            .maintenance-title {
+                font-size: 2rem;
+            }
+            
+            .maintenance-message {
+                font-size: 1rem;
+            }
+            
             .maintenance-actions {
                 flex-direction: column;
-                align-items: stretch;
             }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        /* Loading animation for GIF */
-        .maintenance-gif {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        .maintenance-gif.loaded {
-            background: none;
-            animation: none;
-        }
-
-        @keyframes loading {
-            0% {
-                background-position: 200% 0;
-            }
-            100% {
-                background-position: -200% 0;
+            
+            .theme-toggle {
+                top: 1rem;
+                right: 1rem;
+                width: 40px;
+                height: 40px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
         <i class="fas fa-moon" id="themeIcon"></i>
     </button>
 
-    <div class="maintenance-container fade-in">
-        <img 
-            src="https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif" 
-            alt="Under Maintenance" 
-            class="maintenance-gif floating"
-            id="maintenanceGif"
-            onerror="this.style.display='none'; document.getElementById('fallbackIcon').style.display='block';"
-            onload="this.classList.add('loaded')"
-        >
+    <div class="maintenance-container">
+        <img src="https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif" 
+             alt="Under Maintenance" 
+             class="maintenance-gif"
+             onerror="this.style.display='none'">
         
-        <!-- Fallback icon if GIF fails to load -->
-        <div id="fallbackIcon" style="display: none; font-size: 6rem; color: var(--warning-color); margin-bottom: var(--space-xl);">
-            <i class="fas fa-tools"></i>
-        </div>
-
         <h1 class="maintenance-title" id="maintenanceTitle">Under Maintenance</h1>
-        
-        <div class="maintenance-status pulse">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>Service Temporarily Unavailable</span>
-        </div>
-
         <p class="maintenance-message" id="maintenanceMessage">
             We're currently performing scheduled maintenance to improve our services. Please check back later.
         </p>
-
-        <p class="maintenance-message" id="estimatedTime" style="font-weight: 600; color: var(--primary-color);">
+        <div class="maintenance-time" id="maintenanceTime">
+            <i class="fas fa-clock me-2"></i>
             We'll be back soon!
-        </p>
-
+        </div>
+        
         <div class="maintenance-actions">
-            <button class="btn btn-primary" onclick="location.reload()">
+            <button onclick="location.reload()" class="btn btn-primary">
                 <i class="fas fa-sync-alt"></i>
-                <span>Refresh Page</span>
+                Refresh Page
             </button>
-            <a href="mailto:support@example.com" class="btn btn-secondary">
-                <i class="fas fa-envelope"></i>
-                <span>Contact Support</span>
+            <a href="https://whatsapp.com/channel/0029VbAi8n811ulGIozTyF3x" target="_blank" class="btn btn-secondary">
+                <i class="fab fa-whatsapp"></i>
+                Contact Support
             </a>
         </div>
     </div>
 
     <script>
-        // Theme management
+        // Theme toggle functionality
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
         const body = document.body;
 
-        // Initialize theme
+        // Load saved theme
         const savedTheme = localStorage.getItem('darkMode');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if (savedTheme === 'true' || (savedTheme === null && prefersDark)) {
+        if (savedTheme === 'true') {
             body.classList.add('dark-mode');
             themeIcon.className = 'fas fa-sun';
         }
 
         themeToggle.addEventListener('click', () => {
             body.classList.toggle('dark-mode');
-            const isDarkMode = body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode);
-            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            const isDark = body.classList.contains('dark-mode');
+            
+            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('darkMode', isDark);
         });
 
         // Load maintenance settings from API
@@ -364,87 +311,29 @@
             .then(response => response.json())
             .then(data => {
                 if (data.maintenance) {
-                    const titleEl = document.getElementById('maintenanceTitle');
-                    const messageEl = document.getElementById('maintenanceMessage');
-                    const timeEl = document.getElementById('estimatedTime');
-
-                    if (data.maintenance.title) {
-                        titleEl.textContent = data.maintenance.title;
-                        document.title = data.maintenance.title + ' - ' + (data.name || 'Raol API');
-                    }
-                    if (data.maintenance.message) {
-                        messageEl.textContent = data.maintenance.message;
-                    }
-                    if (data.maintenance.estimatedTime) {
-                        timeEl.textContent = data.maintenance.estimatedTime;
-                    }
+                    document.getElementById('maintenanceTitle').textContent = data.maintenance.title || 'Under Maintenance';
+                    document.getElementById('maintenanceMessage').textContent = data.maintenance.message || 'We\'re currently performing scheduled maintenance to improve our services. Please check back later.';
+                    document.getElementById('maintenanceTime').innerHTML = `<i class="fas fa-clock me-2"></i>${data.maintenance.estimatedTime || 'We\'ll be back soon!'}`;
                 }
+                document.title = `${data.maintenance?.title || 'Under Maintenance'} - ${data.name || 'Raol Api\'S'}`;
             })
             .catch(error => {
-                console.log('Could not load maintenance settings:', error);
+                console.error('Error loading maintenance settings:', error);
             });
 
         // Auto refresh every 30 seconds
         setInterval(() => {
-            fetch('/api/maintenance-status')
+            fetch('/api/settings')
                 .then(response => response.json())
                 .then(data => {
-                    if (!data.maintenance) {
+                    if (!data.maintenance?.enabled) {
                         location.reload();
                     }
                 })
-                .catch(() => {
-                    // If API is not responding, try to reload anyway
-                    location.reload();
+                .catch(error => {
+                    console.error('Error checking maintenance status:', error);
                 });
         }, 30000);
-
-        // Add some interactive effects
-        document.addEventListener('DOMContentLoaded', () => {
-            // Add click effect to buttons
-            document.querySelectorAll('.btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.cssText = `
-                        position: absolute;
-                        width: ${size}px;
-                        height: ${size}px;
-                        left: ${x}px;
-                        top: ${y}px;
-                        background: rgba(255, 255, 255, 0.3);
-                        border-radius: 50%;
-                        transform: scale(0);
-                        animation: ripple 0.6s linear;
-                        pointer-events: none;
-                    `;
-                    
-                    this.style.position = 'relative';
-                    this.style.overflow = 'hidden';
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                });
-            });
-        });
-
-        // Add ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 </html>
