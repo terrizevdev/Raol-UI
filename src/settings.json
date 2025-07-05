@@ -2,15 +2,15 @@
   "name": "Raol Api'S",
   "version": "v1.0.0",
   "description": "Simple and easy to use API.",
-  "bannerImage": "/src/banner.jpg",
-  "header": {
-    "status": "Active!"
-  },
   "maintenance": {
-    "enabled": true,
+    "enabled": false,
     "title": "Under Maintenance",
     "message": "We're currently performing scheduled maintenance to improve our services. Please check back later.",
     "estimatedTime": "We'll be back soon!"
+  },
+  "bannerImage": "/src/banner.jpg",
+  "header": {
+    "status": "Active!"
   },
   "apiSettings": {
     "creator": "VGX Team",
