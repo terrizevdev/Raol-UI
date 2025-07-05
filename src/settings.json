@@ -7,7 +7,7 @@
     "status": "Active!"
   },
   "maintenance": {
-    "enabled": false,
+    "enabled": true,
     "showHomeLink": false
   },
   "apiSettings": {
