@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const openSharedApi = async (sharedPath) => {
     // Wait for settings to be loaded
     if (!settings || !settings.categories) {
-      setTimeout(() => openSharedApi(sharedPath), 100)
+      setTimeout(() => openSharedApi(sharedPath), 200)
       return
     }
 
@@ -155,11 +155,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentApiData = apiData
     setupModalForApi(currentApiData)
 
-    // Show modal after a short delay to ensure DOM is ready
+    // Wait longer and ensure everything is loaded before showing modal
     setTimeout(() => {
-      DOM.modal.instance.show()
-      showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
-    }, 500)
+      // Double check that modal instance exists
+      if (!DOM.modal.instance) {
+        initModal()
+      }
+
+      // Ensure page is scrolled to top for better modal positioning
+      window.scrollTo({ top: 0, behavior: "smooth" })
+
+      // Show modal with additional delay to ensure proper rendering
+      setTimeout(() => {
+        DOM.modal.instance.show()
+        showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
+      }, 300)
+    }, 1500) // Increased from 500ms to 1500ms
   }
 
   // --- Utility Functions ---
@@ -311,11 +322,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderApiCategories()
       observeApiItems()
 
-      // Check for shared API in URL after everything is loaded
-      const sharedPath = parseSharedApiFromUrl()
-      if (sharedPath) {
-        openSharedApi(sharedPath)
-      }
+      // Wait for everything to be fully rendered before checking shared API
+      setTimeout(() => {
+        const sharedPath = parseSharedApiFromUrl()
+        if (sharedPath) {
+          // Additional delay to ensure all animations and rendering are complete
+          setTimeout(() => {
+            openSharedApi(sharedPath)
+          }, 800)
+        }
+      }, 500)
     } catch (error) {
       console.error("Error loading settings:", error)
       showToast(`Failed to load settings: ${error.message}`, "error")
