@@ -40,180 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     apiLinksContainer: document.getElementById("apiLinks"),
   }
 
-  // Blur Background Feature
-  const BlurBackground = {
-    overlay: null,
-    indicator: null,
-    isActive: false,
-
-    init() {
-      this.createOverlay()
-      this.createIndicator()
-      this.setupEventListeners()
-    },
-
-    createOverlay() {
-      this.overlay = document.createElement("div")
-      this.overlay.className = "blur-overlay"
-      this.overlay.innerHTML = `
-        <div class="blur-content">
-          <button class="close-blur" aria-label="Close blur overlay">
-            <i class="fas fa-times"></i>
-          </button>
-          <div class="blur-loading">
-            <svg class="spinner-logo" width="60" height="60" viewBox="0 0 100 100" aria-hidden="true">
-              <circle class="spinner-path" cx="50" cy="50" r="40" fill="none" stroke-width="8" />
-              <circle class="spinner-animation" cx="50" cy="50" r="40" fill="none" stroke-width="8" />
-            </svg>
-            <p>Loading blur content...</p>
-          </div>
-        </div>
-      `
-      document.body.appendChild(this.overlay)
-    },
-
-    createIndicator() {
-      this.indicator = document.createElement("div")
-      this.indicator.className = "blur-indicator"
-      this.indicator.innerHTML = '<i class="fas fa-eye"></i>Blur Mode Active'
-      document.body.appendChild(this.indicator)
-    },
-
-    setupEventListeners() {
-      // Close blur overlay
-      const closeBtn = this.overlay.querySelector(".close-blur")
-      closeBtn.addEventListener("click", () => this.hide())
-
-      // Close on overlay click (outside content)
-      this.overlay.addEventListener("click", (e) => {
-        if (e.target === this.overlay) {
-          this.hide()
-        }
-      })
-
-      // Close on Escape key
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && this.isActive) {
-          this.hide()
-        }
-      })
-    },
-
-    show(title = "Blur Mode", content = null, options = {}) {
-      const blurContent = this.overlay.querySelector(".blur-content")
-      const defaultOptions = {
-        showCloseButton: true,
-        showIndicator: true,
-        autoHide: false,
-        autoHideDelay: 5000,
-      }
-
-      const config = { ...defaultOptions, ...options }
-
-      // Update content
-      if (content) {
-        blurContent.innerHTML = `
-          ${config.showCloseButton ? '<button class="close-blur" aria-label="Close blur overlay"><i class="fas fa-times"></i></button>' : ""}
-          <h2><i class="fas fa-layer-group me-2"></i>${title}</h2>
-          <div class="blur-body">${content}</div>
-        `
-
-        // Re-attach close button event if shown
-        if (config.showCloseButton) {
-          const closeBtn = blurContent.querySelector(".close-blur")
-          closeBtn.addEventListener("click", () => this.hide())
-        }
-      }
-
-      // Show overlay and indicator
-      this.overlay.classList.add("active")
-      if (config.showIndicator) {
-        this.indicator.classList.add("active")
-      }
-
-      // Add blur effect to body
-      document.body.classList.add("blur-active")
-      this.isActive = true
-
-      // Auto hide if configured
-      if (config.autoHide) {
-        setTimeout(() => {
-          if (this.isActive) this.hide()
-        }, config.autoHideDelay)
-      }
-
-      // Show toast notification
-      showToast(`${title} activated`, "info", "Blur Mode")
-
-      // Focus management for accessibility
-      const firstFocusable = blurContent.querySelector(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      )
-      if (firstFocusable) {
-        setTimeout(() => firstFocusable.focus(), 100)
-      }
-    },
-
-    hide() {
-      this.overlay.classList.remove("active")
-      this.indicator.classList.remove("active")
-      document.body.classList.remove("blur-active")
-      this.isActive = false
-
-      showToast("Blur mode deactivated", "info", "Blur Mode")
-    },
-
-    updateContent(content) {
-      const blurBody = this.overlay.querySelector(".blur-body")
-      if (blurBody) {
-        blurBody.innerHTML = content
-      }
-    },
-
-    isVisible() {
-      return this.isActive
-    },
-  }
-
-  // Add blur endpoints configuration
-  const BLUR_ENDPOINTS = {
-    "/api/blur-demo": {
-      title: "Blur Demo",
-      content: `
-        <div style="text-align: center;">
-          <i class="fas fa-magic fa-3x mb-3" style="color: var(--primary-color);"></i>
-          <h3>Welcome to Blur Mode!</h3>
-          <p>This is a demonstration of the blur background feature.</p>
-          <p>The background is now beautifully blurred while this content remains sharp and interactive.</p>
-          <div style="margin: 20px 0;">
-            <button class="btn btn-primary me-2" onclick="BlurBackground.updateContent('<p>Content updated successfully!</p>')">
-              <i class="fas fa-sync-alt me-1"></i> Update Content
-            </button>
-            <button class="btn btn-outline-secondary" onclick="BlurBackground.hide()">
-              <i class="fas fa-times me-1"></i> Close
-            </button>
-          </div>
-        </div>
-      `,
-      options: { showIndicator: true, autoHide: false },
-    },
-    "/api/blur-info": {
-      title: "API Information",
-      content: `
-        <div>
-          <h4><i class="fas fa-info-circle me-2"></i>API Status Information</h4>
-          <div class="alert alert-info">
-            <strong>Status:</strong> All systems operational<br>
-            <strong>Response Time:</strong> ~150ms<br>
-            <strong>Uptime:</strong> 99.9%
-          </div>
-          <p>This blur overlay provides a focused view of important information without losing context of the main interface.</p>
-        </div>
-      `,
-      options: { showIndicator: true, autoHide: true, autoHideDelay: 8000 },
-    },
-  }
-
   let settings = {} // To store data from settings.json
   let currentApiData = null // To store API data currently displayed in the modal
   let allNotifications = [] // To store all notifications from JSON
@@ -475,7 +301,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     initTheme()
     initSideNav()
     initModal()
-    BlurBackground.init()
     await loadNotifications()
 
     try {
@@ -503,8 +328,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   const setupEventListeners = () => {
     if (DOM.menuToggle) DOM.menuToggle.addEventListener("click", toggleSideNavMobile)
     if (DOM.themeToggle) DOM.themeToggle.addEventListener("change", handleThemeToggle)
-    if (DOM.searchInput) DOM.searchInput.addEventListener("input", debounce(handleSearch, 300))
-    if (DOM.clearSearchBtn) DOM.clearSearchBtn.addEventListener("click", clearSearch)
+    // Replace the existing search input listener with this enhanced version
+    if (DOM.searchInput) {
+      DOM.searchInput.addEventListener("input", debounce(handleSearch, 200)) // Reduced debounce time
+      DOM.searchInput.addEventListener("focus", () => {
+        DOM.searchInput.parentElement.classList.add("search-focused")
+      })
+      DOM.searchInput.addEventListener("blur", () => {
+        DOM.searchInput.parentElement.classList.remove("search-focused")
+      })
+      DOM.searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          clearSearch()
+        }
+      })
+    }
+
+    if (DOM.clearSearchBtn) {
+      DOM.clearSearchBtn.addEventListener("click", (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        clearSearch()
+      })
+
+      // Add touch support for mobile
+      DOM.clearSearchBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault()
+        DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(0.9)"
+      })
+
+      DOM.clearSearchBtn.addEventListener("touchend", (e) => {
+        e.preventDefault()
+        DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(1.1)"
+        clearSearch()
+      })
+    }
 
     if (DOM.notificationBell) DOM.notificationBell.addEventListener("click", handleNotificationBellClick)
 
@@ -645,7 +503,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Modal Initialization ---
   const initModal = () => {
     if (DOM.modal.element) {
-      DOM.modal.instance = new window.bootstrap.Modal(DOM.modal.element)
+      DOM.modal.instance = new window.bootstrap.Modal(DOM.modal.element, {
+        backdrop: "static", // Prevent closing by clicking backdrop
+        keyboard: true, // Allow closing with Escape key
+        focus: true, // Focus on modal when opened
+      })
+
+      // Enhanced modal event listeners
+      DOM.modal.element.addEventListener("shown.bs.modal", () => {
+        // Ensure modal covers full screen
+        const backdrop = document.querySelector(".modal-backdrop")
+        if (backdrop) {
+          backdrop.style.zIndex = "1050"
+          backdrop.style.backgroundColor = "rgba(0, 0, 0, 0.75)"
+          backdrop.style.backdropFilter = "blur(8px)"
+        }
+
+        // Focus on first input if available
+        const firstInput = DOM.modal.element.querySelector("input")
+        if (firstInput) {
+          setTimeout(() => firstInput.focus(), 100)
+        }
+      })
+
+      DOM.modal.element.addEventListener("hidden.bs.modal", () => {
+        // Clean up any remaining backdrops
+        document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+          if (backdrop.style.display !== "none") {
+            backdrop.remove()
+          }
+        })
+      })
     }
   }
 
@@ -852,10 +740,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const handleSearch = () => {
     if (!DOM.searchInput || !DOM.apiContent) return
     const searchTerm = DOM.searchInput.value.toLowerCase().trim()
-    DOM.clearSearchBtn.classList.toggle("visible", searchTerm.length > 0)
+
+    // Enhanced clear button visibility with smooth transition
+    if (searchTerm.length > 0) {
+      DOM.clearSearchBtn.classList.add("visible")
+      DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(1)"
+    } else {
+      DOM.clearSearchBtn.classList.remove("visible")
+      DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(0.8)"
+    }
 
     const apiItems = DOM.apiContent.querySelectorAll(".api-item")
     const visibleCategories = new Set()
+    let hasResults = false
 
     apiItems.forEach((item) => {
       const name = (item.dataset.name || "").toLowerCase()
@@ -863,34 +760,70 @@ document.addEventListener("DOMContentLoaded", async () => {
       const category = (item.dataset.category || "").toLowerCase()
       const matches = name.includes(searchTerm) || desc.includes(searchTerm) || category.includes(searchTerm)
 
-      item.style.display = matches ? "" : "none"
+      // Enhanced animation for search results
       if (matches) {
+        item.style.display = ""
+        item.style.animation = "slideInUp 0.3s ease-out"
+        hasResults = true
         visibleCategories.add(item.closest(".category-section"))
+      } else {
+        item.style.display = "none"
       }
     })
 
+    // Enhanced category visibility handling
     DOM.apiContent.querySelectorAll(".category-section").forEach((section) => {
-      section.style.display = visibleCategories.has(section) ? "" : "none"
+      if (visibleCategories.has(section)) {
+        section.style.display = ""
+        section.style.animation = "fadeIn 0.4s ease-out"
+      } else {
+        section.style.display = "none"
+      }
     })
 
+    // Enhanced no results message
     const noResultsMsg = DOM.apiContent.querySelector("#noResultsMessage") || createNoResultsMessage()
-    const allHidden = Array.from(visibleCategories).length === 0 && searchTerm.length > 0
+    const shouldShowNoResults = !hasResults && searchTerm.length > 0
 
-    if (allHidden) {
-      noResultsMsg.querySelector("span").textContent = `"${searchTerm}"`
+    if (shouldShowNoResults) {
+      const searchTermSpan = noResultsMsg.querySelector("span")
+      if (searchTermSpan) {
+        searchTermSpan.textContent = `"${searchTerm}"`
+      }
       noResultsMsg.style.display = "flex"
+      noResultsMsg.style.animation = "slideInUp 0.4s ease-out"
     } else {
       noResultsMsg.style.display = "none"
+    }
+
+    // Add search analytics (optional)
+    if (searchTerm.length > 0) {
+      console.log(`Search performed: "${searchTerm}", Results: ${hasResults ? "found" : "none"}`)
     }
   }
 
   const clearSearch = () => {
     if (!DOM.searchInput) return
+
+    // Enhanced clear animation
+    DOM.searchInput.style.transition = "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
     DOM.searchInput.value = ""
     DOM.searchInput.focus()
+
+    // Trigger search to reset results
     handleSearch()
+
+    // Enhanced shake animation
     DOM.searchInput.classList.add("shake-animation")
-    setTimeout(() => DOM.searchInput.classList.remove("shake-animation"), 400)
+    DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(0.8) rotate(90deg)"
+
+    setTimeout(() => {
+      DOM.searchInput.classList.remove("shake-animation")
+      DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(1) rotate(0deg)"
+    }, 400)
+
+    // Show success feedback
+    showToast("Search cleared successfully", "success", "Search")
   }
 
   const createNoResultsMessage = () => {
@@ -902,14 +835,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         "no-results-message flex-column align-items-center justify-content-center p-5 text-center"
       noResultsMsg.style.display = "none"
       noResultsMsg.innerHTML = `
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <p class="h5">No results for <span></span></p>
-                <button id="clearSearchFromMsg" class="btn btn-primary mt-3">
-                    <i class="fas fa-times me-2"></i> Clear Search
-                </button>
-            `
+      <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+      <p class="h5">No results found for <span></span></p>
+      <p class="text-muted mb-4">Try adjusting your search terms or browse our available APIs below.</p>
+      <button id="clearSearchFromMsg" class="btn btn-primary mt-3">
+        <i class="fas fa-times me-2"></i> Clear Search
+      </button>
+    `
       DOM.apiContent.appendChild(noResultsMsg)
-      document.getElementById("clearSearchFromMsg").addEventListener("click", clearSearch)
+
+      // Enhanced clear button functionality
+      const clearBtn = document.getElementById("clearSearchFromMsg")
+      clearBtn.addEventListener("click", () => {
+        clearSearch()
+        // Smooth scroll to top after clearing
+        window.scrollTo({ top: 0, behavior: "smooth" })
+      })
     }
     return noResultsMsg
   }
@@ -928,13 +869,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       desc: getApiBtn.dataset.apiDesc,
       params: getApiBtn.dataset.apiParams ? JSON.parse(getApiBtn.dataset.apiParams) : null,
       innerDesc: getApiBtn.dataset.apiInnerDesc,
-    }
-
-    // Check if this is a blur endpoint
-    if (BLUR_ENDPOINTS[currentApiData.path]) {
-      const blurConfig = BLUR_ENDPOINTS[currentApiData.path]
-      BlurBackground.show(blurConfig.title, blurConfig.content, blurConfig.options)
-      return
     }
 
     setupModalForApi(currentApiData)
