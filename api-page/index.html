@@ -34,10 +34,6 @@
     
     <!-- WhatsApp specific -->
     <meta property="og:image:secure_url" content="https://api.vgxteam.xyz/api/preview-image">
-
-    <!-- Screenshot tools -->
-    <meta name="screenshot-ready" content="true">
-    <meta name="full-page-capture" content="enabled">
     
     <link rel="icon" href="/src/icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/src/icon.png">
@@ -180,7 +176,7 @@
         </footer>
     </div>
 
-    <div class="modal fade" id="apiResponseModal" tabindex="-1" aria-labelledby="apiResponseModalLabel" aria-hidden="true">
+    <div class="modal fade" id="apiResponseModal" tabindex="-1" aria-labelledby="apiResponseModalLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" id="modalDialog" role="document">
             <div class="modal-content">
                 <header class="modal-header">
@@ -250,39 +246,5 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/script.js"></script>
-
-    <script>
-// Screenshot tool detection and optimization
-(function() {
-  const isScreenshotTool = /headless|phantom|selenium|puppeteer|playwright/i.test(navigator.userAgent) ||
-                          window.navigator.webdriver ||
-                          window.callPhantom ||
-                          window._phantom ||
-                          new URLSearchParams(window.location.search).get('screenshot') === 'true';
-
-  if (isScreenshotTool) {
-    document.documentElement.classList.add('screenshot-mode');
-    document.body.classList.add('screenshot-mode', 'screenshot-ready');
-    
-    // Disable animations immediately
-    const style = document.createElement('style');
-    style.textContent = `
-      *, *::before, *::after {
-        animation-duration: 0s !important;
-        animation-delay: 0s !important;
-        transition-duration: 0s !important;
-        transition-delay: 0s !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // Add URL parameter support for manual screenshot mode
-  if (new URLSearchParams(window.location.search).get('mode') === 'screenshot') {
-    document.documentElement.classList.add('screenshot-mode');
-    document.body.classList.add('screenshot-mode', 'screenshot-ready');
-  }
-})();
-</script>
 </body>
 </html>

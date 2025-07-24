@@ -2217,206 +2217,311 @@ input:checked + .slider:before {
   justify-content: center;
 }
 
-/* Modal positioning fixes for shared links */
-.modal-dialog {
-  margin: 1.75rem auto;
-  max-width: 90vw;
+/* Enhanced Full-Screen Modal Styles */
+.modal.fullscreen-modal {
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.modal.fullscreen-modal .modal-dialog {
+  max-width: 95vw;
+  max-height: 95vh;
+  width: 95vw;
+  height: 95vh;
+  margin: 2.5vh auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.fullscreen-modal .modal-content {
   width: 100%;
-}
-
-@media (min-width: 576px) {
-  .modal-dialog {
-    max-width: 500px;
-  }
-}
-
-@media (min-width: 992px) {
-  .modal-dialog {
-    max-width: 800px;
-  }
-}
-
-/* Ensure modal content is never cut off */
-.modal-content {
-  max-height: 90vh;
-  overflow: hidden;
+  height: 100%;
+  max-height: 100%;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  position: relative;
 }
 
-.modal-body {
-  max-height: calc(90vh - 200px);
-  overflow-y: auto;
+.modal.fullscreen-modal .modal-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  opacity: 0.6;
+}
+
+.modal.fullscreen-modal .modal-header {
+  flex-shrink: 0;
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(135deg, var(--card-background), rgba(var(--background-color-rgb), 0.95));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modal.fullscreen-modal .modal-body {
   flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xl);
+  background: var(--card-background);
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
 }
 
-/* Fix for shared API modal positioning */
+.modal.fullscreen-modal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal.fullscreen-modal .modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal.fullscreen-modal .modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--primary-color), var(--secondary-color));
+  border-radius: 10px;
+}
+
+.modal.fullscreen-modal .modal-footer {
+  flex-shrink: 0;
+  padding: var(--space-lg) var(--space-xl);
+  border-top: 1px solid var(--border-color);
+  background: linear-gradient(135deg, var(--card-background), rgba(var(--background-color-rgb), 0.95));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Enhanced Response Image Styles for Full-Screen */
+.modal.fullscreen-modal .response-image {
+  max-width: 100%;
+  max-height: 70vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: var(--hover-transition);
+  cursor: zoom-in;
+}
+
+.modal.fullscreen-modal .response-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced Code Block for Full-Screen */
+.modal.fullscreen-modal .code-block {
+  max-height: 70vh;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Background Blur Effect */
+.modal-backdrop.show {
+  opacity: 1;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.6);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Enhanced Modal Animation */
+.modal.fade .modal-dialog {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: scale(0.9) translateY(-50px);
+}
+
 .modal.show .modal-dialog {
-  transform: none;
+  transform: scale(1) translateY(0);
 }
 
-/* Ensure proper viewport handling */
+/* Responsive Full-Screen Modal */
 @media (max-width: 768px) {
-  .modal-dialog {
-    margin: 0.5rem;
-    max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 1rem);
+  .modal.fullscreen-modal .modal-dialog {
+    max-width: 98vw;
+    max-height: 98vh;
+    width: 98vw;
+    height: 98vh;
+    margin: 1vh auto;
   }
 
-  .modal-content {
-    max-height: calc(100vh - 1rem);
+  .modal.fullscreen-modal .modal-header,
+  .modal.fullscreen-modal .modal-footer {
+    padding: var(--space-md) var(--space-lg);
   }
 
-  .modal-body {
-    max-height: calc(100vh - 180px);
+  .modal.fullscreen-modal .modal-body {
+    padding: var(--space-lg);
+  }
+
+  .modal.fullscreen-modal .response-image {
+    max-height: 60vh;
+  }
+
+  .modal.fullscreen-modal .code-block {
+    max-height: 60vh;
+    font-size: 0.9rem;
   }
 }
 
-/* Loading screen improvements */
-#loadingScreen {
+@media (max-width: 576px) {
+  .modal.fullscreen-modal .modal-dialog {
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .modal.fullscreen-modal .modal-content {
+    border-radius: 0;
+    height: 100vh;
+  }
+
+  .modal.fullscreen-modal .modal-header,
+  .modal.fullscreen-modal .modal-footer {
+    padding: var(--space-md);
+  }
+
+  .modal.fullscreen-modal .modal-body {
+    padding: var(--space-md);
+  }
+
+  .modal.fullscreen-modal .response-image {
+    max-height: 50vh;
+  }
+}
+
+/* Enhanced Close Button for Full-Screen */
+.modal.fullscreen-modal .btn-close {
+  width: 40px;
+  height: 40px;
+  font-size: 1.4rem;
+  border-radius: 50%;
+  background: rgba(var(--background-color-rgb), 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  transition: var(--hover-transition);
+}
+
+.modal.fullscreen-modal .btn-close:hover {
+  background: var(--error-color);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);
+}
+
+/* Enhanced Modal Title for Full-Screen */
+.modal.fullscreen-modal .modal-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+/* Enhanced Parameter Container for Full-Screen */
+.modal.fullscreen-modal .param-container {
+  background: linear-gradient(135deg, var(--background-color), rgba(var(--background-color-rgb), 0.8));
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced Endpoint Display */
+.modal.fullscreen-modal .code-block {
+  background: linear-gradient(135deg, var(--background-color), rgba(var(--background-color-rgb), 0.95));
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.modal.fullscreen-modal .code-block::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+}
+
+/* Image Zoom Feature */
+.image-zoom-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: var(--background-color);
-  z-index: 9999;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 2000;
   display: flex;
-  justify-content: center;
   align-items: center;
-  flex-direction: column;
-  transition: opacity 0.5s ease-out;
-}
-
-#loadingScreen.fade-out {
+  justify-content: center;
   opacity: 0;
-  pointer-events: none;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  cursor: zoom-out;
 }
 
-/* Prevent body scroll when modal is open */
-body.modal-open {
-  overflow: hidden;
-  padding-right: 0 !important;
+.image-zoom-overlay.active {
+  opacity: 1;
+  visibility: visible;
 }
 
-/* Screenshot Tool Optimizations */
-.screenshot-mode {
-  overflow: visible !important;
-  height: auto !important;
-  min-height: 100vh !important;
+.image-zoom-overlay img {
+  max-width: 95vw;
+  max-height: 95vh;
+  object-fit: contain;
+  border-radius: var(--border-radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
 }
 
-.screenshot-mode .modal-backdrop {
-  display: none !important;
+.image-zoom-overlay.active img {
+  transform: scale(1);
 }
 
-.screenshot-mode .modal {
-  position: absolute !important;
-  top: 50px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  z-index: 1050 !important;
-  margin: 0 !important;
+.image-zoom-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: white;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--hover-transition);
 }
 
-.screenshot-mode .modal-dialog {
-  margin: 0 auto !important;
-  max-width: 90vw !important;
-}
-
-.screenshot-mode body {
-  overflow: visible !important;
-  padding-right: 0 !important;
-}
-
-.screenshot-mode .main-wrapper {
-  position: relative !important;
-  z-index: 1 !important;
-  margin-left: var(--side-nav-width) !important;
-}
-
-.screenshot-mode .side-nav {
-  position: absolute !important;
-  transform: translateX(0) !important;
-}
-
-/* Ensure all content is visible for screenshots */
-@media print, screen and (min-width: 1px) {
-  .screenshot-ready * {
-    opacity: 1 !important;
-    transform: none !important;
-    visibility: visible !important;
-  }
-
-  .screenshot-ready .api-item {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-  }
-
-  .screenshot-ready .category-section {
-    animation: none !important;
-  }
-}
-
-/* Full page height for screenshot tools */
-html.screenshot-mode,
-body.screenshot-mode {
-  height: auto !important;
-  min-height: 100vh !important;
-  overflow: visible !important;
-}
-
-/* Modal positioning for screenshots */
-.modal.screenshot-modal {
-  position: absolute !important;
-  top: 50px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  z-index: 1050 !important;
-  display: block !important;
-}
-
-.modal.screenshot-modal .modal-dialog {
-  margin: 0 auto !important;
-  transform: none !important;
-}
-
-/* Prevent backdrop interference */
-.modal-backdrop.screenshot-hidden {
-  display: none !important;
-  opacity: 0 !important;
-}
-
-/* Ensure proper layering for screenshots */
-.screenshot-mode .main-content {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-.screenshot-mode .hero-section,
-.screenshot-mode .api-section {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-/* Force visibility of all elements */
-.screenshot-mode .api-item,
-.screenshot-mode .category-section,
-.screenshot-mode .api-card {
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: none !important;
-}
-
-/* Responsive fixes for screenshots */
-@media (max-width: 992px) {
-  .screenshot-mode .main-wrapper {
-    margin-left: 0 !important;
-  }
-
-  .screenshot-mode .side-nav {
-    position: absolute !important;
-    left: 0 !important;
-    transform: translateX(0) !important;
-  }
+.image-zoom-close:hover {
+  background: var(--error-color);
+  transform: scale(1.1);
 }

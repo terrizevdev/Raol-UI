@@ -134,38 +134,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const prepareForScreenshot = () => {
-    // Ensure body can scroll and has proper height for screenshot tools
-    document.body.style.overflow = "visible"
-    document.body.style.height = "auto"
-    document.body.style.minHeight = "100vh"
-
-    // Remove any backdrop that might interfere with screenshots
-    const backdrop = document.querySelector(".modal-backdrop")
-    if (backdrop) {
-      backdrop.style.display = "none"
-    }
-
-    // Ensure main content is visible
-    const mainWrapper = document.querySelector(".main-wrapper")
-    if (mainWrapper) {
-      mainWrapper.style.position = "relative"
-      mainWrapper.style.zIndex = "1"
-    }
-
-    // Make sure all content is rendered and visible
-    const allSections = document.querySelectorAll("section, .category-section, .api-item")
-    allSections.forEach((section) => {
-      section.style.opacity = "1"
-      section.style.transform = "none"
-      section.style.visibility = "visible"
-    })
-  }
-
   const openSharedApi = async (sharedPath) => {
     // Wait for settings to be loaded
     if (!settings || !settings.categories) {
-      setTimeout(() => openSharedApi(sharedPath), 200)
+      setTimeout(() => openSharedApi(sharedPath), 100)
       return
     }
 
@@ -179,93 +151,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       return
     }
 
-    // Prepare page for screenshot tools
-    prepareForScreenshot()
-
     // Set current API data and open modal
     currentApiData = apiData
     setupModalForApi(currentApiData)
 
-    // Wait longer and ensure everything is loaded before showing modal
+    // Show modal after a short delay to ensure DOM is ready
     setTimeout(() => {
-      // Double check that modal instance exists
-      if (!DOM.modal.instance) {
-        initModal()
-      }
-
-      // Ensure page is scrolled to top for better modal positioning
-      window.scrollTo({ top: 0, behavior: "smooth" })
-
-      // Show modal with additional delay to ensure proper rendering
-      setTimeout(() => {
-        // Override modal backdrop behavior for screenshots
-        const modalElement = DOM.modal.element
-        if (modalElement) {
-          modalElement.style.position = "absolute"
-          modalElement.style.top = "50px"
-          modalElement.style.left = "50%"
-          modalElement.style.transform = "translateX(-50%)"
-          modalElement.style.zIndex = "1050"
-          modalElement.style.display = "block"
-          modalElement.classList.add("show")
-
-          // Prevent body scroll lock for screenshots
-          document.body.classList.remove("modal-open")
-          document.body.style.overflow = "visible"
-          document.body.style.paddingRight = "0"
-        }
-
-        DOM.modal.instance.show()
-        showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
-
-        // Additional screenshot optimization
-        setTimeout(() => {
-          prepareForScreenshot()
-        }, 500)
-      }, 300)
-    }, 1500)
-  }
-
-  const optimizeForScreenshotTools = () => {
-    // Detect if this might be a screenshot tool by checking user agent or other indicators
-    const isLikelyScreenshotTool =
-      /headless|phantom|selenium|puppeteer|playwright/i.test(navigator.userAgent) ||
-      window.navigator.webdriver ||
-      window.callPhantom ||
-      window._phantom
-
-    if (isLikelyScreenshotTool || getUrlParameter("screenshot") === "true") {
-      // Disable animations for faster rendering
-      const style = document.createElement("style")
-      style.textContent = `
-        *, *::before, *::after {
-          animation-duration: 0s !important;
-          animation-delay: 0s !important;
-          transition-duration: 0s !important;
-          transition-delay: 0s !important;
-        }
-        .modal-backdrop {
-          display: none !important;
-        }
-        body.modal-open {
-          overflow: visible !important;
-          padding-right: 0 !important;
-        }
-        .modal {
-          position: absolute !important;
-          top: 50px !important;
-          left: 50% !important;
-          transform: translateX(-50%) !important;
-          z-index: 1050 !important;
-        }
-      `
-      document.head.appendChild(style)
-
-      // Ensure all content is immediately visible
-      setTimeout(() => {
-        prepareForScreenshot()
-      }, 100)
-    }
+      DOM.modal.instance.show()
+      showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
+    }, 500)
   }
 
   // --- Utility Functions ---
@@ -409,9 +303,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     initModal()
     await loadNotifications()
 
-    // Optimize for screenshot tools
-    optimizeForScreenshotTools()
-
     try {
       const response = await fetch("/api/settings")
       if (!response.ok) throw new Error(`Failed to load settings: ${response.status}`)
@@ -420,16 +311,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderApiCategories()
       observeApiItems()
 
-      // Wait for everything to be fully rendered before checking shared API
-      setTimeout(() => {
-        const sharedPath = parseSharedApiFromUrl()
-        if (sharedPath) {
-          // Additional delay to ensure all animations and rendering are complete
-          setTimeout(() => {
-            openSharedApi(sharedPath)
-          }, 800)
-        }
-      }, 500)
+      // Check for shared API in URL after everything is loaded
+      const sharedPath = parseSharedApiFromUrl()
+      if (sharedPath) {
+        openSharedApi(sharedPath)
+      }
     } catch (error) {
       console.error("Error loading settings:", error)
       showToast(`Failed to load settings: ${error.message}`, "error")
@@ -874,6 +760,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const setupModalForApi = (apiData) => {
+    // Add fullscreen class to modal
+    DOM.modal.element.classList.add("fullscreen-modal")
+
     DOM.modal.label.textContent = apiData.name
     DOM.modal.desc.textContent = apiData.desc
     DOM.modal.content.innerHTML = ""
@@ -987,67 +876,64 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const validateModalInputs = () => {
-    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input[required]")
-    const allFilled = Array.from(inputs).every((input) => input.value.trim() !== "")
-    DOM.modal.submitBtn.disabled = !allFilled
-    DOM.modal.submitBtn.classList.toggle("btn-active", allFilled)
+  // Add image zoom functionality
+  const createImageZoomOverlay = () => {
+    let overlay = document.getElementById("imageZoomOverlay")
+    if (!overlay) {
+      overlay = document.createElement("div")
+      overlay.id = "imageZoomOverlay"
+      overlay.className = "image-zoom-overlay"
 
-    inputs.forEach((input) => {
-      if (input.value.trim()) input.classList.remove("is-invalid")
-    })
-    const errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger.fade-in")
-    if (errorMsg && allFilled) {
-      errorMsg.classList.replace("fade-in", "fade-out")
-      setTimeout(() => errorMsg.remove(), 300)
+      const closeBtn = document.createElement("button")
+      closeBtn.className = "image-zoom-close"
+      closeBtn.innerHTML = '<i class="fas fa-times"></i>'
+      closeBtn.onclick = closeImageZoom
+
+      overlay.appendChild(closeBtn)
+      document.body.appendChild(overlay)
+
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) {
+          closeImageZoom()
+        }
+      })
+    }
+    return overlay
+  }
+
+  const openImageZoom = (imageSrc, altText) => {
+    const overlay = createImageZoomOverlay()
+
+    // Remove existing image if any
+    const existingImg = overlay.querySelector("img")
+    if (existingImg) {
+      existingImg.remove()
+    }
+
+    const img = document.createElement("img")
+    img.src = imageSrc
+    img.alt = altText
+    img.style.cursor = "zoom-out"
+
+    overlay.appendChild(img)
+    overlay.classList.add("active")
+    document.body.style.overflow = "hidden"
+  }
+
+  const closeImageZoom = () => {
+    const overlay = document.getElementById("imageZoomOverlay")
+    if (overlay) {
+      overlay.classList.remove("active")
+      document.body.style.overflow = ""
     }
   }
 
-  const handleSubmitQuery = async () => {
-    if (!currentApiData) return
-
-    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input")
-    const newParams = new URLSearchParams()
-    let isValid = true
-
-    inputs.forEach((input) => {
-      if (input.required && !input.value.trim()) {
-        isValid = false
-        input.classList.add("is-invalid")
-        input.parentElement.classList.add("shake-animation")
-        setTimeout(() => input.parentElement.classList.remove("shake-animation"), 500)
-      } else {
-        input.classList.remove("is-invalid")
-        if (input.value.trim()) newParams.append(input.dataset.param, input.value.trim())
-      }
-    })
-
-    if (!isValid) {
-      let errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger")
-      if (!errorMsg) {
-        errorMsg = document.createElement("div")
-        errorMsg.className = "alert alert-danger mt-3"
-        errorMsg.setAttribute("role", "alert")
-        DOM.modal.queryInputContainer.appendChild(errorMsg)
-      }
-      errorMsg.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> Please fill in all required fields.'
-      errorMsg.classList.remove("fade-out")
-      errorMsg.classList.add("fade-in")
-
-      DOM.modal.submitBtn.classList.add("shake-animation")
-      setTimeout(() => DOM.modal.submitBtn.classList.remove("shake-animation"), 500)
-      return
+  // Add keyboard support for image zoom
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeImageZoom()
     }
-
-    DOM.modal.submitBtn.disabled = true
-    DOM.modal.submitBtn.innerHTML =
-      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...'
-
-    const apiUrlWithParams = `${window.location.origin}${currentApiData.path.split("?")[0]}?${newParams.toString()}`
-    DOM.modal.endpoint.textContent = apiUrlWithParams
-
-    await handleApiRequest(apiUrlWithParams, currentApiData.name)
-  }
+  })
 
   const handleApiRequest = async (apiUrl, apiName) => {
     DOM.modal.spinner.classList.remove("d-none")
@@ -1061,12 +947,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const response = await fetch(apiUrl, { signal: controller.signal })
       clearTimeout(timeoutId)
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: response.statusText }))
-        throw new Error(`HTTP error! Status: ${response.status} - ${errorData.message || response.statusText}`)
-      }
+      const contentType = response.headers.get("content-type")
 
-      const contentType = response.headers.get("Content-Type")
       if (contentType && contentType.includes("image/")) {
         const blob = await response.blob()
         const imageUrl = URL.createObjectURL(blob)
@@ -1074,6 +956,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         img.src = imageUrl
         img.alt = apiName
         img.className = "response-image img-fluid rounded shadow-sm fade-in"
+
+        // Add click handler for zoom
+        img.addEventListener("click", () => {
+          openImageZoom(imageUrl, apiName)
+        })
+
+        // Add hover effect
+        img.style.cursor = "zoom-in"
+        img.title = "Click to zoom"
 
         // Only add image to content, download button will be in footer
         DOM.modal.content.appendChild(img)
@@ -1309,6 +1200,32 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       return new window.bootstrap.Tooltip(tooltipTriggerEl)
     })
+  }
+
+  // --- Handle Submit Query ---
+  const handleSubmitQuery = async () => {
+    if (!currentApiData || !DOM.modal.queryInputContainer) return
+
+    const formData = new FormData(DOM.modal.queryInputContainer)
+    const queryParams = new URLSearchParams()
+    formData.forEach((value, key) => queryParams.append(key, value))
+
+    const apiUrl = `${window.location.origin}${currentApiData.path.split("?")[0]}?${queryParams.toString()}`
+    handleApiRequest(apiUrl, currentApiData.name)
+  }
+
+  // --- Validate Modal Inputs ---
+  const validateModalInputs = () => {
+    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input")
+    let isValid = true
+
+    inputs.forEach((input) => {
+      if (!input.value) {
+        isValid = false
+      }
+    })
+
+    DOM.modal.submitBtn.disabled = !isValid
   }
 
   // Run main initialization
