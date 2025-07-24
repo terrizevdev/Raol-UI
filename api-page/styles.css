@@ -2298,3 +2298,125 @@ body.modal-open {
   overflow: hidden;
   padding-right: 0 !important;
 }
+
+/* Screenshot Tool Optimizations */
+.screenshot-mode {
+  overflow: visible !important;
+  height: auto !important;
+  min-height: 100vh !important;
+}
+
+.screenshot-mode .modal-backdrop {
+  display: none !important;
+}
+
+.screenshot-mode .modal {
+  position: absolute !important;
+  top: 50px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 1050 !important;
+  margin: 0 !important;
+}
+
+.screenshot-mode .modal-dialog {
+  margin: 0 auto !important;
+  max-width: 90vw !important;
+}
+
+.screenshot-mode body {
+  overflow: visible !important;
+  padding-right: 0 !important;
+}
+
+.screenshot-mode .main-wrapper {
+  position: relative !important;
+  z-index: 1 !important;
+  margin-left: var(--side-nav-width) !important;
+}
+
+.screenshot-mode .side-nav {
+  position: absolute !important;
+  transform: translateX(0) !important;
+}
+
+/* Ensure all content is visible for screenshots */
+@media print, screen and (min-width: 1px) {
+  .screenshot-ready * {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+  }
+
+  .screenshot-ready .api-item {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+
+  .screenshot-ready .category-section {
+    animation: none !important;
+  }
+}
+
+/* Full page height for screenshot tools */
+html.screenshot-mode,
+body.screenshot-mode {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
+}
+
+/* Modal positioning for screenshots */
+.modal.screenshot-modal {
+  position: absolute !important;
+  top: 50px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 1050 !important;
+  display: block !important;
+}
+
+.modal.screenshot-modal .modal-dialog {
+  margin: 0 auto !important;
+  transform: none !important;
+}
+
+/* Prevent backdrop interference */
+.modal-backdrop.screenshot-hidden {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* Ensure proper layering for screenshots */
+.screenshot-mode .main-content {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.screenshot-mode .hero-section,
+.screenshot-mode .api-section {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Force visibility of all elements */
+.screenshot-mode .api-item,
+.screenshot-mode .category-section,
+.screenshot-mode .api-card {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
+/* Responsive fixes for screenshots */
+@media (max-width: 992px) {
+  .screenshot-mode .main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  .screenshot-mode .side-nav {
+    position: absolute !important;
+    left: 0 !important;
+    transform: translateX(0) !important;
+  }
+}

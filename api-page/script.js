@@ -134,6 +134,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  const prepareForScreenshot = () => {
+    // Ensure body can scroll and has proper height for screenshot tools
+    document.body.style.overflow = "visible"
+    document.body.style.height = "auto"
+    document.body.style.minHeight = "100vh"
+
+    // Remove any backdrop that might interfere with screenshots
+    const backdrop = document.querySelector(".modal-backdrop")
+    if (backdrop) {
+      backdrop.style.display = "none"
+    }
+
+    // Ensure main content is visible
+    const mainWrapper = document.querySelector(".main-wrapper")
+    if (mainWrapper) {
+      mainWrapper.style.position = "relative"
+      mainWrapper.style.zIndex = "1"
+    }
+
+    // Make sure all content is rendered and visible
+    const allSections = document.querySelectorAll("section, .category-section, .api-item")
+    allSections.forEach((section) => {
+      section.style.opacity = "1"
+      section.style.transform = "none"
+      section.style.visibility = "visible"
+    })
+  }
+
   const openSharedApi = async (sharedPath) => {
     // Wait for settings to be loaded
     if (!settings || !settings.categories) {
@@ -151,6 +179,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       return
     }
 
+    // Prepare page for screenshot tools
+    prepareForScreenshot()
+
     // Set current API data and open modal
     currentApiData = apiData
     setupModalForApi(currentApiData)
@@ -167,10 +198,74 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Show modal with additional delay to ensure proper rendering
       setTimeout(() => {
+        // Override modal backdrop behavior for screenshots
+        const modalElement = DOM.modal.element
+        if (modalElement) {
+          modalElement.style.position = "absolute"
+          modalElement.style.top = "50px"
+          modalElement.style.left = "50%"
+          modalElement.style.transform = "translateX(-50%)"
+          modalElement.style.zIndex = "1050"
+          modalElement.style.display = "block"
+          modalElement.classList.add("show")
+
+          // Prevent body scroll lock for screenshots
+          document.body.classList.remove("modal-open")
+          document.body.style.overflow = "visible"
+          document.body.style.paddingRight = "0"
+        }
+
         DOM.modal.instance.show()
         showToast(`Opened shared API: ${apiData.name}`, "info", "Share Link")
+
+        // Additional screenshot optimization
+        setTimeout(() => {
+          prepareForScreenshot()
+        }, 500)
       }, 300)
-    }, 1500) // Increased from 500ms to 1500ms
+    }, 1500)
+  }
+
+  const optimizeForScreenshotTools = () => {
+    // Detect if this might be a screenshot tool by checking user agent or other indicators
+    const isLikelyScreenshotTool =
+      /headless|phantom|selenium|puppeteer|playwright/i.test(navigator.userAgent) ||
+      window.navigator.webdriver ||
+      window.callPhantom ||
+      window._phantom
+
+    if (isLikelyScreenshotTool || getUrlParameter("screenshot") === "true") {
+      // Disable animations for faster rendering
+      const style = document.createElement("style")
+      style.textContent = `
+        *, *::before, *::after {
+          animation-duration: 0s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0s !important;
+          transition-delay: 0s !important;
+        }
+        .modal-backdrop {
+          display: none !important;
+        }
+        body.modal-open {
+          overflow: visible !important;
+          padding-right: 0 !important;
+        }
+        .modal {
+          position: absolute !important;
+          top: 50px !important;
+          left: 50% !important;
+          transform: translateX(-50%) !important;
+          z-index: 1050 !important;
+        }
+      `
+      document.head.appendChild(style)
+
+      // Ensure all content is immediately visible
+      setTimeout(() => {
+        prepareForScreenshot()
+      }, 100)
+    }
   }
 
   // --- Utility Functions ---
@@ -313,6 +408,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     initSideNav()
     initModal()
     await loadNotifications()
+
+    // Optimize for screenshot tools
+    optimizeForScreenshotTools()
 
     try {
       const response = await fetch("/api/settings")
