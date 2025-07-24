@@ -2337,84 +2337,403 @@ input:checked + .slider:before {
   border-radius: 10px;
 }
 
-/* Enhanced modal backdrop */
+/* Enhanced modal backdrop - Fix for partial screen coverage */
 .modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.75) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  z-index: 1040 !important;
 }
 
 .modal-backdrop.show {
   opacity: 1 !important;
 }
 
-/* Ensure modals cover full screen */
+/* Ensure modals cover full screen properly */
 .modal {
-  z-index: 1055 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1050 !important;
+  display: none !important;
+  overflow: hidden !important;
+}
+
+.modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .modal-dialog {
+  position: relative !important;
   margin: 0 !important;
-  max-width: none !important;
+  max-width: 90vw !important;
   width: 100% !important;
-  height: 100% !important;
+  max-height: 95vh !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: var(--space-lg) !important;
+  pointer-events: none !important;
 }
 
 .modal-content {
-  max-height: 95vh !important;
+  position: relative !important;
+  background-color: var(--card-background) !important;
+  color: var(--text-color) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+  padding: var(--space-lg) !important;
   overflow: hidden !important;
+  max-height: 90vh !important;
   width: 100% !important;
   max-width: 900px !important;
-  margin: 0 auto !important;
+  pointer-events: auto !important;
 }
 
+/* Enhanced clear search button - Fix responsiveness issues */
+.clear-search {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 15;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.clear-search.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.clear-search:hover {
+  color: var(--error-color);
+  background-color: rgba(255, 118, 117, 0.15);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.clear-search:active {
+  transform: translateY(-50%) scale(0.9);
+  background-color: rgba(255, 118, 117, 0.25);
+}
+
+.clear-search i {
+  transition: transform 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.clear-search:hover i {
+  transform: rotate(90deg);
+}
+
+/* Search input container adjustments */
+.search-container {
+  max-width: 500px;
+  width: 100%;
+  margin: 0 var(--space-lg);
+  position: relative;
+}
+
+.input-group {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+#searchInput {
+  border: none;
+  padding: var(--space-md) var(--space-md);
+  padding-right: 48px; /* Make room for clear button */
+  font-size: 1rem;
+  background-color: transparent;
+  color: var(--text-color);
+  flex-grow: 1;
+  min-width: 0;
+  outline: none;
+}
+
+/* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  .search-overlay-content {
-    width: 95vw;
-    padding: var(--space-lg);
-    margin: var(--space-md);
-  }
-
-  .search-overlay-title {
-    font-size: 1.25rem;
-  }
-
-  .clear-search {
-    width: 32px;
-    height: 32px;
-    font-size: 0.9rem;
-  }
-
   .modal-dialog {
-    padding: var(--space-sm) !important;
+    padding: var(--space-md) !important;
+    max-width: 95vw !important;
   }
 
   .modal-content {
-    max-height: 98vh !important;
+    max-height: 95vh !important;
+    padding: var(--space-md) !important;
+  }
+
+  .clear-search {
+    width: 28px;
+    height: 28px;
+    right: 6px;
+    font-size: 0.8rem;
+  }
+
+  #searchInput {
+    padding-right: 40px;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 576px) {
-  .search-overlay-content {
-    width: 98vw;
-    padding: var(--space-md);
-    margin: var(--space-xs);
+  .modal-dialog {
+    padding: var(--space-sm) !important;
+    max-width: 98vw !important;
   }
 
-  .no-results-message {
-    padding: var(--space-lg);
-    min-height: 250px;
+  .modal-content {
+    max-height: 98vh !important;
+    padding: var(--space-sm) !important;
   }
 
-  .no-results-message i {
-    font-size: 2.5rem;
+  .clear-search {
+    width: 26px;
+    height: 26px;
+    right: 4px;
   }
 
-  .no-results-message p {
-    font-size: 1rem;
+  #searchInput {
+    padding: var(--space-sm) var(--space-md);
+    padding-right: 36px;
   }
+}
+
+/* Additional Styles for Error Container in Modal */
+.error-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  background-color: rgba(var(--error-color), 0.1);
+  border: 1px solid rgba(var(--error-color), 0.3);
+  border-radius: var(--border-radius);
+  color: var(--error-color);
+}
+
+.error-icon {
+  font-size: 1.8rem;
+}
+
+.error-message h6 {
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+  color: var(--error-color);
+}
+
+.error-message p {
+  font-size: 0.9rem;
+  margin-bottom: var(--space-sm);
+  color: var(--error-color);
+  opacity: 0.9;
+}
+
+.retry-btn {
+  background-color: var(--error-color);
+  color: white;
+  border: none;
+  padding: var(--space-xs) var(--space-md);
+  font-size: 0.85rem;
+  border-radius: var(--border-radius-sm);
+}
+
+.retry-btn:hover {
+  background-color: darken(var(--error-color), 10%);
+}
+
+/* Code folding styles */
+.code-fold-trigger {
+  cursor: pointer;
+  padding: 5px;
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-fold-trigger:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.code-fold-content {
+  padding-left: 20px;
+  border-left: 2px solid var(--highlight-color);
+  overflow: hidden;
+  max-height: 1000px;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.code-fold-trigger.folded + .code-fold-content {
+  max-height: 0;
+}
+
+.fold-indicator {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-left: 10px;
+}
+
+.fold-indicator i {
+  transition: transform 0.3s ease;
+  margin-right: 5px;
+}
+
+.code-fold-trigger.folded .fold-indicator i {
+  transform: rotate(-90deg);
+}
+
+/* Search input focus animation */
+.input-group.search-focused {
+  box-shadow: 0 0 0 3px var(--highlight-color), var(--hover-shadow) !important;
+}
+
+/* Button active state */
+.btn-active {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Pulse animation for button click */
+.pulse-animation {
+  animation: pulse 0.3s ease-out;
+}
+
+/* Slide in bottom animation for response */
+.slide-in-bottom {
+  animation: slideInUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: nowrap; /* Prevent wrapping */
+  justify-content: center;
+}
+
+/* Full-screen search overlay */
+.search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.search-overlay.active {
+  display: flex;
+}
+
+.search-overlay-content {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 600px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.search-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.search-overlay-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.search-overlay-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.search-overlay-close:hover {
+  color: var(--error-color);
+  background-color: var(--highlight-color);
+  transform: scale(1.1);
+}
+
+.search-overlay-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--card-background);
+}
+
+.search-overlay-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-overlay-body::-webkit-scrollbar-track {
+  background: var(--card-background);
+  border-radius: 10px;
+}
+
+.search-overlay-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--primary-color), var(--secondary-color));
+  border-radius: 10px;
 }
