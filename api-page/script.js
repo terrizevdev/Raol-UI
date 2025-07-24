@@ -40,6 +40,180 @@ document.addEventListener("DOMContentLoaded", async () => {
     apiLinksContainer: document.getElementById("apiLinks"),
   }
 
+  // Blur Background Feature
+  const BlurBackground = {
+    overlay: null,
+    indicator: null,
+    isActive: false,
+
+    init() {
+      this.createOverlay()
+      this.createIndicator()
+      this.setupEventListeners()
+    },
+
+    createOverlay() {
+      this.overlay = document.createElement("div")
+      this.overlay.className = "blur-overlay"
+      this.overlay.innerHTML = `
+        <div class="blur-content">
+          <button class="close-blur" aria-label="Close blur overlay">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="blur-loading">
+            <svg class="spinner-logo" width="60" height="60" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="spinner-path" cx="50" cy="50" r="40" fill="none" stroke-width="8" />
+              <circle class="spinner-animation" cx="50" cy="50" r="40" fill="none" stroke-width="8" />
+            </svg>
+            <p>Loading blur content...</p>
+          </div>
+        </div>
+      `
+      document.body.appendChild(this.overlay)
+    },
+
+    createIndicator() {
+      this.indicator = document.createElement("div")
+      this.indicator.className = "blur-indicator"
+      this.indicator.innerHTML = '<i class="fas fa-eye"></i>Blur Mode Active'
+      document.body.appendChild(this.indicator)
+    },
+
+    setupEventListeners() {
+      // Close blur overlay
+      const closeBtn = this.overlay.querySelector(".close-blur")
+      closeBtn.addEventListener("click", () => this.hide())
+
+      // Close on overlay click (outside content)
+      this.overlay.addEventListener("click", (e) => {
+        if (e.target === this.overlay) {
+          this.hide()
+        }
+      })
+
+      // Close on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && this.isActive) {
+          this.hide()
+        }
+      })
+    },
+
+    show(title = "Blur Mode", content = null, options = {}) {
+      const blurContent = this.overlay.querySelector(".blur-content")
+      const defaultOptions = {
+        showCloseButton: true,
+        showIndicator: true,
+        autoHide: false,
+        autoHideDelay: 5000,
+      }
+
+      const config = { ...defaultOptions, ...options }
+
+      // Update content
+      if (content) {
+        blurContent.innerHTML = `
+          ${config.showCloseButton ? '<button class="close-blur" aria-label="Close blur overlay"><i class="fas fa-times"></i></button>' : ""}
+          <h2><i class="fas fa-layer-group me-2"></i>${title}</h2>
+          <div class="blur-body">${content}</div>
+        `
+
+        // Re-attach close button event if shown
+        if (config.showCloseButton) {
+          const closeBtn = blurContent.querySelector(".close-blur")
+          closeBtn.addEventListener("click", () => this.hide())
+        }
+      }
+
+      // Show overlay and indicator
+      this.overlay.classList.add("active")
+      if (config.showIndicator) {
+        this.indicator.classList.add("active")
+      }
+
+      // Add blur effect to body
+      document.body.classList.add("blur-active")
+      this.isActive = true
+
+      // Auto hide if configured
+      if (config.autoHide) {
+        setTimeout(() => {
+          if (this.isActive) this.hide()
+        }, config.autoHideDelay)
+      }
+
+      // Show toast notification
+      showToast(`${title} activated`, "info", "Blur Mode")
+
+      // Focus management for accessibility
+      const firstFocusable = blurContent.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      )
+      if (firstFocusable) {
+        setTimeout(() => firstFocusable.focus(), 100)
+      }
+    },
+
+    hide() {
+      this.overlay.classList.remove("active")
+      this.indicator.classList.remove("active")
+      document.body.classList.remove("blur-active")
+      this.isActive = false
+
+      showToast("Blur mode deactivated", "info", "Blur Mode")
+    },
+
+    updateContent(content) {
+      const blurBody = this.overlay.querySelector(".blur-body")
+      if (blurBody) {
+        blurBody.innerHTML = content
+      }
+    },
+
+    isVisible() {
+      return this.isActive
+    },
+  }
+
+  // Add blur endpoints configuration
+  const BLUR_ENDPOINTS = {
+    "/api/blur-demo": {
+      title: "Blur Demo",
+      content: `
+        <div style="text-align: center;">
+          <i class="fas fa-magic fa-3x mb-3" style="color: var(--primary-color);"></i>
+          <h3>Welcome to Blur Mode!</h3>
+          <p>This is a demonstration of the blur background feature.</p>
+          <p>The background is now beautifully blurred while this content remains sharp and interactive.</p>
+          <div style="margin: 20px 0;">
+            <button class="btn btn-primary me-2" onclick="BlurBackground.updateContent('<p>Content updated successfully!</p>')">
+              <i class="fas fa-sync-alt me-1"></i> Update Content
+            </button>
+            <button class="btn btn-outline-secondary" onclick="BlurBackground.hide()">
+              <i class="fas fa-times me-1"></i> Close
+            </button>
+          </div>
+        </div>
+      `,
+      options: { showIndicator: true, autoHide: false },
+    },
+    "/api/blur-info": {
+      title: "API Information",
+      content: `
+        <div>
+          <h4><i class="fas fa-info-circle me-2"></i>API Status Information</h4>
+          <div class="alert alert-info">
+            <strong>Status:</strong> All systems operational<br>
+            <strong>Response Time:</strong> ~150ms<br>
+            <strong>Uptime:</strong> 99.9%
+          </div>
+          <p>This blur overlay provides a focused view of important information without losing context of the main interface.</p>
+        </div>
+      `,
+      options: { showIndicator: true, autoHide: true, autoHideDelay: 8000 },
+    },
+  }
+
   let settings = {} // To store data from settings.json
   let currentApiData = null // To store API data currently displayed in the modal
   let allNotifications = [] // To store all notifications from JSON
@@ -301,6 +475,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initTheme()
     initSideNav()
     initModal()
+    BlurBackground.init()
     await loadNotifications()
 
     try {
@@ -755,14 +930,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       innerDesc: getApiBtn.dataset.apiInnerDesc,
     }
 
+    // Check if this is a blur endpoint
+    if (BLUR_ENDPOINTS[currentApiData.path]) {
+      const blurConfig = BLUR_ENDPOINTS[currentApiData.path]
+      BlurBackground.show(blurConfig.title, blurConfig.content, blurConfig.options)
+      return
+    }
+
     setupModalForApi(currentApiData)
     DOM.modal.instance.show()
   }
 
   const setupModalForApi = (apiData) => {
-    // Add fullscreen class to modal
-    DOM.modal.element.classList.add("fullscreen-modal")
-
     DOM.modal.label.textContent = apiData.name
     DOM.modal.desc.textContent = apiData.desc
     DOM.modal.content.innerHTML = ""
@@ -876,64 +1055,67 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Add image zoom functionality
-  const createImageZoomOverlay = () => {
-    let overlay = document.getElementById("imageZoomOverlay")
-    if (!overlay) {
-      overlay = document.createElement("div")
-      overlay.id = "imageZoomOverlay"
-      overlay.className = "image-zoom-overlay"
+  const validateModalInputs = () => {
+    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input[required]")
+    const allFilled = Array.from(inputs).every((input) => input.value.trim() !== "")
+    DOM.modal.submitBtn.disabled = !allFilled
+    DOM.modal.submitBtn.classList.toggle("btn-active", allFilled)
 
-      const closeBtn = document.createElement("button")
-      closeBtn.className = "image-zoom-close"
-      closeBtn.innerHTML = '<i class="fas fa-times"></i>'
-      closeBtn.onclick = closeImageZoom
-
-      overlay.appendChild(closeBtn)
-      document.body.appendChild(overlay)
-
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) {
-          closeImageZoom()
-        }
-      })
-    }
-    return overlay
-  }
-
-  const openImageZoom = (imageSrc, altText) => {
-    const overlay = createImageZoomOverlay()
-
-    // Remove existing image if any
-    const existingImg = overlay.querySelector("img")
-    if (existingImg) {
-      existingImg.remove()
-    }
-
-    const img = document.createElement("img")
-    img.src = imageSrc
-    img.alt = altText
-    img.style.cursor = "zoom-out"
-
-    overlay.appendChild(img)
-    overlay.classList.add("active")
-    document.body.style.overflow = "hidden"
-  }
-
-  const closeImageZoom = () => {
-    const overlay = document.getElementById("imageZoomOverlay")
-    if (overlay) {
-      overlay.classList.remove("active")
-      document.body.style.overflow = ""
+    inputs.forEach((input) => {
+      if (input.value.trim()) input.classList.remove("is-invalid")
+    })
+    const errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger.fade-in")
+    if (errorMsg && allFilled) {
+      errorMsg.classList.replace("fade-in", "fade-out")
+      setTimeout(() => errorMsg.remove(), 300)
     }
   }
 
-  // Add keyboard support for image zoom
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      closeImageZoom()
+  const handleSubmitQuery = async () => {
+    if (!currentApiData) return
+
+    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input")
+    const newParams = new URLSearchParams()
+    let isValid = true
+
+    inputs.forEach((input) => {
+      if (input.required && !input.value.trim()) {
+        isValid = false
+        input.classList.add("is-invalid")
+        input.parentElement.classList.add("shake-animation")
+        setTimeout(() => input.parentElement.classList.remove("shake-animation"), 500)
+      } else {
+        input.classList.remove("is-invalid")
+        if (input.value.trim()) newParams.append(input.dataset.param, input.value.trim())
+      }
+    })
+
+    if (!isValid) {
+      let errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger")
+      if (!errorMsg) {
+        errorMsg = document.createElement("div")
+        errorMsg.className = "alert alert-danger mt-3"
+        errorMsg.setAttribute("role", "alert")
+        DOM.modal.queryInputContainer.appendChild(errorMsg)
+      }
+      errorMsg.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> Please fill in all required fields.'
+      errorMsg.classList.remove("fade-out")
+      errorMsg.classList.add("fade-in")
+
+      DOM.modal.submitBtn.classList.add("shake-animation")
+      setTimeout(() => DOM.modal.submitBtn.classList.remove("shake-animation"), 500)
+      return
     }
-  })
+
+    DOM.modal.submitBtn.disabled = true
+    DOM.modal.submitBtn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...'
+
+    const apiUrlWithParams = `${window.location.origin}${currentApiData.path.split("?")[0]}?${newParams.toString()}`
+    DOM.modal.endpoint.textContent = apiUrlWithParams
+
+    await handleApiRequest(apiUrlWithParams, currentApiData.name)
+  }
 
   const handleApiRequest = async (apiUrl, apiName) => {
     DOM.modal.spinner.classList.remove("d-none")
@@ -947,8 +1129,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const response = await fetch(apiUrl, { signal: controller.signal })
       clearTimeout(timeoutId)
 
-      const contentType = response.headers.get("content-type")
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }))
+        throw new Error(`HTTP error! Status: ${response.status} - ${errorData.message || response.statusText}`)
+      }
 
+      const contentType = response.headers.get("Content-Type")
       if (contentType && contentType.includes("image/")) {
         const blob = await response.blob()
         const imageUrl = URL.createObjectURL(blob)
@@ -956,15 +1142,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         img.src = imageUrl
         img.alt = apiName
         img.className = "response-image img-fluid rounded shadow-sm fade-in"
-
-        // Add click handler for zoom
-        img.addEventListener("click", () => {
-          openImageZoom(imageUrl, apiName)
-        })
-
-        // Add hover effect
-        img.style.cursor = "zoom-in"
-        img.title = "Click to zoom"
 
         // Only add image to content, download button will be in footer
         DOM.modal.content.appendChild(img)
@@ -1200,32 +1377,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       return new window.bootstrap.Tooltip(tooltipTriggerEl)
     })
-  }
-
-  // --- Handle Submit Query ---
-  const handleSubmitQuery = async () => {
-    if (!currentApiData || !DOM.modal.queryInputContainer) return
-
-    const formData = new FormData(DOM.modal.queryInputContainer)
-    const queryParams = new URLSearchParams()
-    formData.forEach((value, key) => queryParams.append(key, value))
-
-    const apiUrl = `${window.location.origin}${currentApiData.path.split("?")[0]}?${queryParams.toString()}`
-    handleApiRequest(apiUrl, currentApiData.name)
-  }
-
-  // --- Validate Modal Inputs ---
-  const validateModalInputs = () => {
-    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input")
-    let isValid = true
-
-    inputs.forEach((input) => {
-      if (!input.value) {
-        isValid = false
-      }
-    })
-
-    DOM.modal.submitBtn.disabled = !isValid
   }
 
   // Run main initialization
