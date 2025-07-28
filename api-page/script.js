@@ -123,6 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
+        showToast("Share link copied to clipboard!", "success", "Share API")
         // Update URL to reflect the shared API (clean path without parameters)
         const cleanPath = currentApiData.path.split("?")[0]
         updateUrlParameter("share", cleanPath)
@@ -308,7 +309,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       settings = await response.json()
       populatePageContent()
       renderApiCategories()
-      // observeApiItems() // This function is not defined in the provided code
+      observeApiItems()
 
       // Check for shared API in URL after everything is loaded
       const sharedPath = parseSharedApiFromUrl()
@@ -327,41 +328,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const setupEventListeners = () => {
     if (DOM.menuToggle) DOM.menuToggle.addEventListener("click", toggleSideNavMobile)
     if (DOM.themeToggle) DOM.themeToggle.addEventListener("change", handleThemeToggle)
-    // Replace the existing search input listener with this enhanced version
-    if (DOM.searchInput) {
-      DOM.searchInput.addEventListener("input", debounce(handleSearch, 200)) // Reduced debounce time
-      DOM.searchInput.addEventListener("focus", () => {
-        DOM.searchInput.parentElement.classList.add("search-focused")
-      })
-      DOM.searchInput.addEventListener("blur", () => {
-        DOM.searchInput.parentElement.classList.remove("search-focused")
-      })
-      DOM.searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          clearSearch()
-        }
-      })
-    }
-
-    if (DOM.clearSearchBtn) {
-      DOM.clearSearchBtn.addEventListener("click", (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        clearSearch()
-      })
-
-      // Add touch support for mobile
-      DOM.clearSearchBtn.addEventListener("touchstart", (e) => {
-        e.preventDefault()
-        DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(0.9)"
-      })
-
-      DOM.clearSearchBtn.addEventListener("touchend", (e) => {
-        e.preventDefault()
-        DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(1.1)"
-        clearSearch()
-      })
-    }
+    if (DOM.searchInput) DOM.searchInput.addEventListener("input", debounce(handleSearch, 300))
+    if (DOM.clearSearchBtn) DOM.clearSearchBtn.addEventListener("click", clearSearch)
 
     if (DOM.notificationBell) DOM.notificationBell.addEventListener("click", handleNotificationBellClick)
 
@@ -502,53 +470,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Modal Initialization ---
   const initModal = () => {
     if (DOM.modal.element) {
-      DOM.modal.instance = new window.bootstrap.Modal(DOM.modal.element, {
-        backdrop: "static",
-        keyboard: true,
-        focus: true,
-      })
-
-      // Enhanced modal event listeners with proper backdrop handling
-      DOM.modal.element.addEventListener("show.bs.modal", () => {
-        // Ensure body doesn't scroll when modal is open
-        document.body.style.overflow = "hidden"
-        document.body.style.paddingRight = "0px" // Prevent scrollbar shift
-      })
-
-      DOM.modal.element.addEventListener("shown.bs.modal", () => {
-        // Force backdrop to cover full screen
-        const backdrop = document.querySelector(".modal-backdrop")
-        if (backdrop) {
-          backdrop.style.position = "fixed"
-          backdrop.style.top = "0"
-          backdrop.style.left = "0"
-          backdrop.style.width = "100vw"
-          backdrop.style.height = "100vh"
-          backdrop.style.zIndex = "1040"
-          backdrop.style.backgroundColor = "rgba(0, 0, 0, 0.8)"
-          backdrop.style.backdropFilter = "blur(10px)"
-          backdrop.style.webkitBackdropFilter = "blur(10px)"
-        }
-
-        // Focus on first input if available
-        const firstInput = DOM.modal.element.querySelector("input")
-        if (firstInput) {
-          setTimeout(() => firstInput.focus(), 100)
-        }
-      })
-
-      DOM.modal.element.addEventListener("hide.bs.modal", () => {
-        // Restore body scroll
-        document.body.style.overflow = ""
-        document.body.style.paddingRight = ""
-      })
-
-      DOM.modal.element.addEventListener("hidden.bs.modal", () => {
-        // Clean up any remaining backdrops
-        document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
-          backdrop.remove()
-        })
-      })
+      DOM.modal.instance = new window.bootstrap.Modal(DOM.modal.element)
     }
   }
 
@@ -755,23 +677,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const handleSearch = () => {
     if (!DOM.searchInput || !DOM.apiContent) return
     const searchTerm = DOM.searchInput.value.toLowerCase().trim()
-
-    // Enhanced clear button visibility with proper positioning
-    if (searchTerm.length > 0) {
-      DOM.clearSearchBtn.classList.add("visible")
-      DOM.clearSearchBtn.style.opacity = "1"
-      DOM.clearSearchBtn.style.visibility = "visible"
-      DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(1)"
-    } else {
-      DOM.clearSearchBtn.classList.remove("visible")
-      DOM.clearSearchBtn.style.opacity = "0"
-      DOM.clearSearchBtn.style.visibility = "hidden"
-      DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(0.8)"
-    }
+    DOM.clearSearchBtn.classList.toggle("visible", searchTerm.length > 0)
 
     const apiItems = DOM.apiContent.querySelectorAll(".api-item")
     const visibleCategories = new Set()
-    let hasResults = false
 
     apiItems.forEach((item) => {
       const name = (item.dataset.name || "").toLowerCase()
@@ -779,37 +688,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       const category = (item.dataset.category || "").toLowerCase()
       const matches = name.includes(searchTerm) || desc.includes(searchTerm) || category.includes(searchTerm)
 
+      item.style.display = matches ? "" : "none"
       if (matches) {
-        item.style.display = ""
-        item.style.animation = "slideInUp 0.3s ease-out"
-        hasResults = true
         visibleCategories.add(item.closest(".category-section"))
-      } else {
-        item.style.display = "none"
       }
     })
 
-    // Category visibility handling
     DOM.apiContent.querySelectorAll(".category-section").forEach((section) => {
-      if (visibleCategories.has(section)) {
-        section.style.display = ""
-        section.style.animation = "fadeIn 0.4s ease-out"
-      } else {
-        section.style.display = "none"
-      }
+      section.style.display = visibleCategories.has(section) ? "" : "none"
     })
 
-    // No results message
     const noResultsMsg = DOM.apiContent.querySelector("#noResultsMessage") || createNoResultsMessage()
-    const shouldShowNoResults = !hasResults && searchTerm.length > 0
+    const allHidden = Array.from(visibleCategories).length === 0 && searchTerm.length > 0
 
-    if (shouldShowNoResults) {
-      const searchTermSpan = noResultsMsg.querySelector("span")
-      if (searchTermSpan) {
-        searchTermSpan.textContent = `"${searchTerm}"`
-      }
+    if (allHidden) {
+      noResultsMsg.querySelector("span").textContent = `"${searchTerm}"`
       noResultsMsg.style.display = "flex"
-      noResultsMsg.style.animation = "slideInUp 0.4s ease-out"
     } else {
       noResultsMsg.style.display = "none"
     }
@@ -817,78 +711,54 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const clearSearch = () => {
     if (!DOM.searchInput) return
-
-    // Enhanced clear animation with better feedback
-    DOM.searchInput.style.transition = "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
     DOM.searchInput.value = ""
-
-    // Trigger search to reset results
-    handleSearch()
-
-    // Enhanced visual feedback
-    DOM.searchInput.classList.add("shake-animation")
-    DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(0.8) rotate(180deg)"
-    DOM.clearSearchBtn.style.color = "var(--success-color)"
-
-    // Focus back to search input
     DOM.searchInput.focus()
-
-    setTimeout(() => {
-      DOM.searchInput.classList.remove("shake-animation")
-      DOM.clearSearchBtn.style.transform = "translateY(-50%) scale(1) rotate(0deg)"
-      DOM.clearSearchBtn.style.color = ""
-    }, 400)
-
-    // Show success feedback
-    showToast("Search cleared successfully", "success", "Search")
+    handleSearch()
+    DOM.searchInput.classList.add("shake-animation")
+    setTimeout(() => DOM.searchInput.classList.remove("shake-animation"), 400)
   }
 
   const createNoResultsMessage = () => {
-    const noResultsMsg = document.createElement("div")
-    noResultsMsg.id = "noResultsMessage"
-    noResultsMsg.className = "no-results-message text-center p-5"
-    noResultsMsg.innerHTML = `
-      <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-      <p class="h5">No results found for <span>"search term"</span></p>
-      <p class="text-muted">Please try a different search term.</p>
-    `
-    DOM.apiContent.appendChild(noResultsMsg)
+    let noResultsMsg = document.getElementById("noResultsMessage")
+    if (!noResultsMsg) {
+      noResultsMsg = document.createElement("div")
+      noResultsMsg.id = "noResultsMessage"
+      noResultsMsg.className =
+        "no-results-message flex-column align-items-center justify-content-center p-5 text-center"
+      noResultsMsg.style.display = "none"
+      noResultsMsg.innerHTML = `
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <p class="h5">No results for <span></span></p>
+                <button id="clearSearchFromMsg" class="btn btn-primary mt-3">
+                    <i class="fas fa-times me-2"></i> Clear Search
+                </button>
+            `
+      DOM.apiContent.appendChild(noResultsMsg)
+      document.getElementById("clearSearchFromMsg").addEventListener("click", clearSearch)
+    }
     return noResultsMsg
   }
 
-  const initializeTooltips = (container = document.body) => {
-    const tooltips = container.querySelectorAll('[data-bs-toggle="tooltip"]')
-    tooltips.forEach((tooltip) => {
-      new window.bootstrap.Tooltip(tooltip)
-    })
-  }
+  // --- API Button Click Handling ---
+  const handleApiGetButtonClick = (event) => {
+    const getApiBtn = event.target.closest(".get-api-btn")
+    if (!getApiBtn || getApiBtn.disabled) return
 
-  const handleApiGetButtonClick = (e) => {
-    const target = e.target.closest(".get-api-btn")
-    if (target) {
-      const apiPath = target.dataset.apiPath
-      const apiName = target.dataset.apiName
-      const apiData = findApiByPath(apiPath)
-      if (apiData) {
-        setupModalForApi(apiData)
-        DOM.modal.instance.show()
-      }
+    getApiBtn.classList.add("pulse-animation")
+    setTimeout(() => getApiBtn.classList.remove("pulse-animation"), 300)
+
+    currentApiData = {
+      path: getApiBtn.dataset.apiPath,
+      name: getApiBtn.dataset.apiName,
+      desc: getApiBtn.dataset.apiDesc,
+      params: getApiBtn.dataset.apiParams ? JSON.parse(getApiBtn.dataset.apiParams) : null,
+      innerDesc: getApiBtn.dataset.apiInnerDesc,
     }
+
+    setupModalForApi(currentApiData)
+    DOM.modal.instance.show()
   }
 
-  const handleSubmitQuery = () => {
-    // Placeholder for query submission logic
-    showToast("Query submitted successfully!", "success")
-  }
-
-  const validateModalInputs = () => {
-    // Placeholder for input validation logic
-    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input")
-    const isValid = Array.from(inputs).every((input) => input.checkValidity())
-    DOM.modal.submitBtn.disabled = !isValid
-  }
-
-  // Remove Edit Parameters button functionality while maintaining re-edit capability
   const setupModalForApi = (apiData) => {
     DOM.modal.label.textContent = apiData.name
     DOM.modal.desc.textContent = apiData.desc
@@ -905,16 +775,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.modal.submitBtn.disabled = true
     DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
 
-    // Hide all footer buttons initially (including Edit Parameters)
+    // Hide all footer buttons initially
     const editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
     const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
     const shareApiBtn = DOM.modal.element.querySelector(".share-api-btn")
-
-    // Remove Edit Parameters button entirely
-    if (editParamsBtn) {
-      editParamsBtn.remove()
-    }
-
+    if (editParamsBtn) editParamsBtn.style.display = "none"
     if (downloadImageBtn) downloadImageBtn.style.display = "none"
     if (shareApiBtn) shareApiBtn.style.display = "none"
 
@@ -925,6 +790,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       newShareBtn.innerHTML = '<i class="fas fa-share-alt me-2"></i> Share API'
       newShareBtn.onclick = handleShareApi
 
+      // Insert the share button in the modal footer
       const modalFooter = DOM.modal.element.querySelector(".modal-footer")
       modalFooter.insertBefore(newShareBtn, DOM.modal.submitBtn)
     }
@@ -1007,10 +873,330 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const handleApiRequest = (url, name) => {
-    // Placeholder for API request logic
-    showToast(`Request sent to ${name}`, "info")
+  const validateModalInputs = () => {
+    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input[required]")
+    const allFilled = Array.from(inputs).every((input) => input.value.trim() !== "")
+    DOM.modal.submitBtn.disabled = !allFilled
+    DOM.modal.submitBtn.classList.toggle("btn-active", allFilled)
+
+    inputs.forEach((input) => {
+      if (input.value.trim()) input.classList.remove("is-invalid")
+    })
+    const errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger.fade-in")
+    if (errorMsg && allFilled) {
+      errorMsg.classList.replace("fade-in", "fade-out")
+      setTimeout(() => errorMsg.remove(), 300)
+    }
   }
 
+  const handleSubmitQuery = async () => {
+    if (!currentApiData) return
+
+    const inputs = DOM.modal.queryInputContainer.querySelectorAll("input")
+    const newParams = new URLSearchParams()
+    let isValid = true
+
+    inputs.forEach((input) => {
+      if (input.required && !input.value.trim()) {
+        isValid = false
+        input.classList.add("is-invalid")
+        input.parentElement.classList.add("shake-animation")
+        setTimeout(() => input.parentElement.classList.remove("shake-animation"), 500)
+      } else {
+        input.classList.remove("is-invalid")
+        if (input.value.trim()) newParams.append(input.dataset.param, input.value.trim())
+      }
+    })
+
+    if (!isValid) {
+      let errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger")
+      if (!errorMsg) {
+        errorMsg = document.createElement("div")
+        errorMsg.className = "alert alert-danger mt-3"
+        errorMsg.setAttribute("role", "alert")
+        DOM.modal.queryInputContainer.appendChild(errorMsg)
+      }
+      errorMsg.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> Please fill in all required fields.'
+      errorMsg.classList.remove("fade-out")
+      errorMsg.classList.add("fade-in")
+
+      DOM.modal.submitBtn.classList.add("shake-animation")
+      setTimeout(() => DOM.modal.submitBtn.classList.remove("shake-animation"), 500)
+      return
+    }
+
+    DOM.modal.submitBtn.disabled = true
+    DOM.modal.submitBtn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...'
+
+    const apiUrlWithParams = `${window.location.origin}${currentApiData.path.split("?")[0]}?${newParams.toString()}`
+    DOM.modal.endpoint.textContent = apiUrlWithParams
+
+    await handleApiRequest(apiUrlWithParams, currentApiData.name)
+  }
+
+  const handleApiRequest = async (apiUrl, apiName) => {
+    DOM.modal.spinner.classList.remove("d-none")
+    DOM.modal.container.classList.add("d-none")
+    DOM.modal.content.innerHTML = ""
+
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 20000)
+
+      const response = await fetch(apiUrl, { signal: controller.signal })
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }))
+        throw new Error(`HTTP error! Status: ${response.status} - ${errorData.message || response.statusText}`)
+      }
+
+      const contentType = response.headers.get("Content-Type")
+      if (contentType && contentType.includes("image/")) {
+        const blob = await response.blob()
+        const imageUrl = URL.createObjectURL(blob)
+        const img = document.createElement("img")
+        img.src = imageUrl
+        img.alt = apiName
+        img.className = "response-image img-fluid rounded shadow-sm fade-in"
+
+        // Only add image to content, download button will be in footer
+        DOM.modal.content.appendChild(img)
+
+        // Create download button in modal footer
+        let downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
+        if (!downloadImageBtn) {
+          downloadImageBtn = document.createElement("a")
+          downloadImageBtn.className = "btn btn-success me-2 download-image-btn"
+          downloadImageBtn.innerHTML = '<i class="fas fa-download me-2"></i> Download Image'
+          downloadImageBtn.style.textDecoration = "none"
+
+          // Insert the download button before the submit button in the modal footer
+          const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+          modalFooter.insertBefore(downloadImageBtn, DOM.modal.submitBtn)
+        }
+
+        // Update download button properties
+        downloadImageBtn.href = imageUrl
+        downloadImageBtn.download = `${apiName.toLowerCase().replace(/\s+/g, "-")}.${blob.type.split("/")[1] || "png"}`
+        downloadImageBtn.style.display = "inline-block"
+      } else if (contentType && contentType.includes("application/json")) {
+        const data = await response.json()
+        const formattedJson = syntaxHighlightJson(JSON.stringify(data, null, 2))
+        DOM.modal.content.innerHTML = formattedJson
+        if (JSON.stringify(data, null, 2).split("\n").length > 20) {
+          addCodeFolding(DOM.modal.content)
+        }
+      } else {
+        const textData = await response.text()
+        DOM.modal.content.textContent = textData || "Response has no content or unknown format."
+      }
+
+      DOM.modal.container.classList.remove("d-none")
+      DOM.modal.content.classList.remove("d-none")
+      DOM.modal.container.classList.add("slide-in-bottom")
+      showToast(`Successfully retrieved data for ${apiName}`, "success")
+
+      // Show Edit Parameters button in footer if there were parameters
+      if (currentApiData && currentApiData.path.split("?")[1]) {
+        // Check if edit button already exists, if not create it
+        let editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
+        if (!editParamsBtn) {
+          editParamsBtn = document.createElement("button")
+          editParamsBtn.className = "btn btn-outline-secondary me-2 edit-params-btn"
+          editParamsBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Edit Parameters'
+          editParamsBtn.onclick = () => {
+            // Show the parameter form again
+            if (DOM.modal.queryInputContainer.firstChild) {
+              DOM.modal.queryInputContainer.firstChild.style.display = ""
+              DOM.modal.queryInputContainer.firstChild.classList.remove("fade-out")
+            }
+            DOM.modal.submitBtn.classList.remove("d-none")
+            DOM.modal.submitBtn.disabled = false
+            DOM.modal.submitBtn.innerHTML =
+              '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+            // Hide the response container
+            DOM.modal.container.classList.add("d-none")
+            // Hide the edit button and download button
+            editParamsBtn.style.display = "none"
+            const downloadBtn = DOM.modal.element.querySelector(".download-image-btn")
+            if (downloadBtn) downloadBtn.style.display = "none"
+            // Focus on first input
+            const firstInput = DOM.modal.queryInputContainer.querySelector("input")
+            if (firstInput) firstInput.focus()
+          }
+
+          // Insert the edit button before the submit button in the modal footer
+          const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+          modalFooter.insertBefore(editParamsBtn, DOM.modal.submitBtn)
+        }
+        editParamsBtn.style.display = "inline-block"
+      }
+
+      // Reset submit button after successful response
+      if (DOM.modal.submitBtn) {
+        DOM.modal.submitBtn.disabled = false
+        DOM.modal.submitBtn.innerHTML =
+          '<span>Send Again</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+      }
+    } catch (error) {
+      console.error("API Request Error:", error)
+      const errorHtml = `
+                <div class="error-container text-center p-3">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                    <h6 class="text-danger">An Error Occurred</h6>
+                    <p class="text-muted small">${error.message || "Could not retrieve data from server."}</p>
+                    ${
+                      currentApiData && currentApiData.path.split("?")[1]
+                        ? `<button class="btn btn-sm btn-outline-primary mt-2 retry-query-btn">
+                        <i class="fas fa-sync-alt me-1"></i> Try Again
+                    </button>`
+                        : ""
+                    }
+                </div>`
+      DOM.modal.content.innerHTML = errorHtml
+      DOM.modal.container.classList.remove("d-none")
+      DOM.modal.content.classList.remove("d-none")
+      showToast("Failed to retrieve data. Check details in modal.", "error")
+
+      const retryBtn = DOM.modal.content.querySelector(".retry-query-btn")
+      if (retryBtn) {
+        retryBtn.onclick = () => {
+          if (DOM.modal.queryInputContainer.firstChild) {
+            DOM.modal.queryInputContainer.firstChild.style.display = ""
+            DOM.modal.queryInputContainer.firstChild.classList.remove("fade-out")
+          }
+          DOM.modal.submitBtn.disabled = false
+          DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+          DOM.modal.container.classList.add("d-none")
+        }
+      }
+    } finally {
+      DOM.modal.spinner.classList.add("d-none")
+      // Always reset the submit button state when request completes
+      if (DOM.modal.submitBtn) {
+        DOM.modal.submitBtn.disabled = false
+        DOM.modal.submitBtn.innerHTML =
+          '<span>Send Again</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+
+        // Only hide the submit button if there are no parameters required
+        const hasParams = currentApiData && currentApiData.path && currentApiData.path.includes("?")
+        if (!hasParams) {
+          DOM.modal.submitBtn.classList.add("d-none")
+        }
+      }
+    }
+  }
+
+  // --- Helper Functions for Code Display ---
+  const syntaxHighlightJson = (json) => {
+    json = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    return json.replace(
+      /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+      (match) => {
+        let cls = "json-number"
+        if (/^"/.test(match)) {
+          cls = /:$/.test(match) ? "json-key" : "json-string"
+        } else if (/true|false/.test(match)) {
+          cls = "json-boolean"
+        } else if (/null/.test(match)) {
+          cls = "json-null"
+        }
+        return `<span class="${cls}">${match}</span>`
+      },
+    )
+  }
+
+  const addCodeFolding = (container) => {
+    const lines = container.innerHTML.split("\n")
+    let currentLevel = 0
+    let foldableHtml = ""
+    let inFoldableBlock = false
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim()
+      if (trimmedLine.endsWith("{") || trimmedLine.endsWith("[")) {
+        if (currentLevel === 0) {
+          foldableHtml += `<div class="code-fold-trigger" data-folded="false" role="button" tabindex="0" aria-expanded="true">${line}<span class="fold-indicator ms-2 small text-muted">(<i class="fas fa-chevron-down"></i> Fold)</span></div><div class="code-fold-content">`
+          inFoldableBlock = true
+        } else {
+          foldableHtml += line + "\n"
+        }
+        currentLevel++
+      } else if (trimmedLine.startsWith("}") || trimmedLine.startsWith("]")) {
+        currentLevel--
+        foldableHtml += line + "\n"
+        if (currentLevel === 0 && inFoldableBlock) {
+          foldableHtml += "</div>"
+          inFoldableBlock = false
+        }
+      } else {
+        foldableHtml += line + (index === lines.length - 1 ? "" : "\n")
+      }
+    })
+    container.innerHTML = foldableHtml
+
+    container.querySelectorAll(".code-fold-trigger").forEach((trigger) => {
+      trigger.addEventListener("click", () => toggleFold(trigger))
+      trigger.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          toggleFold(trigger)
+        }
+      })
+    })
+  }
+
+  const toggleFold = (trigger) => {
+    const content = trigger.nextElementSibling
+    const isFolded = trigger.dataset.folded === "true"
+    const indicator = trigger.querySelector(".fold-indicator")
+
+    if (isFolded) {
+      content.style.maxHeight = content.scrollHeight + "px"
+      trigger.dataset.folded = "false"
+      trigger.setAttribute("aria-expanded", "true")
+      indicator.innerHTML = '(<i class="fas fa-chevron-up"></i> Close)'
+    } else {
+      content.style.maxHeight = "0px"
+      trigger.dataset.folded = "true"
+      trigger.setAttribute("aria-expanded", "false")
+      indicator.innerHTML = '(<i class="fas fa-chevron-down"></i> Open)'
+    }
+  }
+
+  // --- Observe API Items for Animation ---
+  const observeApiItems = () => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view", "slideInUp")
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.1 },
+    )
+
+    document.querySelectorAll(".api-item:not(.in-view)").forEach((item) => {
+      observer.observe(item)
+    })
+  }
+
+  // --- Tooltip Initialization ---
+  const initializeTooltips = (parentElement = document) => {
+    const tooltipTriggerList = [].slice.call(parentElement.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map((tooltipTriggerEl) => {
+      const existingTooltip = window.bootstrap.Tooltip.getInstance(tooltipTriggerEl)
+      if (existingTooltip) {
+        existingTooltip.dispose()
+      }
+      return new window.bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  }
+
+  // Run main initialization
   init()
 })
