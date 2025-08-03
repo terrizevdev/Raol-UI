@@ -133,7 +133,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
-        showToast("Share link copied to clipboard!", "success", "Share API")
         // Update URL to reflect the shared API with clean ID
         const apiId = generateApiId(currentApiData)
         updateUrlParameter("share", apiId)
@@ -792,8 +791,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Hide all footer buttons initially
     const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
     const shareApiBtn = DOM.modal.element.querySelector(".share-api-btn")
+    const directLinkBtn = DOM.modal.element.querySelector(".direct-link-btn")
     if (downloadImageBtn) downloadImageBtn.style.display = "none"
     if (shareApiBtn) shareApiBtn.style.display = "none"
+    if (directLinkBtn) directLinkBtn.style.display = "none"
 
     // Create share button if it doesn't exist
     if (!shareApiBtn) {
@@ -807,9 +808,36 @@ document.addEventListener("DOMContentLoaded", async () => {
       modalFooter.insertBefore(newShareBtn, DOM.modal.submitBtn)
     }
 
-    // Always show share button when modal opens
+    // Create direct link button for endpoint if it doesn't exist
+    const directLinkBtnElement = DOM.modal.element.querySelector(".direct-link-btn")
+    if (!directLinkBtnElement) {
+      const newDirectLinkBtn = document.createElement("button")
+      newDirectLinkBtn.className = "btn btn-outline-primary me-2 direct-link-btn"
+      newDirectLinkBtn.innerHTML = '<i class="fas fa-external-link-alt me-2"></i> Open API'
+      newDirectLinkBtn.title = "Open API endpoint in new tab"
+
+      // Insert the direct link button in the modal footer
+      const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+      modalFooter.insertBefore(newDirectLinkBtn, DOM.modal.submitBtn)
+    }
+
+    // Update direct link button click handler
+    const directLinkBtn = DOM.modal.element.querySelector(".direct-link-btn")
+    if (directLinkBtn) {
+      directLinkBtn.onclick = () => {
+        const endpointUrl = DOM.modal.endpoint.textContent
+        if (endpointUrl) {
+          window.open(endpointUrl, "_blank", "noopener,noreferrer")
+          showToast("API endpoint opened in new tab", "info", "Direct Link")
+        }
+      }
+    }
+
+    // Always show share and direct link buttons when modal opens
     const shareBtn = DOM.modal.element.querySelector(".share-api-btn")
+    const directBtn = DOM.modal.element.querySelector(".direct-link-btn")
     if (shareBtn) shareBtn.style.display = "inline-block"
+    if (directBtn) directBtn.style.display = "inline-block"
 
     const paramsFromPath = new URLSearchParams(apiData.path.split("?")[1])
     const paramKeys = Array.from(paramsFromPath.keys())
