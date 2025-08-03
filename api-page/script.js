@@ -1,6 +1,6 @@
-// Modern API Documentation Script - Enhanced for Swagger-like Experience
+// Ensure DOM is fully loaded before running script
 document.addEventListener("DOMContentLoaded", async () => {
-  // DOM Element Selectors
+  // Main DOM Element Selectors
   const DOM = {
     loadingScreen: document.getElementById("loadingScreen"),
     body: document.body,
@@ -11,11 +11,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchInput: document.getElementById("searchInput"),
     clearSearchBtn: document.getElementById("clearSearch"),
     apiContent: document.getElementById("apiContent"),
-    notificationToast: document.getElementById("notificationToast"),
-    notificationBell: document.getElementById("notificationBell"),
-    notificationBadge: document.getElementById("notificationBadge"),
+    notificationToast: document.getElementById("notificationToast"), // Toast for general notifications
+    notificationBell: document.getElementById("notificationBell"), // Bell button
+    notificationBadge: document.getElementById("notificationBadge"), // Red badge
     modal: {
-      instance: null,
+      instance: null, // Will be initialized later
       element: document.getElementById("apiResponseModal"),
       label: document.getElementById("apiResponseModalLabel"),
       desc: document.getElementById("apiResponseModalDesc"),
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       copyEndpointBtn: document.getElementById("copyEndpoint"),
       copyResponseBtn: document.getElementById("copyResponse"),
     },
-    // Page content elements
+    // Elements populated from settings.json
     pageTitle: document.getElementById("page"),
     wm: document.getElementById("wm"),
     appName: document.getElementById("name"),
@@ -36,12 +36,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     versionBadge: document.getElementById("version"),
     versionHeaderBadge: document.getElementById("versionHeader"),
     appDescription: document.getElementById("description"),
-    dynamicImage: document.getElementById("dynamicImage"),
+    dynamicImage: document.getElementById("dynamicImage"), // ID for banner image in hero section
+    apiLinksContainer: document.getElementById("apiLinks"),
   }
 
-  let settings = {}
-  let currentApiData = null
-  let allNotifications = []
+  let settings = {} // To store data from settings.json
+  let currentApiData = null // To store API data currently displayed in the modal
+  let allNotifications = [] // To store all notifications from JSON
 
   // --- URL Parameter Functions ---
   const getUrlParameter = (name) => {
@@ -122,6 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
+        showToast("Share link copied to clipboard!", "success", "Share API")
         // Update URL to reflect the shared API (clean path without parameters)
         const cleanPath = currentApiData.path.split("?")[0]
         updateUrlParameter("share", cleanPath)
@@ -160,10 +162,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 500)
   }
 
-  // Utility Functions
+  // --- Utility Functions ---
   const showToast = (message, type = "info", title = "Notification") => {
     if (!DOM.notificationToast) return
-
     const toastBody = DOM.notificationToast.querySelector(".toast-body")
     const toastTitleEl = DOM.notificationToast.querySelector(".toast-title")
     const toastIcon = DOM.notificationToast.querySelector(".toast-icon")
@@ -174,20 +175,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     const typeConfig = {
       success: { color: "var(--success-color)", icon: "fa-check-circle" },
       error: { color: "var(--error-color)", icon: "fa-exclamation-circle" },
-      info: { color: "var(--info-color)", icon: "fa-info-circle" },
-      warning: { color: "var(--warning-color)", icon: "fa-exclamation-triangle" },
+      info: { color: "var(--primary-color)", icon: "fa-info-circle" },
+      notification: { color: "var(--accent-color)", icon: "fa-bell" },
     }
 
     const config = typeConfig[type] || typeConfig.info
+
     DOM.notificationToast.style.borderLeftColor = config.color
     toastIcon.className = `toast-icon fas ${config.icon} me-2`
     toastIcon.style.color = config.color
 
-    const bsToast = new window.bootstrap.Toast(DOM.notificationToast)
+    let bsToast = window.bootstrap.Toast.getInstance(DOM.notificationToast)
+    if (!bsToast) {
+      bsToast = new window.bootstrap.Toast(DOM.notificationToast)
+    }
     bsToast.show()
   }
 
   const copyToClipboard = async (text, btnElement) => {
+    if (!navigator.clipboard) {
+      showToast("Browser does not support copying to clipboard.", "error")
+      return
+    }
     try {
       await navigator.clipboard.writeText(text)
       const originalIcon = btnElement.innerHTML
@@ -198,9 +207,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       setTimeout(() => {
         btnElement.innerHTML = originalIcon
         btnElement.classList.remove("copy-success")
-      }, 2000)
+      }, 1500)
     } catch (err) {
-      showToast("Failed to copy text", "error")
+      showToast("Failed to copy text: " + err.message, "error")
     }
   }
 
@@ -210,14 +219,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       clearTimeout(timeout)
       timeout = setTimeout(() => func.apply(this, args), delay)
     }
-  }
-
-  const formatBytes = (bytes) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
   }
 
   // --- Notification Functions ---
@@ -284,7 +285,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (notificationsToShow.length > 0) {
       notificationsToShow.forEach((notif) => {
-        showToast(notif.message, "info", `Notification (${new Date(notif.date).toLocaleDateString("en-US")})`)
+        showToast(notif.message, "notification", `Notification (${new Date(notif.date).toLocaleDateString("en-US")})`)
         addSessionReadNotificationId(notif.id)
       })
     } else {
@@ -294,14 +295,113 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateNotificationBadge()
   }
 
-  // Theme Management
-  const initTheme = () => {
-    const savedTheme = localStorage.getItem("darkMode")
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+  // --- Main Initialization and Event Listeners ---
+  const init = async () => {
+    setupEventListeners()
+    initTheme()
+    initSideNav()
+    initModal()
+    await loadNotifications()
 
-    if (savedTheme === "true" || (savedTheme === null && prefersDark)) {
+    try {
+      const response = await fetch("/api/settings")
+      if (!response.ok) throw new Error(`Failed to load settings: ${response.status}`)
+      settings = await response.json()
+      populatePageContent()
+      renderApiCategories()
+      observeApiItems()
+
+      // Check for shared API in URL after everything is loaded
+      const sharedPath = parseSharedApiFromUrl()
+      if (sharedPath) {
+        openSharedApi(sharedPath)
+      }
+    } catch (error) {
+      console.error("Error loading settings:", error)
+      showToast(`Failed to load settings: ${error.message}`, "error")
+      displayErrorState("Could not load API configuration.")
+    } finally {
+      hideLoadingScreen()
+    }
+  }
+
+  const setupEventListeners = () => {
+    if (DOM.menuToggle) DOM.menuToggle.addEventListener("click", toggleSideNavMobile)
+    if (DOM.themeToggle) DOM.themeToggle.addEventListener("change", handleThemeToggle)
+    if (DOM.searchInput) DOM.searchInput.addEventListener("input", debounce(handleSearch, 300))
+    if (DOM.clearSearchBtn) DOM.clearSearchBtn.addEventListener("click", clearSearch)
+
+    if (DOM.notificationBell) DOM.notificationBell.addEventListener("click", handleNotificationBellClick)
+
+    if (DOM.apiContent) DOM.apiContent.addEventListener("click", handleApiGetButtonClick)
+
+    if (DOM.modal.copyEndpointBtn)
+      DOM.modal.copyEndpointBtn.addEventListener("click", () =>
+        copyToClipboard(DOM.modal.endpoint.textContent, DOM.modal.copyEndpointBtn),
+      )
+    if (DOM.modal.copyResponseBtn)
+      DOM.modal.copyResponseBtn.addEventListener("click", () =>
+        copyToClipboard(DOM.modal.content.textContent, DOM.modal.copyResponseBtn),
+      )
+    if (DOM.modal.submitBtn) DOM.modal.submitBtn.addEventListener("click", handleSubmitQuery)
+
+    window.addEventListener("scroll", handleScroll)
+    document.addEventListener("click", closeSideNavOnClickOutside)
+  }
+
+  // --- Loading Screen Management ---
+  const hideLoadingScreen = () => {
+    if (!DOM.loadingScreen) return
+    const loadingDots = DOM.loadingScreen.querySelector(".loading-dots")
+    if (loadingDots && loadingDots.intervalId) clearInterval(loadingDots.intervalId)
+
+    DOM.loadingScreen.classList.add("fade-out")
+    setTimeout(() => {
+      DOM.loadingScreen.style.display = "none"
+      DOM.body.classList.remove("no-scroll")
+    }, 500)
+  }
+
+  const animateLoadingDots = () => {
+    const loadingDots = DOM.loadingScreen.querySelector(".loading-dots")
+    if (loadingDots) {
+      loadingDots.intervalId = setInterval(() => {
+        if (loadingDots.textContent.length >= 3) {
+          loadingDots.textContent = "."
+        } else {
+          loadingDots.textContent += "."
+        }
+      }, 500)
+    }
+  }
+  animateLoadingDots()
+
+  // --- Theme Management ---
+  const initTheme = () => {
+    // Check URL parameter first
+    const modeParam = getUrlParameter("mode")
+
+    if (modeParam === "dark") {
+      // Force dark mode from URL parameter
       DOM.body.classList.add("dark-mode")
       if (DOM.themeToggle) DOM.themeToggle.checked = true
+      localStorage.setItem("darkMode", "true")
+      showToast("Dark mode activated from URL parameter", "info")
+    } else if (modeParam === "light") {
+      // Force light mode from URL parameter
+      DOM.body.classList.remove("dark-mode")
+      if (DOM.themeToggle) DOM.themeToggle.checked = false
+      localStorage.setItem("darkMode", "false")
+      showToast("Light mode activated from URL parameter", "info")
+    } else {
+      // Use saved preference or system preference
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+      const savedTheme = localStorage.getItem("darkMode")
+
+      if (savedTheme === "true" || (savedTheme === null && prefersDark)) {
+        DOM.body.classList.add("dark-mode")
+        if (DOM.themeToggle) DOM.themeToggle.checked = true
+      }
     }
   }
 
@@ -309,6 +409,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.body.classList.toggle("dark-mode")
     const isDarkMode = DOM.body.classList.contains("dark-mode")
     localStorage.setItem("darkMode", isDarkMode)
+
+    // Update URL parameter
+    updateUrlParameter("mode", isDarkMode ? "dark" : "light")
+
     showToast(`Switched to ${isDarkMode ? "dark" : "light"} mode`, "success")
   }
 
@@ -319,7 +423,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Navigation Management
   const toggleSideNavMobile = () => {
     if (!DOM.sideNav || !DOM.menuToggle) return
     DOM.sideNav.classList.toggle("active")
@@ -330,7 +433,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const closeSideNavOnClickOutside = (e) => {
     if (!DOM.sideNav || !DOM.menuToggle) return
     if (
-      window.innerWidth < 1024 &&
+      window.innerWidth < 992 &&
       !DOM.sideNav.contains(e.target) &&
       !DOM.menuToggle.contains(e.target) &&
       DOM.sideNav.classList.contains("active")
@@ -380,83 +483,80 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (element) element.setAttribute(attribute, value || fallback)
   }
 
-  // Loading Screen Management
-  const hideLoadingScreen = () => {
-    if (!DOM.loadingScreen) return
-
-    DOM.loadingScreen.classList.add("fade-out")
-    setTimeout(() => {
-      DOM.loadingScreen.style.display = "none"
-      DOM.body.classList.remove("no-scroll")
-    }, 300)
-  }
-
-  const animateLoadingDots = () => {
-    const loadingDots = DOM.loadingScreen.querySelector(".loading-dots")
-    if (loadingDots) {
-      loadingDots.intervalId = setInterval(() => {
-        if (loadingDots.textContent.length >= 3) {
-          loadingDots.textContent = "."
-        } else {
-          loadingDots.textContent += "."
-        }
-      }, 500)
-    }
-  }
-  animateLoadingDots()
-
-  // Page Content Population
   const populatePageContent = () => {
     if (!settings || Object.keys(settings).length === 0) return
 
     const currentYear = new Date().getFullYear()
+    const creator = settings.apiSettings?.creator || "Raol Api'S"
 
-    if (DOM.pageTitle) DOM.pageTitle.textContent = settings.name || "Raol API"
-    if (DOM.wm) DOM.wm.textContent = `© ${currentYear} ${settings.name || "Raol API"}. All rights reserved.`
-    if (DOM.appName) DOM.appName.textContent = settings.name || "Raol API"
-    if (DOM.sideNavName) DOM.sideNavName.textContent = settings.name || "API Docs"
-    if (DOM.versionBadge) DOM.versionBadge.textContent = settings.version || "v2.0"
-    if (DOM.versionHeaderBadge) DOM.versionHeaderBadge.textContent = settings.header?.status || "Online"
-    if (DOM.appDescription) DOM.appDescription.textContent = settings.description || "Modern REST API documentation"
+    setPageContent(DOM.pageTitle, settings.name, "Raol Api'S")
+    setPageContent(DOM.wm, `© ${currentYear} Raol Api'S Corp. All rights reversed.`)
+    setPageContent(DOM.appName, settings.name, "Raol Api'S")
+    setPageContent(DOM.sideNavName, settings.name || "API")
+    setPageContent(DOM.versionBadge, settings.version, "v1.0")
+    setPageContent(DOM.versionHeaderBadge, settings.header?.status, "Active!")
+    setPageContent(DOM.appDescription, settings.description, "Simple and easy to use API documentation.")
 
     // Set banner image
     if (DOM.dynamicImage) {
-      const imageSrc = settings.bannerImage || "/src/banner.jpg"
-      DOM.dynamicImage.src = imageSrc
-      DOM.dynamicImage.alt = `${settings.name || "API"} Banner`
-
-      DOM.dynamicImage.onerror = () => {
+      if (settings.bannerImage) {
+        DOM.dynamicImage.src = settings.bannerImage
+        DOM.dynamicImage.alt = settings.name ? `${settings.name} Banner` : "API Banner"
+        DOM.dynamicImage.style.display = "" // Ensure image is displayed if there is a path
+      } else {
+        // If there is no bannerImage in settings, use the default fallback and display it
         DOM.dynamicImage.src = "/src/banner.jpg"
-        DOM.dynamicImage.alt = "API Banner"
+        DOM.dynamicImage.alt = "API Banner Default"
+        DOM.dynamicImage.style.display = ""
+      }
+      DOM.dynamicImage.onerror = () => {
+        DOM.dynamicImage.src = "/src/banner.jpg" // Fallback if loading error
+        DOM.dynamicImage.alt = "API Banner Fallback"
+        DOM.dynamicImage.style.display = "" // Ensure it still appears
+        showToast("Failed to load banner image, using default image.", "warning")
       }
     }
+
+    if (DOM.apiLinksContainer) {
+      DOM.apiLinksContainer.innerHTML = ""
+      const defaultLinks = [{ url: "", name: "", icon: "fab fa-github" }]
+      const linksToRender = settings.links?.length ? settings.links : defaultLinks
+
+      linksToRender.forEach(({ url, name, icon }, index) => {
+        const link = document.createElement("a")
+        link.href = url
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.className = "api-link btn btn-primary"
+        link.style.animationDelay = `${index * 0.1}s`
+        link.setAttribute("aria-label", name)
+
+        const iconElement = document.createElement("i")
+        iconElement.className = icon || "fas fa-external-link-alt"
+        iconElement.setAttribute("aria-hidden", "true")
+
+        link.appendChild(iconElement)
+        link.appendChild(document.createTextNode(` ${name}`))
+        DOM.apiLinksContainer.appendChild(link)
+      })
+    }
   }
 
-  // HTTP Method Badge Helper
-  const getMethodBadge = (method = "GET") => {
-    const methodClass = `method-${method.toLowerCase()}`
-    return `<span class="method-badge ${methodClass}">${method}</span>`
-  }
-
-  // API Categories Rendering
+  // --- Render API Categories and Items ---
   const renderApiCategories = () => {
     if (!DOM.apiContent || !settings.categories || !settings.categories.length) {
-      DOM.apiContent.innerHTML = `
-        <div class="text-center p-5">
-          <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
-          <h5>No API categories found</h5>
-          <p class="text-muted">Please check your configuration.</p>
-        </div>
-      `
+      displayErrorState("No API categories found.")
       return
     }
-
     DOM.apiContent.innerHTML = ""
 
     settings.categories.forEach((category, categoryIndex) => {
+      const sortedItems = category.items.sort((a, b) => a.name.localeCompare(b.name))
+
       const categorySection = document.createElement("section")
-      categorySection.className = "category-section"
       categorySection.id = `category-${category.name.toLowerCase().replace(/\s+/g, "-")}`
+      categorySection.className = "category-section"
+      categorySection.style.animationDelay = `${categoryIndex * 0.15}s`
       categorySection.setAttribute("aria-labelledby", `category-title-${categoryIndex}`)
 
       const categoryHeader = document.createElement("h3")
@@ -472,35 +572,37 @@ document.addEventListener("DOMContentLoaded", async () => {
       categoryHeader.appendChild(document.createTextNode(category.name))
       categorySection.appendChild(categoryHeader)
 
-      const itemsGrid = document.createElement("div")
-      itemsGrid.className = "row"
+      if (category.image) {
+        const img = document.createElement("img")
+        img.src = category.image
+        img.alt = `${category.name} banner`
+        img.className = "category-image img-fluid rounded mb-3 shadow-sm"
+        img.loading = "lazy"
+        categorySection.appendChild(img)
+      }
 
-      category.items.forEach((item, itemIndex) => {
+      const itemsRow = document.createElement("div")
+      itemsRow.className = "row"
+
+      sortedItems.forEach((item, itemIndex) => {
         const itemCol = document.createElement("div")
-        itemCol.className = "api-item"
+        itemCol.className = "col-12 col-md-6 col-lg-4 api-item"
         itemCol.dataset.name = item.name
         itemCol.dataset.desc = item.desc
         itemCol.dataset.category = category.name
+        itemCol.style.animationDelay = `${itemIndex * 0.05 + 0.2}s`
 
         const apiCard = document.createElement("article")
         apiCard.className = "api-card h-100"
         apiCard.setAttribute("aria-labelledby", `api-title-${categoryIndex}-${itemIndex}`)
-
-        // Add unavailable class if needed
-        if (item.status === "error" || item.status === "update") {
-          apiCard.classList.add("api-card-unavailable")
-        }
 
         const cardInfo = document.createElement("div")
         cardInfo.className = "api-card-info"
 
         const itemTitle = document.createElement("h5")
         itemTitle.id = `api-title-${categoryIndex}-${itemIndex}`
-        itemTitle.className = "mb-2"
-
-        // Add method badge
-        const method = item.method || "GET"
-        itemTitle.innerHTML = `${getMethodBadge(method)} ${item.name}`
+        itemTitle.className = "mb-1"
+        itemTitle.textContent = item.name
 
         const itemDesc = document.createElement("p")
         itemDesc.className = "text-muted mb-0"
@@ -512,29 +614,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         const actionsDiv = document.createElement("div")
         actionsDiv.className = "api-actions mt-auto"
 
-        const tryBtn = document.createElement("button")
-        tryBtn.type = "button"
-        tryBtn.className = "btn get-api-btn btn-sm"
-        tryBtn.innerHTML = '<i class="fas fa-play me-1" aria-hidden="true"></i> Try it out'
-        tryBtn.dataset.apiPath = item.path
-        tryBtn.dataset.apiName = item.name
-        tryBtn.dataset.apiDesc = item.desc
-        tryBtn.dataset.apiMethod = method
-        if (item.params) tryBtn.dataset.apiParams = JSON.stringify(item.params)
-        if (item.innerDesc) tryBtn.dataset.apiInnerDesc = item.innerDesc
-        tryBtn.setAttribute("aria-label", `Try ${item.name} endpoint`)
+        const getBtn = document.createElement("button")
+        getBtn.type = "button"
+        getBtn.className = "btn get-api-btn btn-sm"
+        getBtn.innerHTML = '<i class="fas fa-code me-1" aria-hidden="true"></i> GET'
+        getBtn.dataset.apiPath = item.path
+        getBtn.dataset.apiName = item.name
+        getBtn.dataset.apiDesc = item.desc
+        if (item.params) getBtn.dataset.apiParams = JSON.stringify(item.params)
+        if (item.innerDesc) getBtn.dataset.apiInnerDesc = item.innerDesc
+        getBtn.setAttribute("aria-label", `Get details for ${item.name}`)
 
         const status = item.status || "ready"
         const statusConfig = {
-          ready: { class: "status-ready", icon: "fa-check-circle", text: "Ready" },
+          ready: { class: "status-ready", icon: "fa-circle", text: "Ready" },
           error: { class: "status-error", icon: "fa-exclamation-triangle", text: "Error" },
-          update: { class: "status-update", icon: "fa-sync-alt", text: "Updating" },
+          update: { class: "status-update", icon: "fa-arrow-up", text: "Update" },
         }
         const currentStatus = statusConfig[status] || statusConfig.ready
 
         if (status === "error" || status === "update") {
-          tryBtn.disabled = true
-          tryBtn.title = `This endpoint is currently ${status === "error" ? "unavailable" : "being updated"}`
+          getBtn.disabled = true
+          apiCard.classList.add("api-card-unavailable")
+          getBtn.title = `This API is in '${status}' status, temporarily unavailable.`
         }
 
         const statusIndicator = document.createElement("div")
@@ -542,24 +644,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         statusIndicator.title = `Status: ${currentStatus.text}`
         statusIndicator.innerHTML = `<i class="fas ${currentStatus.icon} me-1" aria-hidden="true"></i><span>${currentStatus.text}</span>`
 
-        actionsDiv.appendChild(tryBtn)
+        actionsDiv.appendChild(getBtn)
         actionsDiv.appendChild(statusIndicator)
 
         apiCard.appendChild(cardInfo)
         apiCard.appendChild(actionsDiv)
         itemCol.appendChild(apiCard)
-        itemsGrid.appendChild(itemCol)
+        itemsRow.appendChild(itemCol)
       })
 
-      categorySection.appendChild(itemsGrid)
+      categorySection.appendChild(itemsRow)
       DOM.apiContent.appendChild(categorySection)
     })
-
-    // Initialize intersection observer for animations
-    observeApiItems()
+    initializeTooltips()
   }
 
-  // --- Render API Categories and Items ---
   const displayErrorState = (message) => {
     if (!DOM.apiContent) return
     DOM.apiContent.innerHTML = `
@@ -574,10 +673,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         `
   }
 
-  // Search Functionality
+  // --- Search Functionality ---
   const handleSearch = () => {
     if (!DOM.searchInput || !DOM.apiContent) return
-
     const searchTerm = DOM.searchInput.value.toLowerCase().trim()
     DOM.clearSearchBtn.classList.toggle("visible", searchTerm.length > 0)
 
@@ -600,28 +698,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       section.style.display = visibleCategories.has(section) ? "" : "none"
     })
 
-    // Show no results message if needed
-    const hasResults = visibleCategories.size > 0
-    let noResultsMsg = DOM.apiContent.querySelector("#noResultsMessage")
+    const noResultsMsg = DOM.apiContent.querySelector("#noResultsMessage") || createNoResultsMessage()
+    const allHidden = Array.from(visibleCategories).length === 0 && searchTerm.length > 0
 
-    if (!hasResults && searchTerm.length > 0) {
-      if (!noResultsMsg) {
-        noResultsMsg = document.createElement("div")
-        noResultsMsg.id = "noResultsMessage"
-        noResultsMsg.className = "text-center p-5"
-        noResultsMsg.innerHTML = `
-          <i class="fas fa-search fa-3x text-muted mb-3"></i>
-          <h5>No results found</h5>
-          <p class="text-muted">No endpoints match your search for "<span id="searchTerm"></span>"</p>
-          <button class="btn btn-primary mt-3" onclick="document.getElementById('searchInput').value = ''; document.getElementById('searchInput').dispatchEvent(new Event('input'))">
-            <i class="fas fa-times me-2"></i> Clear Search
-          </button>
-        `
-        DOM.apiContent.appendChild(noResultsMsg)
-      }
-      noResultsMsg.querySelector("#searchTerm").textContent = searchTerm
-      noResultsMsg.style.display = "block"
-    } else if (noResultsMsg) {
+    if (allHidden) {
+      noResultsMsg.querySelector("span").textContent = `"${searchTerm}"`
+      noResultsMsg.style.display = "flex"
+    } else {
       noResultsMsg.style.display = "none"
     }
   }
@@ -631,9 +714,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.searchInput.value = ""
     DOM.searchInput.focus()
     handleSearch()
+    DOM.searchInput.classList.add("shake-animation")
+    setTimeout(() => DOM.searchInput.classList.remove("shake-animation"), 400)
   }
 
-  // --- Search Functionality ---
   const createNoResultsMessage = () => {
     let noResultsMsg = document.getElementById("noResultsMessage")
     if (!noResultsMsg) {
@@ -655,16 +739,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     return noResultsMsg
   }
 
-  // API Button Click Handling
+  // --- API Button Click Handling ---
   const handleApiGetButtonClick = (event) => {
     const getApiBtn = event.target.closest(".get-api-btn")
     if (!getApiBtn || getApiBtn.disabled) return
+
+    getApiBtn.classList.add("pulse-animation")
+    setTimeout(() => getApiBtn.classList.remove("pulse-animation"), 300)
 
     currentApiData = {
       path: getApiBtn.dataset.apiPath,
       name: getApiBtn.dataset.apiName,
       desc: getApiBtn.dataset.apiDesc,
-      method: getApiBtn.dataset.apiMethod || "GET",
       params: getApiBtn.dataset.apiParams ? JSON.parse(getApiBtn.dataset.apiParams) : null,
       innerDesc: getApiBtn.dataset.apiInnerDesc,
     }
@@ -677,19 +763,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.modal.label.textContent = apiData.name
     DOM.modal.desc.textContent = apiData.desc
     DOM.modal.content.innerHTML = ""
+    DOM.modal.endpoint.textContent = `${window.location.origin}${apiData.path.split("?")[0]}`
 
-    // Show method badge and endpoint
-    const methodBadge = getMethodBadge(apiData.method)
-    const endpointUrl = `${window.location.origin}${apiData.path.split("?")[0]}`
-    DOM.modal.endpoint.innerHTML = `${methodBadge} ${endpointUrl}`
-
-    // Reset modal state
     DOM.modal.spinner.classList.add("d-none")
     DOM.modal.content.classList.add("d-none")
     DOM.modal.container.classList.add("d-none")
+    DOM.modal.endpoint.classList.remove("d-none")
+
     DOM.modal.queryInputContainer.innerHTML = ""
     DOM.modal.submitBtn.classList.add("d-none")
     DOM.modal.submitBtn.disabled = true
+    DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
 
     // Hide all footer buttons initially
     const editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
@@ -715,82 +799,94 @@ document.addEventListener("DOMContentLoaded", async () => {
     const shareBtn = DOM.modal.element.querySelector(".share-api-btn")
     if (shareBtn) shareBtn.style.display = "inline-block"
 
-    // Check if endpoint has parameters
     const paramsFromPath = new URLSearchParams(apiData.path.split("?")[1])
     const paramKeys = Array.from(paramsFromPath.keys())
 
     if (paramKeys.length > 0) {
-      createParameterForm(paramKeys, apiData.params)
-      DOM.modal.submitBtn.classList.remove("d-none")
-    } else {
-      // No parameters, make request immediately
-      handleApiRequest(`${window.location.origin}${apiData.path}`, apiData.name)
-    }
-  }
+      const paramContainer = document.createElement("div")
+      paramContainer.className = "param-container"
 
-  const createParameterForm = (paramKeys, paramDescriptions) => {
-    const paramContainer = document.createElement("div")
-    paramContainer.className = "param-container"
+      const formTitle = document.createElement("h6")
+      formTitle.className = "param-form-title"
+      formTitle.innerHTML = '<i class="fas fa-sliders-h me-2" aria-hidden="true"></i> Parameters'
+      paramContainer.appendChild(formTitle)
 
-    const formTitle = document.createElement("h6")
-    formTitle.className = "param-form-title"
-    formTitle.innerHTML = '<i class="fas fa-sliders-h me-2" aria-hidden="true"></i> Parameters'
-    paramContainer.appendChild(formTitle)
+      paramKeys.forEach((paramKey) => {
+        const paramGroup = document.createElement("div")
+        paramGroup.className = "param-group mb-3"
 
-    paramKeys.forEach((paramKey) => {
-      const paramGroup = document.createElement("div")
-      paramGroup.className = "param-group mb-3"
+        const labelContainer = document.createElement("div")
+        labelContainer.className = "param-label-container"
 
-      const labelContainer = document.createElement("div")
-      labelContainer.className = "param-label-container"
+        const label = document.createElement("label")
+        label.className = "form-label"
+        label.textContent = paramKey
+        label.htmlFor = `param-${paramKey}`
 
-      const label = document.createElement("label")
-      label.className = "form-label"
-      label.textContent = paramKey
-      label.htmlFor = `param-${paramKey}`
+        const requiredSpan = document.createElement("span")
+        requiredSpan.className = "required-indicator ms-1"
+        requiredSpan.textContent = "*"
+        label.appendChild(requiredSpan)
+        labelContainer.appendChild(label)
 
-      const requiredSpan = document.createElement("span")
-      requiredSpan.className = "required-indicator ms-1"
-      requiredSpan.textContent = "*"
-      label.appendChild(requiredSpan)
-      labelContainer.appendChild(label)
+        if (apiData.params && apiData.params[paramKey]) {
+          const tooltipIcon = document.createElement("i")
+          tooltipIcon.className = "fas fa-info-circle param-info ms-1"
+          tooltipIcon.setAttribute("data-bs-toggle", "tooltip")
+          tooltipIcon.setAttribute("data-bs-placement", "top")
+          tooltipIcon.title = apiData.params[paramKey]
+          labelContainer.appendChild(tooltipIcon)
+        }
+        paramGroup.appendChild(labelContainer)
 
-      if (paramDescriptions && paramDescriptions[paramKey]) {
-        const tooltipIcon = document.createElement("i")
-        tooltipIcon.className = "fas fa-info-circle param-info ms-1"
-        tooltipIcon.title = paramDescriptions[paramKey]
-        labelContainer.appendChild(tooltipIcon)
+        const inputContainer = document.createElement("div")
+        inputContainer.className = "input-container"
+        const inputField = document.createElement("input")
+        inputField.type = "text"
+        inputField.className = "form-control custom-input"
+        inputField.id = `param-${paramKey}`
+        inputField.placeholder = `Enter ${paramKey}...`
+        inputField.dataset.param = paramKey
+        inputField.required = true
+        inputField.autocomplete = "off"
+        inputField.addEventListener("input", validateModalInputs)
+        inputContainer.appendChild(inputField)
+        paramGroup.appendChild(inputContainer)
+        paramContainer.appendChild(paramGroup)
+      })
+
+      if (apiData.innerDesc) {
+        const innerDescDiv = document.createElement("div")
+        innerDescDiv.className = "inner-desc mt-3"
+        innerDescDiv.innerHTML = `<i class="fas fa-info-circle me-2" aria-hidden="true"></i> ${apiData.innerDesc.replace(/\n/g, "<br>")}`
+        paramContainer.appendChild(innerDescDiv)
       }
 
-      paramGroup.appendChild(labelContainer)
+      DOM.modal.queryInputContainer.appendChild(paramContainer)
+      DOM.modal.submitBtn.classList.remove("d-none")
+      DOM.modal.submitBtn.disabled = true
+      DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
 
-      const inputField = document.createElement("input")
-      inputField.type = "text"
-      inputField.className = "form-control custom-input"
-      inputField.id = `param-${paramKey}`
-      inputField.placeholder = `Enter ${paramKey}...`
-      inputField.dataset.param = paramKey
-      inputField.required = true
-      inputField.addEventListener("input", validateModalInputs)
-
-      paramGroup.appendChild(inputField)
-      paramContainer.appendChild(paramGroup)
-    })
-
-    DOM.modal.queryInputContainer.appendChild(paramContainer)
-    validateModalInputs()
+      initializeTooltips(DOM.modal.queryInputContainer)
+    } else {
+      handleApiRequest(`${window.location.origin}${apiData.path}`, apiData.name)
+    }
   }
 
   const validateModalInputs = () => {
     const inputs = DOM.modal.queryInputContainer.querySelectorAll("input[required]")
     const allFilled = Array.from(inputs).every((input) => input.value.trim() !== "")
     DOM.modal.submitBtn.disabled = !allFilled
+    DOM.modal.submitBtn.classList.toggle("btn-active", allFilled)
 
     inputs.forEach((input) => {
-      if (input.value.trim()) {
-        input.classList.remove("is-invalid")
-      }
+      if (input.value.trim()) input.classList.remove("is-invalid")
     })
+    const errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger.fade-in")
+    if (errorMsg && allFilled) {
+      errorMsg.classList.replace("fade-in", "fade-out")
+      setTimeout(() => errorMsg.remove(), 300)
+    }
   }
 
   const handleSubmitQuery = async () => {
@@ -804,27 +900,37 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (input.required && !input.value.trim()) {
         isValid = false
         input.classList.add("is-invalid")
+        input.parentElement.classList.add("shake-animation")
+        setTimeout(() => input.parentElement.classList.remove("shake-animation"), 500)
       } else {
         input.classList.remove("is-invalid")
-        if (input.value.trim()) {
-          newParams.append(input.dataset.param, input.value.trim())
-        }
+        if (input.value.trim()) newParams.append(input.dataset.param, input.value.trim())
       }
     })
 
     if (!isValid) {
-      showToast("Please fill in all required fields", "error")
+      let errorMsg = DOM.modal.queryInputContainer.querySelector(".alert.alert-danger")
+      if (!errorMsg) {
+        errorMsg = document.createElement("div")
+        errorMsg.className = "alert alert-danger mt-3"
+        errorMsg.setAttribute("role", "alert")
+        DOM.modal.queryInputContainer.appendChild(errorMsg)
+      }
+      errorMsg.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> Please fill in all required fields.'
+      errorMsg.classList.remove("fade-out")
+      errorMsg.classList.add("fade-in")
+
+      DOM.modal.submitBtn.classList.add("shake-animation")
+      setTimeout(() => DOM.modal.submitBtn.classList.remove("shake-animation"), 500)
       return
     }
 
     DOM.modal.submitBtn.disabled = true
-    DOM.modal.submitBtn.innerHTML = `
-      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-      Processing...
-    `
+    DOM.modal.submitBtn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...'
 
     const apiUrlWithParams = `${window.location.origin}${currentApiData.path.split("?")[0]}?${newParams.toString()}`
-    DOM.modal.endpoint.innerHTML = `${getMethodBadge(currentApiData.method)} ${apiUrlWithParams}`
+    DOM.modal.endpoint.textContent = apiUrlWithParams
 
     await handleApiRequest(apiUrlWithParams, currentApiData.name)
   }
@@ -836,72 +942,154 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000)
+      const timeoutId = setTimeout(() => controller.abort(), 20000)
 
-      const response = await fetch(apiUrl, {
-        signal: controller.signal,
-        method: currentApiData?.method || "GET",
-      })
+      const response = await fetch(apiUrl, { signal: controller.signal })
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        const errorData = await response.json().catch(() => ({ message: response.statusText }))
+        throw new Error(`HTTP error! Status: ${response.status} - ${errorData.message || response.statusText}`)
       }
 
       const contentType = response.headers.get("Content-Type")
-
       if (contentType && contentType.includes("image/")) {
         const blob = await response.blob()
         const imageUrl = URL.createObjectURL(blob)
         const img = document.createElement("img")
         img.src = imageUrl
         img.alt = apiName
-        img.className = "img-fluid rounded shadow-sm"
-        img.style.maxWidth = "100%"
-        img.style.height = "auto"
+        img.className = "response-image img-fluid rounded shadow-sm fade-in"
+
+        // Only add image to content, download button will be in footer
         DOM.modal.content.appendChild(img)
+
+        // Create download button in modal footer
+        let downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
+        if (!downloadImageBtn) {
+          downloadImageBtn = document.createElement("a")
+          downloadImageBtn.className = "btn btn-success me-2 download-image-btn"
+          downloadImageBtn.innerHTML = '<i class="fas fa-download me-2"></i> Download Image'
+          downloadImageBtn.style.textDecoration = "none"
+
+          // Insert the download button before the submit button in the modal footer
+          const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+          modalFooter.insertBefore(downloadImageBtn, DOM.modal.submitBtn)
+        }
+
+        // Update download button properties
+        downloadImageBtn.href = imageUrl
+        downloadImageBtn.download = `${apiName.toLowerCase().replace(/\s+/g, "-")}.${blob.type.split("/")[1] || "png"}`
+        downloadImageBtn.style.display = "inline-block"
       } else if (contentType && contentType.includes("application/json")) {
         const data = await response.json()
         const formattedJson = syntaxHighlightJson(JSON.stringify(data, null, 2))
         DOM.modal.content.innerHTML = formattedJson
+        if (JSON.stringify(data, null, 2).split("\n").length > 20) {
+          addCodeFolding(DOM.modal.content)
+        }
       } else {
         const textData = await response.text()
-        DOM.modal.content.textContent = textData || "No content returned"
+        DOM.modal.content.textContent = textData || "Response has no content or unknown format."
       }
 
       DOM.modal.container.classList.remove("d-none")
       DOM.modal.content.classList.remove("d-none")
-      showToast(`Successfully retrieved data from ${apiName}`, "success")
+      DOM.modal.container.classList.add("slide-in-bottom")
+      showToast(`Successfully retrieved data for ${apiName}`, "success")
+
+      // Show Edit Parameters button in footer if there were parameters
+      if (currentApiData && currentApiData.path.split("?")[1]) {
+        // Check if edit button already exists, if not create it
+        let editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
+        if (!editParamsBtn) {
+          editParamsBtn = document.createElement("button")
+          editParamsBtn.className = "btn btn-outline-secondary me-2 edit-params-btn"
+          editParamsBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Edit Parameters'
+          editParamsBtn.onclick = () => {
+            // Show the parameter form again
+            if (DOM.modal.queryInputContainer.firstChild) {
+              DOM.modal.queryInputContainer.firstChild.style.display = ""
+              DOM.modal.queryInputContainer.firstChild.classList.remove("fade-out")
+            }
+            DOM.modal.submitBtn.classList.remove("d-none")
+            DOM.modal.submitBtn.disabled = false
+            DOM.modal.submitBtn.innerHTML =
+              '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+            // Hide the response container
+            DOM.modal.container.classList.add("d-none")
+            // Hide the edit button and download button
+            editParamsBtn.style.display = "none"
+            const downloadBtn = DOM.modal.element.querySelector(".download-image-btn")
+            if (downloadBtn) downloadBtn.style.display = "none"
+            // Focus on first input
+            const firstInput = DOM.modal.queryInputContainer.querySelector("input")
+            if (firstInput) firstInput.focus()
+          }
+
+          // Insert the edit button before the submit button in the modal footer
+          const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+          modalFooter.insertBefore(editParamsBtn, DOM.modal.submitBtn)
+        }
+        editParamsBtn.style.display = "inline-block"
+      }
+
+      // Reset submit button after successful response
+      if (DOM.modal.submitBtn) {
+        DOM.modal.submitBtn.disabled = false
+        DOM.modal.submitBtn.innerHTML =
+          '<span>Send Again</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+      }
     } catch (error) {
       console.error("API Request Error:", error)
       const errorHtml = `
-        <div class="alert alert-danger" role="alert">
-          <h6 class="alert-heading">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            Request Failed
-          </h6>
-          <p class="mb-0">${error.message || "Failed to fetch data from the API endpoint"}</p>
-        </div>
-      `
+                <div class="error-container text-center p-3">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                    <h6 class="text-danger">An Error Occurred</h6>
+                    <p class="text-muted small">${error.message || "Could not retrieve data from server."}</p>
+                    ${
+                      currentApiData && currentApiData.path.split("?")[1]
+                        ? `<button class="btn btn-sm btn-outline-primary mt-2 retry-query-btn">
+                        <i class="fas fa-sync-alt me-1"></i> Try Again
+                    </button>`
+                        : ""
+                    }
+                </div>`
       DOM.modal.content.innerHTML = errorHtml
       DOM.modal.container.classList.remove("d-none")
       DOM.modal.content.classList.remove("d-none")
-      showToast("Request failed. Check the response for details.", "error")
+      showToast("Failed to retrieve data. Check details in modal.", "error")
+
+      const retryBtn = DOM.modal.content.querySelector(".retry-query-btn")
+      if (retryBtn) {
+        retryBtn.onclick = () => {
+          if (DOM.modal.queryInputContainer.firstChild) {
+            DOM.modal.queryInputContainer.firstChild.style.display = ""
+            DOM.modal.queryInputContainer.firstChild.classList.remove("fade-out")
+          }
+          DOM.modal.submitBtn.disabled = false
+          DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+          DOM.modal.container.classList.add("d-none")
+        }
+      }
     } finally {
       DOM.modal.spinner.classList.add("d-none")
-
-      // Reset submit button
+      // Always reset the submit button state when request completes
       if (DOM.modal.submitBtn) {
         DOM.modal.submitBtn.disabled = false
-        DOM.modal.submitBtn.innerHTML = `
-          <span>Send Request</span>
-          <i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>
-        `
+        DOM.modal.submitBtn.innerHTML =
+          '<span>Send Again</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
+
+        // Only hide the submit button if there are no parameters required
+        const hasParams = currentApiData && currentApiData.path && currentApiData.path.includes("?")
+        if (!hasParams) {
+          DOM.modal.submitBtn.classList.add("d-none")
+        }
       }
     }
   }
 
-  // JSON Syntax Highlighting
+  // --- Helper Functions for Code Display ---
   const syntaxHighlightJson = (json) => {
     json = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     return json.replace(
@@ -920,13 +1108,71 @@ document.addEventListener("DOMContentLoaded", async () => {
     )
   }
 
-  // Intersection Observer for Animations
+  const addCodeFolding = (container) => {
+    const lines = container.innerHTML.split("\n")
+    let currentLevel = 0
+    let foldableHtml = ""
+    let inFoldableBlock = false
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim()
+      if (trimmedLine.endsWith("{") || trimmedLine.endsWith("[")) {
+        if (currentLevel === 0) {
+          foldableHtml += `<div class="code-fold-trigger" data-folded="false" role="button" tabindex="0" aria-expanded="true">${line}<span class="fold-indicator ms-2 small text-muted">(<i class="fas fa-chevron-down"></i> Fold)</span></div><div class="code-fold-content">`
+          inFoldableBlock = true
+        } else {
+          foldableHtml += line + "\n"
+        }
+        currentLevel++
+      } else if (trimmedLine.startsWith("}") || trimmedLine.startsWith("]")) {
+        currentLevel--
+        foldableHtml += line + "\n"
+        if (currentLevel === 0 && inFoldableBlock) {
+          foldableHtml += "</div>"
+          inFoldableBlock = false
+        }
+      } else {
+        foldableHtml += line + (index === lines.length - 1 ? "" : "\n")
+      }
+    })
+    container.innerHTML = foldableHtml
+
+    container.querySelectorAll(".code-fold-trigger").forEach((trigger) => {
+      trigger.addEventListener("click", () => toggleFold(trigger))
+      trigger.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          toggleFold(trigger)
+        }
+      })
+    })
+  }
+
+  const toggleFold = (trigger) => {
+    const content = trigger.nextElementSibling
+    const isFolded = trigger.dataset.folded === "true"
+    const indicator = trigger.querySelector(".fold-indicator")
+
+    if (isFolded) {
+      content.style.maxHeight = content.scrollHeight + "px"
+      trigger.dataset.folded = "false"
+      trigger.setAttribute("aria-expanded", "true")
+      indicator.innerHTML = '(<i class="fas fa-chevron-up"></i> Close)'
+    } else {
+      content.style.maxHeight = "0px"
+      trigger.dataset.folded = "true"
+      trigger.setAttribute("aria-expanded", "false")
+      indicator.innerHTML = '(<i class="fas fa-chevron-down"></i> Open)'
+    }
+  }
+
+  // --- Observe API Items for Animation ---
   const observeApiItems = () => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("in-view")
+            entry.target.classList.add("in-view", "slideInUp")
             observer.unobserve(entry.target)
           }
         })
@@ -934,12 +1180,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       { threshold: 0.1 },
     )
 
-    document.querySelectorAll(".api-item").forEach((item) => {
+    document.querySelectorAll(".api-item:not(.in-view)").forEach((item) => {
       observer.observe(item)
     })
   }
 
-  // --- Observe API Items for Animation ---
+  // --- Tooltip Initialization ---
   const initializeTooltips = (parentElement = document) => {
     const tooltipTriggerList = [].slice.call(parentElement.querySelectorAll('[data-bs-toggle="tooltip"]'))
     tooltipTriggerList.map((tooltipTriggerEl) => {
@@ -949,70 +1195,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       return new window.bootstrap.Tooltip(tooltipTriggerEl)
     })
-  }
-
-  // Event Listeners Setup
-  const setupEventListeners = () => {
-    if (DOM.menuToggle) DOM.menuToggle.addEventListener("click", toggleSideNavMobile)
-    if (DOM.themeToggle) DOM.themeToggle.addEventListener("change", handleThemeToggle)
-    if (DOM.searchInput) DOM.searchInput.addEventListener("input", debounce(handleSearch, 300))
-    if (DOM.clearSearchBtn) DOM.clearSearchBtn.addEventListener("click", clearSearch)
-    if (DOM.notificationBell) DOM.notificationBell.addEventListener("click", handleNotificationBellClick)
-    if (DOM.apiContent) DOM.apiContent.addEventListener("click", handleApiGetButtonClick)
-    if (DOM.modal.copyEndpointBtn) {
-      DOM.modal.copyEndpointBtn.addEventListener("click", () =>
-        copyToClipboard(
-          DOM.modal.endpoint.textContent.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/, ""),
-          DOM.modal.copyEndpointBtn,
-        ),
-      )
-    }
-    if (DOM.modal.copyResponseBtn) {
-      DOM.modal.copyResponseBtn.addEventListener("click", () =>
-        copyToClipboard(DOM.modal.content.textContent, DOM.modal.copyResponseBtn),
-      )
-    }
-    if (DOM.modal.submitBtn) DOM.modal.submitBtn.addEventListener("click", handleSubmitQuery)
-
-    document.addEventListener("click", closeSideNavOnClickOutside)
-  }
-
-  // Main Initialization
-  const init = async () => {
-    setupEventListeners()
-    initTheme()
-    initModal()
-    await loadNotifications()
-
-    try {
-      const response = await fetch("/api/settings")
-      if (!response.ok) throw new Error(`Failed to load settings: ${response.status}`)
-
-      settings = await response.json()
-      populatePageContent()
-      renderApiCategories()
-
-      showToast("API documentation loaded successfully", "success")
-    } catch (error) {
-      console.error("Error loading settings:", error)
-      showToast("Failed to load API configuration", "error")
-
-      // Show error state
-      if (DOM.apiContent) {
-        DOM.apiContent.innerHTML = `
-          <div class="text-center p-5">
-            <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-            <h5>Failed to Load API Configuration</h5>
-            <p class="text-muted">${error.message}</p>
-            <button class="btn btn-primary mt-3" onclick="location.reload()">
-              <i class="fas fa-sync-alt me-2"></i> Retry
-            </button>
-          </div>
-        `
-      }
-    } finally {
-      hideLoadingScreen()
-    }
   }
 
   // Run main initialization
