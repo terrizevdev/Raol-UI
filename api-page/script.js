@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (sponsorSettings.enabled && sponsorSettings.showOnLoad) {
         setTimeout(() => {
           showSponsorModal()
-        }, 2000) // Show after 2 seconds
+        }, 800) // Reduced from 2000ms to 800ms - much faster!
       }
     } catch (error) {
       console.error("Error loading sponsor settings:", error)
@@ -288,18 +288,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       const sponsorLogo = document.createElement("div")
       sponsorLogo.className = "sponsor-logo"
       sponsorLogo.textContent = sponsor.name.charAt(0)
-      if (
-        sponsor.logo &&
-        sponsor.logo !== "https://orangevps.com/logo.png" &&
-        sponsor.logo !== "https://datalix.com/logo.png"
-      ) {
+
+      // Use actual logo image URL if provided
+      if (sponsor.logo && sponsor.logo.startsWith("http")) {
         const logoImg = document.createElement("img")
         logoImg.src = sponsor.logo
         logoImg.alt = sponsor.name
-        logoImg.style.width = "100%"
-        logoImg.style.height = "100%"
-        logoImg.style.objectFit = "cover"
-        logoImg.style.borderRadius = "inherit"
+        logoImg.onerror = () => {
+          // Fallback to text if image fails to load
+          sponsorLogo.innerHTML = sponsor.name.charAt(0)
+        }
         sponsorLogo.innerHTML = ""
         sponsorLogo.appendChild(logoImg)
       }
@@ -317,6 +315,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       sponsorBody.style.background = sponsor.backgroundColor || "var(--card-background)"
       sponsorBody.style.color = sponsor.textColor || "var(--text-color)"
 
+      // Add banner image if provided
+      if (sponsor.bannerImage && sponsor.bannerImage.startsWith("http")) {
+        const bannerImg = document.createElement("img")
+        bannerImg.src = sponsor.bannerImage
+        bannerImg.alt = `${sponsor.name} banner`
+        bannerImg.className = "sponsor-banner-image"
+        sponsorBody.appendChild(bannerImg)
+      }
+
+      // Create content wrapper
+      const sponsorContent = document.createElement("div")
+      sponsorContent.className = "sponsor-content"
+
       const sponsorTitle = document.createElement("h3")
       sponsorTitle.className = "sponsor-title"
       sponsorTitle.textContent = sponsor.title
@@ -333,7 +344,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const sponsorLocation = document.createElement("p")
         sponsorLocation.className = "sponsor-location"
         sponsorLocation.textContent = sponsor.location
-        sponsorBody.appendChild(sponsorLocation)
+        sponsorContent.appendChild(sponsorLocation)
       }
 
       const sponsorButton = document.createElement("a")
@@ -345,11 +356,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       sponsorButton.style.backgroundColor = sponsor.buttonColor || "var(--primary-color)"
       sponsorButton.style.color = "white"
 
-      sponsorBody.appendChild(sponsorTitle)
-      sponsorBody.appendChild(sponsorSubtitle)
-      sponsorBody.appendChild(sponsorDescription)
-      sponsorBody.appendChild(sponsorButton)
+      sponsorContent.appendChild(sponsorTitle)
+      sponsorContent.appendChild(sponsorSubtitle)
+      sponsorContent.appendChild(sponsorDescription)
+      sponsorContent.appendChild(sponsorButton)
 
+      sponsorBody.appendChild(sponsorContent)
       sponsorCard.appendChild(sponsorHeader)
       sponsorCard.appendChild(sponsorBody)
       modalBody.appendChild(sponsorCard)

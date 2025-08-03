@@ -8,7 +8,7 @@
     {
       "id": "orangevps",
       "name": "OrangeVPS",
-      "logo": "https://orangevps.com/logo.png",
+      "logo": "https://i.imgur.com/example1.png",
       "title": "Get VPS NVMe and Intel Processor Based",
       "subtitle": "start from $1.88 USD/month",
       "description": "Apply this Code to get additional 10% Lifetime Discount SM25-4M9GJA1BY",
@@ -17,13 +17,14 @@
       "buttonColor": "#ff6b35",
       "backgroundColor": "#1a1a1a",
       "textColor": "#ffffff",
+      "bannerImage": "https://i.imgur.com/orangevps-banner.jpg",
       "url": "https://orangevps.com",
       "active": true
     },
     {
       "id": "datalix",
       "name": "Datalix",
-      "logo": "https://datalix.com/logo.png",
+      "logo": "https://i.imgur.com/example2.png",
       "title": "2025 Sale Xeon KVM",
       "subtitle": "6GB RAM Start from €2.45/Month",
       "description": "Secure, fast and reliable",
@@ -31,6 +32,7 @@
       "buttonColor": "#4CAF50",
       "backgroundColor": "linear-gradient(135deg, #4CAF50, #45a049)",
       "textColor": "#ffffff",
+      "bannerImage": "https://i.imgur.com/datalix-banner.jpg",
       "url": "https://datalix.com",
       "active": true
     }

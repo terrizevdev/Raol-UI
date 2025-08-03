@@ -864,6 +864,7 @@ a:hover {
   box-shadow: var(--card-shadow);
   transition: var(--hover-transition);
   border: 1px solid var(--border-color);
+  position: relative;
 }
 
 .sponsor-card:hover {
@@ -894,6 +895,14 @@ a:hover {
   justify-content: center;
   font-weight: 600;
   color: var(--primary-color);
+  overflow: hidden;
+}
+
+.sponsor-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 
 .sponsor-name {
@@ -905,13 +914,31 @@ a:hover {
 
 .sponsor-card-body {
   padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.sponsor-banner-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.sponsor-content {
+  position: relative;
+  z-index: 1;
 }
 
 .sponsor-title {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: var(--space-sm);
-  color: var(--text-color);
+  color: inherit;
 }
 
 .sponsor-subtitle {
@@ -923,16 +950,18 @@ a:hover {
 
 .sponsor-description {
   font-size: 0.9rem;
-  color: var(--text-muted);
+  color: inherit;
   margin-bottom: var(--space-md);
   line-height: 1.5;
+  opacity: 0.9;
 }
 
 .sponsor-location {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: inherit;
   margin-bottom: var(--space-lg);
   font-style: italic;
+  opacity: 0.8;
 }
 
 .sponsor-button {
@@ -947,6 +976,8 @@ a:hover {
   text-decoration: none;
   display: inline-block;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .sponsor-button:hover {
