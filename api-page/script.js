@@ -791,10 +791,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Hide all footer buttons initially
     const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
     const shareApiBtn = DOM.modal.element.querySelector(".share-api-btn")
-    const directLinkBtn = DOM.modal.element.querySelector(".direct-link-btn")
+    const openLinkBtn = DOM.modal.element.querySelector(".open-link-btn")
     if (downloadImageBtn) downloadImageBtn.style.display = "none"
     if (shareApiBtn) shareApiBtn.style.display = "none"
-    if (directLinkBtn) directLinkBtn.style.display = "none"
+    if (openLinkBtn) openLinkBtn.style.display = "none"
 
     // Create share button if it doesn't exist
     if (!shareApiBtn) {
@@ -808,36 +808,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       modalFooter.insertBefore(newShareBtn, DOM.modal.submitBtn)
     }
 
-    // Create direct link button for endpoint if it doesn't exist
-    const directLinkBtnElement = DOM.modal.element.querySelector(".direct-link-btn")
-    if (!directLinkBtnElement) {
-      const newDirectLinkBtn = document.createElement("button")
-      newDirectLinkBtn.className = "btn btn-outline-primary me-2 direct-link-btn"
-      newDirectLinkBtn.innerHTML = '<i class="fas fa-external-link-alt me-2"></i> Open API'
-      newDirectLinkBtn.title = "Open API endpoint in new tab"
-
-      // Insert the direct link button in the modal footer
-      const modalFooter = DOM.modal.element.querySelector(".modal-footer")
-      modalFooter.insertBefore(newDirectLinkBtn, DOM.modal.submitBtn)
-    }
-
-    // Update direct link button click handler
-    const directLinkBtn = DOM.modal.element.querySelector(".direct-link-btn")
-    if (directLinkBtn) {
-      directLinkBtn.onclick = () => {
+    // Create open link button if it doesn't exist
+    const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+    let openLinkBtn = modalFooter.querySelector(".open-link-btn")
+    if (!openLinkBtn) {
+      openLinkBtn = document.createElement("button")
+      openLinkBtn.className = "btn btn-outline-primary me-2 open-link-btn"
+      openLinkBtn.innerHTML = '<i class="fas fa-external-link-alt me-2"></i> Open Link'
+      openLinkBtn.onclick = () => {
         const endpointUrl = DOM.modal.endpoint.textContent
-        if (endpointUrl) {
-          window.open(endpointUrl, "_blank", "noopener,noreferrer")
-          showToast("API endpoint opened in new tab", "info", "Direct Link")
-        }
+        window.open(endpointUrl, "_blank", "noopener,noreferrer")
+        showToast("Endpoint opened in new tab", "info", "Open Link")
       }
+
+      // Insert the open link button in the modal footer
+      modalFooter.insertBefore(openLinkBtn, DOM.modal.submitBtn)
     }
 
-    // Always show share and direct link buttons when modal opens
+    // Always show open link button when modal opens
+    const openBtn = DOM.modal.element.querySelector(".open-link-btn")
+    if (openBtn) openBtn.style.display = "inline-block"
+
+    // Always show share button when modal opens
     const shareBtn = DOM.modal.element.querySelector(".share-api-btn")
-    const directBtn = DOM.modal.element.querySelector(".direct-link-btn")
     if (shareBtn) shareBtn.style.display = "inline-block"
-    if (directBtn) directBtn.style.display = "inline-block"
 
     const paramsFromPath = new URLSearchParams(apiData.path.split("?")[1])
     const paramKeys = Array.from(paramsFromPath.keys())
@@ -1161,12 +1155,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       content.style.maxHeight = content.scrollHeight + "px"
       trigger.dataset.folded = "false"
       trigger.setAttribute("aria-expanded", "true")
-      indicator.innerHTML = '(<i class="fas fa-chevron-up"></i> Close)'
+      indicator.innerHTML = '(<i class="fas fa-chevron-down"></i> Fold)'
     } else {
       content.style.maxHeight = "0px"
       trigger.dataset.folded = "true"
       trigger.setAttribute("aria-expanded", "false")
-      indicator.innerHTML = '(<i class="fas fa-chevron-down"></i> Open)'
+      indicator.innerHTML = '(<i class="fas fa-chevron-up"></i> Unfold)'
     }
   }
 
