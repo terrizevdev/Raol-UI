@@ -2216,3 +2216,40 @@ input:checked + .slider:before {
   flex-wrap: nowrap; /* Prevent wrapping */
   justify-content: center;
 }
+
+/* Modal backdrop blur effect */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal.show .modal-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Enhanced modal backdrop for better blur effect */
+.modal::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1040;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modal.show::before {
+  opacity: 1;
+}
+
+/* Ensure modal content is above the blur */
+.modal-dialog {
+  position: relative;
+  z-index: 1050;
+}

@@ -121,10 +121,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       await navigator.clipboard.writeText(shareLink)
       showToast("Share link copied to clipboard!", "success", "Share API")
 
-      // Update URL to reflect the shared API
-      // Update URL to reflect the shared API (clean path without parameters)
-      const cleanPath = currentApiData.path.split("?")[0]
-      updateUrlParameter("share", cleanPath)
+      // Update URL to reflect the shared API with clean ID
+      const apiId = generateApiId(currentApiData)
+      updateUrlParameter("share", apiId)
     } catch (err) {
       // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement("textarea")
@@ -135,9 +134,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
         showToast("Share link copied to clipboard!", "success", "Share API")
-        // Update URL to reflect the shared API (clean path without parameters)
-        const cleanPath = currentApiData.path.split("?")[0]
-        updateUrlParameter("share", cleanPath)
+        // Update URL to reflect the shared API with clean ID
+        const apiId = generateApiId(currentApiData)
+        updateUrlParameter("share", apiId)
       } catch (fallbackErr) {
         showToast("Failed to copy share link", "error")
       }
