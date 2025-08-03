@@ -34,7 +34,7 @@
       "textColor": "#ffffff",
       "bannerImage": "",
       "url": "https://datalix.com",
-      "active": false
+      "active": true
     }
   ]
 }
