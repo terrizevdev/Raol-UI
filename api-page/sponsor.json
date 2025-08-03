@@ -1,0 +1,38 @@
+{
+  "enabled": true,
+  "title": "Sponsored Ads",
+  "subtitle": "Support these amazing services ❤",
+  "showOnLoad": true,
+  "showInterval": 300000,
+  "sponsors": [
+    {
+      "id": "orangevps",
+      "name": "OrangeVPS",
+      "logo": "https://orangevps.com/logo.png",
+      "title": "Get VPS NVMe and Intel Processor Based",
+      "subtitle": "start from $1.88 USD/month",
+      "description": "Apply this Code to get additional 10% Lifetime Discount SM25-4M9GJA1BY",
+      "location": "Location Singapore, Hong Kong, US",
+      "buttonText": "Click here!",
+      "buttonColor": "#ff6b35",
+      "backgroundColor": "#1a1a1a",
+      "textColor": "#ffffff",
+      "url": "https://orangevps.com",
+      "active": true
+    },
+    {
+      "id": "datalix",
+      "name": "Datalix",
+      "logo": "https://datalix.com/logo.png",
+      "title": "2025 Sale Xeon KVM",
+      "subtitle": "6GB RAM Start from €2.45/Month",
+      "description": "Secure, fast and reliable",
+      "buttonText": "Get Started",
+      "buttonColor": "#4CAF50",
+      "backgroundColor": "linear-gradient(135deg, #4CAF50, #45a049)",
+      "textColor": "#ffffff",
+      "url": "https://datalix.com",
+      "active": true
+    }
+  ]
+}

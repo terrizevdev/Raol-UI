@@ -776,6 +776,215 @@ a:hover {
   }
 }
 
+/* Sponsored Ads Modal Styles */
+.sponsor-modal-dialog {
+  max-width: 600px;
+  margin: 1rem auto;
+}
+
+.sponsor-modal-content {
+  background: var(--card-background);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+.sponsor-modal-header {
+  background: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  padding: var(--space-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.sponsor-modal-title {
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.sponsor-close-btn {
+  position: absolute;
+  top: 50%;
+  right: var(--space-lg);
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.sponsor-close-btn:hover {
+  color: var(--text-color);
+  background-color: var(--highlight-color);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.sponsor-modal-body {
+  padding: var(--space-lg);
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
+}
+
+.sponsor-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sponsor-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sponsor-modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+}
+
+.sponsor-card {
+  background: var(--card-background);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--space-lg);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: var(--hover-transition);
+  border: 1px solid var(--border-color);
+}
+
+.sponsor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+}
+
+.sponsor-card:last-child {
+  margin-bottom: 0;
+}
+
+.sponsor-card-header {
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sponsor-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-sm);
+  object-fit: cover;
+  background: var(--highlight-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.sponsor-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.sponsor-card-body {
+  padding: var(--space-lg);
+}
+
+.sponsor-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+  color: var(--text-color);
+}
+
+.sponsor-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: var(--space-md);
+  color: var(--warning-color);
+}
+
+.sponsor-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+  line-height: 1.5;
+}
+
+.sponsor-location {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-lg);
+  font-style: italic;
+}
+
+.sponsor-button {
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--hover-transition);
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.sponsor-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+}
+
+.sponsor-modal-footer {
+  background: var(--background-color);
+  border-top: 1px solid var(--border-color);
+  padding: var(--space-md) var(--space-lg);
+  text-align: center;
+}
+
+.sponsor-support-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Dark mode specific styles for sponsor modal */
+.dark-mode .sponsor-modal-content {
+  background: var(--card-background);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.dark-mode .sponsor-card {
+  background: var(--background-color);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .sponsor-modal-footer {
+  background: var(--background-color);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Mobile Responsive Styles */
 
 @media (max-width: 992px) {
@@ -804,6 +1013,11 @@ a:hover {
 
   .main-header {
     padding: 0 var(--space-md);
+  }
+
+  .sponsor-modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
   }
 }
 
@@ -839,11 +1053,15 @@ a:hover {
   .main-footer {
     padding: var(--space-md) var(--space-lg);
   }
-  /* Remove this rule to keep footer links side by side */
-  /* .footer-links {
-    flex-direction: column;
-    align-items: center;
-  } */
+
+  .sponsor-modal-body {
+    padding: var(--space-md);
+    max-height: 60vh;
+  }
+
+  .sponsor-card-body {
+    padding: var(--space-md);
+  }
 }
 
 @media (max-width: 576px) {
@@ -883,6 +1101,28 @@ a:hover {
     height: 36px;
     font-size: 1.1rem;
   }
+
+  .sponsor-modal-dialog {
+    margin: 0.25rem;
+    max-width: calc(100% - 0.5rem);
+  }
+
+  .sponsor-modal-title {
+    font-size: 1.3rem;
+  }
+
+  .sponsor-card-header {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .sponsor-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sponsor-name {
+    font-size: 1rem;
+  }
 }
 
 /* Dark mode specific navbar styles */
@@ -911,7 +1151,9 @@ a:hover {
   .side-nav-link,
   .menu-toggle,
   .notification-bell,
-  .input-group {
+  .input-group,
+  .sponsor-card,
+  .sponsor-button {
     transition: none;
   }
 
@@ -936,6 +1178,10 @@ a:hover {
 
   .side-nav-link.active {
     outline: 2px solid var(--text-color);
+  }
+
+  .sponsor-modal-content {
+    border: 2px solid var(--text-color);
   }
 }
 

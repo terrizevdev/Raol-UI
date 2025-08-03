@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let settings = {} // To store data from settings.json
   let currentApiData = null // To store API data currently displayed in the modal
   let allNotifications = [] // To store all notifications from JSON
+  let sponsorSettings = {} // To store sponsor data from sponsor.json
 
   // --- URL Parameter Functions ---
   const getUrlParameter = (name) => {
@@ -121,9 +122,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       await navigator.clipboard.writeText(shareLink)
       showToast("Share link copied to clipboard!", "success", "Share API")
 
-      // Update URL to reflect the shared API with clean ID
-      const apiId = generateApiId(currentApiData)
-      updateUrlParameter("share", apiId)
+      // Don't update URL immediately, only when sharing
+      // updateUrlParameter("share", apiId) // Remove this line
     } catch (err) {
       // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement("textarea")
@@ -133,10 +133,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
-        showToast("Share link copied to clipboard!", "success", "Share API")
-        // Update URL to reflect the shared API with clean ID
-        const apiId = generateApiId(currentApiData)
-        updateUrlParameter("share", apiId)
+        // Don't update URL immediately, only when sharing
+        // updateUrlParameter("share", apiId) // Remove this line
       } catch (fallbackErr) {
         showToast("Failed to copy share link", "error")
       }
@@ -243,6 +241,134 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // --- Sponsor Functions ---
+  const loadSponsorSettings = async () => {
+    try {
+      const response = await fetch("/api-page/sponsor.json")
+      if (!response.ok) throw new Error(`Failed to load sponsor settings: ${response.status}`)
+      sponsorSettings = await response.json()
+
+      // Show sponsor modal if enabled and should show on load
+      if (sponsorSettings.enabled && sponsorSettings.showOnLoad) {
+        setTimeout(() => {
+          showSponsorModal()
+        }, 2000) // Show after 2 seconds
+      }
+    } catch (error) {
+      console.error("Error loading sponsor settings:", error)
+    }
+  }
+
+  const showSponsorModal = () => {
+    if (!sponsorSettings.enabled || !sponsorSettings.sponsors) return
+
+    const modalBody = document.getElementById("sponsorModalBody")
+    const modalTitle = document.getElementById("sponsorModalLabel")
+
+    // Set modal title
+    modalTitle.textContent = sponsorSettings.title || "Sponsored Ads"
+
+    // Clear existing content
+    modalBody.innerHTML = ""
+
+    // Filter active sponsors
+    const activeSponsors = sponsorSettings.sponsors.filter((sponsor) => sponsor.active)
+
+    if (activeSponsors.length === 0) return
+
+    // Create sponsor cards
+    activeSponsors.forEach((sponsor) => {
+      const sponsorCard = document.createElement("div")
+      sponsorCard.className = "sponsor-card"
+
+      // Create sponsor header
+      const sponsorHeader = document.createElement("div")
+      sponsorHeader.className = "sponsor-card-header"
+
+      const sponsorLogo = document.createElement("div")
+      sponsorLogo.className = "sponsor-logo"
+      sponsorLogo.textContent = sponsor.name.charAt(0)
+      if (
+        sponsor.logo &&
+        sponsor.logo !== "https://orangevps.com/logo.png" &&
+        sponsor.logo !== "https://datalix.com/logo.png"
+      ) {
+        const logoImg = document.createElement("img")
+        logoImg.src = sponsor.logo
+        logoImg.alt = sponsor.name
+        logoImg.style.width = "100%"
+        logoImg.style.height = "100%"
+        logoImg.style.objectFit = "cover"
+        logoImg.style.borderRadius = "inherit"
+        sponsorLogo.innerHTML = ""
+        sponsorLogo.appendChild(logoImg)
+      }
+
+      const sponsorName = document.createElement("h4")
+      sponsorName.className = "sponsor-name"
+      sponsorName.textContent = sponsor.name
+
+      sponsorHeader.appendChild(sponsorLogo)
+      sponsorHeader.appendChild(sponsorName)
+
+      // Create sponsor body
+      const sponsorBody = document.createElement("div")
+      sponsorBody.className = "sponsor-card-body"
+      sponsorBody.style.background = sponsor.backgroundColor || "var(--card-background)"
+      sponsorBody.style.color = sponsor.textColor || "var(--text-color)"
+
+      const sponsorTitle = document.createElement("h3")
+      sponsorTitle.className = "sponsor-title"
+      sponsorTitle.textContent = sponsor.title
+
+      const sponsorSubtitle = document.createElement("p")
+      sponsorSubtitle.className = "sponsor-subtitle"
+      sponsorSubtitle.textContent = sponsor.subtitle
+
+      const sponsorDescription = document.createElement("p")
+      sponsorDescription.className = "sponsor-description"
+      sponsorDescription.textContent = sponsor.description
+
+      if (sponsor.location) {
+        const sponsorLocation = document.createElement("p")
+        sponsorLocation.className = "sponsor-location"
+        sponsorLocation.textContent = sponsor.location
+        sponsorBody.appendChild(sponsorLocation)
+      }
+
+      const sponsorButton = document.createElement("a")
+      sponsorButton.className = "sponsor-button"
+      sponsorButton.href = sponsor.url
+      sponsorButton.target = "_blank"
+      sponsorButton.rel = "noopener noreferrer"
+      sponsorButton.textContent = sponsor.buttonText || "Learn More"
+      sponsorButton.style.backgroundColor = sponsor.buttonColor || "var(--primary-color)"
+      sponsorButton.style.color = "white"
+
+      sponsorBody.appendChild(sponsorTitle)
+      sponsorBody.appendChild(sponsorSubtitle)
+      sponsorBody.appendChild(sponsorDescription)
+      sponsorBody.appendChild(sponsorButton)
+
+      sponsorCard.appendChild(sponsorHeader)
+      sponsorCard.appendChild(sponsorBody)
+      modalBody.appendChild(sponsorCard)
+    })
+
+    // Show the modal
+    const sponsorModal = new window.bootstrap.Modal(document.getElementById("sponsorModal"))
+    sponsorModal.show()
+
+    // Set up interval for periodic showing if configured
+    if (sponsorSettings.showInterval && sponsorSettings.showInterval > 0) {
+      setInterval(() => {
+        if (sponsorSettings.enabled) {
+          showSponsorModal()
+        }
+      }, sponsorSettings.showInterval)
+    }
+  }
+
   const getSessionReadNotificationIds = () => {
     const ids = sessionStorage.getItem("sessionReadNotificationIds")
     return ids ? JSON.parse(ids) : []
@@ -313,11 +439,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     initModal()
 
     // Start all async operations in parallel for faster loading
-    const [settingsResult, notificationsResult] = await Promise.allSettled([
+    const [settingsResult, notificationsResult, sponsorResult] = await Promise.allSettled([
       fetch("/api/settings").then((res) =>
         res.ok ? res.json() : Promise.reject(new Error(`Failed to load settings: ${res.status}`)),
       ),
       loadNotifications(),
+      loadSponsorSettings(),
     ])
 
     try {
@@ -365,6 +492,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         copyToClipboard(DOM.modal.content.textContent, DOM.modal.copyResponseBtn),
       )
     if (DOM.modal.submitBtn) DOM.modal.submitBtn.addEventListener("click", handleSubmitQuery)
+
+    // Add event listener for modal close to remove share parameter
+    if (DOM.modal.element) {
+      DOM.modal.element.addEventListener("hidden.bs.modal", () => {
+        // Remove share parameter from URL when modal is closed
+        const currentShare = getUrlParameter("share")
+        if (currentShare) {
+          removeUrlParameter("share")
+        }
+      })
+    }
 
     window.addEventListener("scroll", handleScroll)
     document.addEventListener("click", closeSideNavOnClickOutside)
