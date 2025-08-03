@@ -133,6 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         document.execCommand("copy")
         showToast("Share link copied to clipboard!", "success", "Share API")
+        showToast("Share link copied to clipboard!", "success", "Share API")
         // Update URL to reflect the shared API with clean ID
         const apiId = generateApiId(currentApiData)
         updateUrlParameter("share", apiId)
@@ -791,10 +792,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Hide all footer buttons initially
     const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
     const shareApiBtn = DOM.modal.element.querySelector(".share-api-btn")
-    const openLinkBtn = DOM.modal.element.querySelector(".open-link-btn")
     if (downloadImageBtn) downloadImageBtn.style.display = "none"
     if (shareApiBtn) shareApiBtn.style.display = "none"
-    if (openLinkBtn) openLinkBtn.style.display = "none"
 
     // Create share button if it doesn't exist
     if (!shareApiBtn) {
@@ -807,27 +806,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const modalFooter = DOM.modal.element.querySelector(".modal-footer")
       modalFooter.insertBefore(newShareBtn, DOM.modal.submitBtn)
     }
-
-    // Create open link button if it doesn't exist
-    const modalFooter = DOM.modal.element.querySelector(".modal-footer")
-    let openLinkBtn = modalFooter.querySelector(".open-link-btn")
-    if (!openLinkBtn) {
-      openLinkBtn = document.createElement("button")
-      openLinkBtn.className = "btn btn-outline-primary me-2 open-link-btn"
-      openLinkBtn.innerHTML = '<i class="fas fa-external-link-alt me-2"></i> Open Link'
-      openLinkBtn.onclick = () => {
-        const endpointUrl = DOM.modal.endpoint.textContent
-        window.open(endpointUrl, "_blank", "noopener,noreferrer")
-        showToast("Endpoint opened in new tab", "info", "Open Link")
-      }
-
-      // Insert the open link button in the modal footer
-      modalFooter.insertBefore(openLinkBtn, DOM.modal.submitBtn)
-    }
-
-    // Always show open link button when modal opens
-    const openBtn = DOM.modal.element.querySelector(".open-link-btn")
-    if (openBtn) openBtn.style.display = "inline-block"
 
     // Always show share button when modal opens
     const shareBtn = DOM.modal.element.querySelector(".share-api-btn")
@@ -1155,12 +1133,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       content.style.maxHeight = content.scrollHeight + "px"
       trigger.dataset.folded = "false"
       trigger.setAttribute("aria-expanded", "true")
-      indicator.innerHTML = '(<i class="fas fa-chevron-down"></i> Fold)'
+      indicator.innerHTML = '(<i class="fas fa-chevron-up"></i> Close)'
     } else {
       content.style.maxHeight = "0px"
       trigger.dataset.folded = "true"
       trigger.setAttribute("aria-expanded", "false")
-      indicator.innerHTML = '(<i class="fas fa-chevron-up"></i> Unfold)'
+      indicator.innerHTML = '(<i class="fas fa-chevron-down"></i> Open)'
     }
   }
 
