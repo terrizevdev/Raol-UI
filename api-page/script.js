@@ -311,17 +311,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     initTheme()
     initSideNav()
     initModal()
-    await loadNotifications()
+
+    // Start all async operations in parallel for faster loading
+    const [settingsResult, notificationsResult] = await Promise.allSettled([
+      fetch("/api/settings").then((res) =>
+        res.ok ? res.json() : Promise.reject(new Error(`Failed to load settings: ${res.status}`)),
+      ),
+      loadNotifications(),
+    ])
 
     try {
-      const response = await fetch("/api/settings")
-      if (!response.ok) throw new Error(`Failed to load settings: ${response.status}`)
-      settings = await response.json()
-      populatePageContent()
-      renderApiCategories()
-      observeApiItems()
+      // Handle settings
+      if (settingsResult.status === "fulfilled") {
+        settings = settingsResult.value
+        populatePageContent()
+        renderApiCategories()
+        observeApiItems()
+      } else {
+        throw settingsResult.reason
+      }
 
-      // Check for shared API in URL after everything is loaded
+      // Check for shared API in URL after settings are loaded
       const sharedPath = parseSharedApiFromUrl()
       if (sharedPath) {
         openSharedApi(sharedPath)
@@ -331,6 +341,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       showToast(`Failed to load settings: ${error.message}`, "error")
       displayErrorState("Could not load API configuration.")
     } finally {
+      // Hide loading screen immediately after critical content is ready
       hideLoadingScreen()
     }
   }
@@ -369,7 +380,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => {
       DOM.loadingScreen.style.display = "none"
       DOM.body.classList.remove("no-scroll")
-    }, 500)
+    }, 150) // Reduced from 500ms to 150ms
   }
 
   const animateLoadingDots = () => {
@@ -381,7 +392,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
           loadingDots.textContent += "."
         }
-      }, 500)
+      }, 200) // Reduced from 500ms to 200ms for faster animation
     }
   }
   animateLoadingDots()
@@ -672,15 +683,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const displayErrorState = (message) => {
     if (!DOM.apiContent) return
     DOM.apiContent.innerHTML = `
-            <div class="no-results-message text-center p-5">
-                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-                <p class="h5">${message}</p>
-                <p class="text-muted">Please try reloading the page or contact the administrator.</p>
-                <button class="btn btn-primary mt-3" onclick="location.reload()">
-                    <i class="fas fa-sync-alt me-2"></i> Reload
-                </button>
-            </div>
-        `
+          <div class="no-results-message text-center p-5">
+              <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+              <p class="h5">${message}</p>
+              <p class="text-muted">Please try reloading the page or contact the administrator.</p>
+          </div>
+      `
   }
 
   // --- Search Functionality ---
@@ -737,14 +745,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         "no-results-message flex-column align-items-center justify-content-center p-5 text-center"
       noResultsMsg.style.display = "none"
       noResultsMsg.innerHTML = `
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <p class="h5">No results for <span></span></p>
-                <button id="clearSearchFromMsg" class="btn btn-primary mt-3">
-                    <i class="fas fa-times me-2"></i> Clear Search
-                </button>
-            `
+              <i class="fas fa-search fa-3x text-muted mb-3"></i>
+              <p class="h5">No results for <span></span></p>
+          `
       DOM.apiContent.appendChild(noResultsMsg)
-      document.getElementById("clearSearchFromMsg").addEventListener("click", clearSearch)
     }
     return noResultsMsg
   }
