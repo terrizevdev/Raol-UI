@@ -69,10 +69,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Share API Functions ---
   const generateShareLink = (apiData) => {
     const url = new URL(window.location.origin + window.location.pathname)
-    // Remove parameters from the path before sharing
-    const cleanPath = apiData.path.split("?")[0]
-    url.searchParams.set("share", cleanPath)
+    // Generate simple ID from API name and category
+    const apiId = generateApiId(apiData)
+    url.searchParams.set("share", apiId)
     return url.toString()
+  }
+
+  const generateApiId = (apiData) => {
+    // Create simple ID from API name, remove spaces and special chars
+    return apiData.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
   }
 
   const parseSharedApiFromUrl = () => {
@@ -80,14 +89,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     return sharedPath || null
   }
 
-  const findApiByPath = (path) => {
+  const findApiByPath = (pathOrId) => {
     if (!settings || !settings.categories) return null
 
     for (const category of settings.categories) {
       for (const item of category.items) {
         // Compare both full path and clean path (without parameters)
         const itemCleanPath = item.path.split("?")[0]
-        if (item.path === path || itemCleanPath === path) {
+        const itemId = generateApiId(item)
+
+        if (item.path === pathOrId || itemCleanPath === pathOrId || itemId === pathOrId) {
           return {
             path: item.path,
             name: item.name,
@@ -776,10 +787,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.modal.submitBtn.innerHTML = '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
 
     // Hide all footer buttons initially
-    const editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
     const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
     const shareApiBtn = DOM.modal.element.querySelector(".share-api-btn")
-    if (editParamsBtn) editParamsBtn.style.display = "none"
     if (downloadImageBtn) downloadImageBtn.style.display = "none"
     if (shareApiBtn) shareApiBtn.style.display = "none"
 
@@ -997,42 +1006,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       DOM.modal.content.classList.remove("d-none")
       DOM.modal.container.classList.add("slide-in-bottom")
       showToast(`Successfully retrieved data for ${apiName}`, "success")
-
-      // Show Edit Parameters button in footer if there were parameters
-      if (currentApiData && currentApiData.path.split("?")[1]) {
-        // Check if edit button already exists, if not create it
-        let editParamsBtn = DOM.modal.element.querySelector(".edit-params-btn")
-        if (!editParamsBtn) {
-          editParamsBtn = document.createElement("button")
-          editParamsBtn.className = "btn btn-outline-secondary me-2 edit-params-btn"
-          editParamsBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Edit Parameters'
-          editParamsBtn.onclick = () => {
-            // Show the parameter form again
-            if (DOM.modal.queryInputContainer.firstChild) {
-              DOM.modal.queryInputContainer.firstChild.style.display = ""
-              DOM.modal.queryInputContainer.firstChild.classList.remove("fade-out")
-            }
-            DOM.modal.submitBtn.classList.remove("d-none")
-            DOM.modal.submitBtn.disabled = false
-            DOM.modal.submitBtn.innerHTML =
-              '<span>Send</span><i class="fas fa-paper-plane ms-2" aria-hidden="true"></i>'
-            // Hide the response container
-            DOM.modal.container.classList.add("d-none")
-            // Hide the edit button and download button
-            editParamsBtn.style.display = "none"
-            const downloadBtn = DOM.modal.element.querySelector(".download-image-btn")
-            if (downloadBtn) downloadBtn.style.display = "none"
-            // Focus on first input
-            const firstInput = DOM.modal.queryInputContainer.querySelector("input")
-            if (firstInput) firstInput.focus()
-          }
-
-          // Insert the edit button before the submit button in the modal footer
-          const modalFooter = DOM.modal.element.querySelector(".modal-footer")
-          modalFooter.insertBefore(editParamsBtn, DOM.modal.submitBtn)
-        }
-        editParamsBtn.style.display = "inline-block"
-      }
 
       // Reset submit button after successful response
       if (DOM.modal.submitBtn) {
