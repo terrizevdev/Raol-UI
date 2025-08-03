@@ -289,8 +289,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       sponsorLogo.className = "sponsor-logo"
       sponsorLogo.textContent = sponsor.name.charAt(0)
 
-      // Use actual logo image URL if provided
-      if (sponsor.logo && sponsor.logo.startsWith("http")) {
+      // Use actual logo image URL if provided (support both local paths and URLs)
+      if (sponsor.logo && (sponsor.logo.startsWith("http") || sponsor.logo.startsWith("/"))) {
         const logoImg = document.createElement("img")
         logoImg.src = sponsor.logo
         logoImg.alt = sponsor.name
@@ -315,31 +315,41 @@ document.addEventListener("DOMContentLoaded", async () => {
       sponsorBody.style.background = sponsor.backgroundColor || "var(--card-background)"
       sponsorBody.style.color = sponsor.textColor || "var(--text-color)"
 
-      // Add banner image if provided
-      if (sponsor.bannerImage && sponsor.bannerImage.startsWith("http")) {
+      // Add banner image if provided (support both local paths and URLs)
+      if (sponsor.bannerImage && (sponsor.bannerImage.startsWith("http") || sponsor.bannerImage.startsWith("/"))) {
         const bannerImg = document.createElement("img")
         bannerImg.src = sponsor.bannerImage
         bannerImg.alt = `${sponsor.name} banner`
         bannerImg.className = "sponsor-banner-image"
+        bannerImg.onerror = () => {
+          console.warn(`Failed to load banner image for ${sponsor.name}: ${sponsor.bannerImage}`)
+          // Optionally hide the image container if loading fails
+          bannerImg.style.display = "none"
+        }
         sponsorBody.appendChild(bannerImg)
       }
 
-      // Create content wrapper
+      // Create content wrapper (no button, just the banner)
       const sponsorContent = document.createElement("div")
       sponsorContent.className = "sponsor-content"
 
-      const sponsorButton = document.createElement("a")
-      sponsorButton.className = "sponsor-button"
-      sponsorButton.href = sponsor.url
-      sponsorButton.target = "_blank"
-      sponsorButton.rel = "noopener noreferrer"
-      sponsorButton.textContent = sponsor.buttonText || "Learn More"
-      sponsorButton.style.backgroundColor = sponsor.buttonColor || "var(--primary-color)"
-      sponsorButton.style.color = "white"
+      // Make the entire card clickable instead of having a button
+      sponsorCard.style.cursor = "pointer"
+      sponsorCard.addEventListener("click", () => {
+        window.open(sponsor.url, "_blank", "noopener,noreferrer")
+      })
 
-      sponsorContent.appendChild(sponsorButton)
+      // Add hover effect for the clickable card
+      sponsorCard.addEventListener("mouseenter", () => {
+        sponsorCard.style.transform = "translateY(-2px)"
+        sponsorCard.style.transition = "transform 0.3s ease"
+      })
+
+      sponsorCard.addEventListener("mouseleave", () => {
+        sponsorCard.style.transform = "translateY(0)"
+      })
+
       sponsorBody.appendChild(sponsorContent)
-
       sponsorCard.appendChild(sponsorHeader)
       sponsorCard.appendChild(sponsorBody)
       modalBody.appendChild(sponsorCard)
