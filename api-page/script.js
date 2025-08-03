@@ -328,25 +328,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const sponsorContent = document.createElement("div")
       sponsorContent.className = "sponsor-content"
 
-      const sponsorTitle = document.createElement("h3")
-      sponsorTitle.className = "sponsor-title"
-      sponsorTitle.textContent = sponsor.title
-
-      const sponsorSubtitle = document.createElement("p")
-      sponsorSubtitle.className = "sponsor-subtitle"
-      sponsorSubtitle.textContent = sponsor.subtitle
-
-      const sponsorDescription = document.createElement("p")
-      sponsorDescription.className = "sponsor-description"
-      sponsorDescription.textContent = sponsor.description
-
-      if (sponsor.location) {
-        const sponsorLocation = document.createElement("p")
-        sponsorLocation.className = "sponsor-location"
-        sponsorLocation.textContent = sponsor.location
-        sponsorContent.appendChild(sponsorLocation)
-      }
-
       const sponsorButton = document.createElement("a")
       sponsorButton.className = "sponsor-button"
       sponsorButton.href = sponsor.url
@@ -356,12 +337,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       sponsorButton.style.backgroundColor = sponsor.buttonColor || "var(--primary-color)"
       sponsorButton.style.color = "white"
 
-      sponsorContent.appendChild(sponsorTitle)
-      sponsorContent.appendChild(sponsorSubtitle)
-      sponsorContent.appendChild(sponsorDescription)
       sponsorContent.appendChild(sponsorButton)
-
       sponsorBody.appendChild(sponsorContent)
+
       sponsorCard.appendChild(sponsorHeader)
       sponsorCard.appendChild(sponsorBody)
       modalBody.appendChild(sponsorCard)
