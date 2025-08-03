@@ -1,7 +1,7 @@
 {
   "name": "Raol Api'S",
-  "version": "v1.0.0",
-  "description": "Simple and easy to use API.",
+  "version": "v2.0.0",
+  "description": "Experience the next generation of API documentation with real-time monitoring, interactive testing, and comprehensive system insights.",
   "maintenance": {
     "enabled": false,
     "gifUrl": "https://raw.githubusercontent.com/raolbyte/xyz/refs/heads/main/public/maintenance.gif"
@@ -9,7 +9,7 @@
   "bannerImage": "/src/banner.jpg",
   "previewImage": "/src/preview.png",
   "header": {
-    "status": "Active!"
+    "status": "Online"
   },
   "apiSettings": {
     "creator": "VGX Team",
@@ -17,15 +17,56 @@
   },
   "categories": [
     {
+      "name": "System Monitoring",
+      "items": [
+        {
+          "name": "System Overview",
+          "desc": "Get comprehensive system information including CPU, memory, uptime, and platform details",
+          "path": "/api/system/overview",
+          "status": "ready"
+        },
+        {
+          "name": "CPU Usage",
+          "desc": "Real-time CPU usage statistics and core information",
+          "path": "/api/system/cpu",
+          "status": "ready"
+        },
+        {
+          "name": "Memory Usage",
+          "desc": "Detailed memory usage statistics for both process and system",
+          "path": "/api/system/memory",
+          "status": "ready"
+        },
+        {
+          "name": "System Uptime",
+          "desc": "Get system and process uptime information",
+          "path": "/api/system/uptime",
+          "status": "ready"
+        },
+        {
+          "name": "Platform Info",
+          "desc": "Detailed platform and environment information",
+          "path": "/api/system/platform",
+          "status": "ready"
+        },
+        {
+          "name": "Health Check",
+          "desc": "Comprehensive health check with system status indicators",
+          "path": "/api/system/health",
+          "status": "ready"
+        }
+      ]
+    },
+    {
       "name": "Artificial Intelligence",
       "items": [
         {
           "name": "LuminAI",
-          "desc": "Talk with luminai - Advanced AI assistant",
+          "desc": "Advanced AI assistant powered by LuminAI for intelligent conversations",
           "path": "/ai/luminai?text=",
           "status": "ready",
           "params": {
-            "text": "Text for luminai to respond to"
+            "text": "Text message for the AI to respond to"
           }
         }
       ]
@@ -35,7 +76,7 @@
       "items": [
         {
           "name": "Blue Archive",
-          "desc": "Get random Blue Archive character images",
+          "desc": "Get random high-quality Blue Archive character images",
           "path": "/random/ba",
           "status": "ready"
         }
