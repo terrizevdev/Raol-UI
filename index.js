@@ -66,7 +66,7 @@ app.use((req, res, next) => {
   try {
     const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
 
-    const skipPaths = ["/api/settings", "/assets/", "/src/", "/api/preview-image"]
+    const skipPaths = ["/api/settings", "/assets/", "/src/", "/api/preview-image", "/api-page/sponsor.json"]
     const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
 
     if (settings.maintenance && settings.maintenance.enabled && !shouldSkip) {
@@ -98,6 +98,15 @@ app.get("/assets/styles.css", (req, res) => {
 app.get("/assets/script.js", (req, res) => {
   res.setHeader("Content-Type", "application/javascript")
   res.sendFile(path.join(__dirname, "api-page", "script.js"))
+})
+
+app.get("/api-page/sponsor.json", (req, res) => {
+  try {
+    const sponsorData = JSON.parse(fs.readFileSync(path.join(__dirname, "api-page", "sponsor.json"), "utf-8"))
+    res.json(sponsorData)
+  } catch (error) {
+    res.status(500).json({ error: "Failed to load sponsor data" })
+  }
 })
 
 app.get("/api/preview-image", (req, res) => {
