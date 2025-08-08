@@ -66,7 +66,7 @@ app.use((req, res, next) => {
   try {
     const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
 
-    const skipPaths = ["/api/settings", "/assets/", "/src/", "/api/preview-image", "/api-page/sponsor.json"]
+    const skipPaths = ["/api/settings", "/assets/", "/src/", "/api/preview-image", "/api-page/sponsor.json", "/support"]
     const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
 
     if (settings.maintenance && settings.maintenance.enabled && !shouldSkip) {
@@ -152,6 +152,11 @@ app.get("/api/notifications", (req, res) => {
   } catch (error) {
     res.status(500).sendFile(path.join(__dirname, "api-page", "500.html"))
   }
+})
+
+// Support page route - Add this BEFORE the blocking middleware
+app.get("/support", (req, res) => {
+  res.sendFile(path.join(__dirname, "api-page", "support.html"))
 })
 
 app.use((req, res, next) => {
