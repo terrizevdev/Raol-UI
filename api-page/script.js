@@ -248,8 +248,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!response.ok) throw new Error(`Failed to load sponsor settings: ${response.status}`)
       sponsorSettings = await response.json()
 
-      // Show sponsor modal if enabled and should show on load
-      if (sponsorSettings.enabled && sponsorSettings.showOnLoad) {
+      // Check if there's a shared API in URL - if yes, don't show sponsor modal initially
+      const sharedPath = parseSharedApiFromUrl()
+      
+      // Show sponsor modal if enabled and should show on load, but NOT if there's a shared API
+      if (sponsorSettings.enabled && sponsorSettings.showOnLoad && !sharedPath) {
         setTimeout(() => {
           showSponsorModal()
         }, 800) // Reduced from 2000ms to 800ms - much faster!
@@ -477,7 +480,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (DOM.menuToggle) DOM.menuToggle.addEventListener("click", toggleSideNavMobile)
     if (DOM.themeToggle) DOM.themeToggle.addEventListener("change", handleThemeToggle)
     if (DOM.searchInput) DOM.searchInput.addEventListener("input", debounce(handleSearch, 300))
-    if (DOM.clearSearchBtn) DOM.clearSearchBtn.addEventListener("click", clearSearch)
+    if (DOM.clearSearchBtn) {
+      DOM.clearSearchBtn.addEventListener("click", clearSearch)
+      // Add additional event listener for better compatibility
+      DOM.clearSearchBtn.addEventListener("touchstart", clearSearch)
+    }
 
     if (DOM.notificationBell) DOM.notificationBell.addEventListener("click", handleNotificationBellClick)
 
@@ -493,13 +500,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       )
     if (DOM.modal.submitBtn) DOM.modal.submitBtn.addEventListener("click", handleSubmitQuery)
 
-    // Add event listener for modal close to remove share parameter
+    // Add event listener for modal close to remove share parameter and show sponsor if needed
     if (DOM.modal.element) {
       DOM.modal.element.addEventListener("hidden.bs.modal", () => {
         // Remove share parameter from URL when modal is closed
         const currentShare = getUrlParameter("share")
         if (currentShare) {
           removeUrlParameter("share")
+          
+          // Show sponsor modal after closing shared API modal (if sponsor is enabled)
+          if (sponsorSettings.enabled && sponsorSettings.showOnLoad) {
+            setTimeout(() => {
+              showSponsorModal()
+            }, 500) // Show sponsor modal 500ms after API modal closes
+          }
         }
       })
     }
@@ -833,7 +847,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const handleSearch = () => {
     if (!DOM.searchInput || !DOM.apiContent) return
     const searchTerm = DOM.searchInput.value.toLowerCase().trim()
-    DOM.clearSearchBtn.classList.toggle("visible", searchTerm.length > 0)
+    
+    // Show/hide clear button based on input
+    if (DOM.clearSearchBtn) {
+      DOM.clearSearchBtn.classList.toggle("visible", searchTerm.length > 0)
+    }
 
     const apiItems = DOM.apiContent.querySelectorAll(".api-item")
     const visibleCategories = new Set()
@@ -865,11 +883,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const clearSearch = () => {
+  const clearSearch = (e) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    
     if (!DOM.searchInput) return
+    
     DOM.searchInput.value = ""
     DOM.searchInput.focus()
     handleSearch()
+    
+    // Hide clear button
+    DOM.clearSearchBtn.classList.remove("visible")
+    
+    // Add shake animation
     DOM.searchInput.classList.add("shake-animation")
     setTimeout(() => DOM.searchInput.classList.remove("shake-animation"), 400)
   }
