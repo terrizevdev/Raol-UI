@@ -508,11 +508,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (currentShare) {
           removeUrlParameter("share")
           
-          // Show sponsor modal after closing shared API modal (if sponsor is enabled)
+          // Show sponsor modal immediately after closing shared API modal (if sponsor is enabled)
           if (sponsorSettings.enabled && sponsorSettings.showOnLoad) {
+            // Reduced delay to 100ms for much faster appearance
             setTimeout(() => {
               showSponsorModal()
-            }, 500) // Show sponsor modal 500ms after API modal closes
+            }, 100)
           }
         }
       })

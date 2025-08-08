@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Support and acknowledgments for contributors who helped build Raol Api'S">
+    <meta name="keywords" content="Support, Contributors, Acknowledgments, Raol API, Thanks">
+    <meta name="author" content="Raol">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://api.vgxteam.xyz/support">
+    <meta property="og:title" content="Support & Contributors - Raol Api'S">
+    <meta property="og:description" content="Acknowledging the amazing people who helped build and inspire Raol Api'S">
+    <meta property="og:image" content="https://api.vgxteam.xyz/api/preview-image">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://api.vgxteam.xyz/support">
+    <meta name="twitter:title" content="Support & Contributors - Raol Api'S">
+    <meta name="twitter:description" content="Acknowledging the amazing people who helped build and inspire Raol Api'S">
+    <meta name="twitter:image" content="https://api.vgxteam.xyz/api/preview-image">
+    
+    <link rel="icon" href="/src/icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/src/icon.png">
+    <link rel="shortcut icon" href="/src/icon.png">
+    
+    <title>Support & Contributors - Raol Api'S</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="/assets/styles.css">
+    
+    <style>
+        .support-hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: var(--space-xxl) 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .support-hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .support-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .support-hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: var(--space-lg);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .support-hero p {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto var(--space-xl);
+            line-height: 1.6;
+        }
+        
+        .contributors-section {
+            padding: var(--space-xxl) 0;
+            background: var(--background-color);
+        }
+        
+        .contributor-card {
+            background: var(--card-background);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--card-shadow);
+            transition: var(--hover-transition);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .contributor-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+        
+        .contributor-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .contributor-card:hover::before {
+            opacity: 0.05;
+        }
+        
+        .contributor-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .contributor-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto var(--space-lg);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.3);
+            position: relative;
+        }
+        
+        .contributor-avatar::after {
+            content: "";
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            opacity: 0.3;
+            z-index: -1;
+            animation: pulse-ring 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.1;
+            }
+        }
+        
+        .contributor-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .contributor-role {
+            font-size: 1rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .contributor-description {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .contributor-badges {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+        
+        .contributor-badge {
+            background: var(--highlight-color);
+            color: var(--primary-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .thanks-section {
+            background: linear-gradient(135deg, var(--card-background), var(--background-color));
+            padding: var(--space-xxl) 0;
+            text-align: center;
+        }
+        
+        .thanks-card {
+            background: var(--card-background);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xxl);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .thanks-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: var(--space-lg);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .back-home-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: var(--space-md) var(--space-xl);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            transition: var(--hover-transition);
+            margin-top: var(--space-lg);
+        }
+        
+        .back-home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--hover-shadow);
+            color: white;
+        }
+        
+        .section-title {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            margin-bottom: var(--space-lg);
+            text-align: center;
+            color: var(--text-color);
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .section-title::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -10px;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .contributor-card {
+                padding: var(--space-lg);
+            }
+            
+            .contributor-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+            
+            .thanks-card {
+                padding: var(--space-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Support Hero Section -->
+    <section class="support-hero">
+        <div class="support-hero-content">
+            <div class="container">
+                <h1><i class="fas fa-heart me-3"></i>Support & Contributors</h1>
+                <p>Acknowledging the amazing people who helped build and inspire Raol Api'S. This project wouldn't be possible without their dedication and support.</p>
+                <div class="hero-stats">
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <div class="stat-item">
+                                <i class="fas fa-users fa-2x mb-2"></i>
+                                <h3>2</h3>
+                                <p>Contributors</p>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-item">
+                                <i class="fas fa-code fa-2x mb-2"></i>
+                                <h3>∞</h3>
+                                <p>Lines of Code</p>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-item">
+                                <i class="fas fa-lightbulb fa-2x mb-2"></i>
+                                <h3>∞</h3>
+                                <p>Ideas Shared</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contributors Section -->
+    <section class="contributors-section">
+        <div class="container">
+            <h2 class="section-title">Our Amazing Contributors</h2>
+            <div class="row justify-content-center">
+                <!-- Roy AntiDonasi -->
+                <div class="col-lg-5 col-md-6 mb-4">
+                    <div class="contributor-card h-100">
+                        <div class="contributor-avatar">
+                            R
+                        </div>
+                        <h3 class="contributor-name">Roy AntiDonasi</h3>
+                        <div class="contributor-role">
+                            <i class="fas fa-code me-2"></i>Coding Partner
+                        </div>
+                        <p class="contributor-description">
+                            An incredible coding partner who worked alongside us in developing this REST API platform. Roy's expertise in backend development and problem-solving skills have been invaluable to the project's success.
+                        </p>
+                        <div class="contributor-badges">
+                            <span class="contributor-badge">
+                                <i class="fas fa-laptop-code"></i>
+                                Backend Expert
+                            </span>
+                            <span class="contributor-badge">
+                                <i class="fas fa-bug"></i>
+                                Bug Hunter
+                            </span>
+                            <span class="contributor-badge">
+                                <i class="fas fa-handshake"></i>
+                                Team Player
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ryzumi -->
+                <div class="col-lg-5 col-md-6 mb-4">
+                    <div class="contributor-card h-100">
+                        <div class="contributor-avatar">
+                            R
+                        </div>
+                        <h3 class="contributor-name">Ryzumi</h3>
+                        <div class="contributor-role">
+                            <i class="fas fa-lightbulb me-2"></i>Inspiration Source
+                        </div>
+                        <p class="contributor-description">
+                            The creative mind behind many innovative ideas that shaped this project. Ryzumi's vision and inspiration have guided the development process and helped create a user-friendly API documentation platform.
+                        </p>
+                        <div class="contributor-badges">
+                            <span class="contributor-badge">
+                                <i class="fas fa-palette"></i>
+                                Creative Vision
+                            </span>
+                            <span class="contributor-badge">
+                                <i class="fas fa-rocket"></i>
+                                Innovation
+                            </span>
+                            <span class="contributor-badge">
+                                <i class="fas fa-star"></i>
+                                Inspiration
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Thanks Section -->
+    <section class="thanks-section">
+        <div class="container">
+            <div class="thanks-card">
+                <div class="thanks-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h2>Thank You!</h2>
+                <p class="lead">
+                    We extend our heartfelt gratitude to everyone who contributed to making Raol Api'S a reality. 
+                    Your support, feedback, and collaboration have been instrumental in creating this platform.
+                </p>
+                <p>
+                    Special thanks to our coding partners, inspirational minds, and everyone who believed in this project. 
+                    Together, we've built something amazing that will help developers around the world.
+                </p>
+                <div class="mt-4">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-quote-left me-2"></i>
+                        "Great things in business are never done by one person; they're done by a team of people."
+                        <i class="fas fa-quote-right ms-2"></i>
+                    </p>
+                    <small class="text-muted">- Steve Jobs</small>
+                </div>
+                <a href="/" class="back-home-btn">
+                    <i class="fas fa-home"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate contributor cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Initially hide cards and prepare for animation
+            document.querySelectorAll('.contributor-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.2}s, transform 0.6s ease ${index * 0.2}s`;
+                observer.observe(card);
+            });
+
+            // Add hover effects to badges
+            document.querySelectorAll('.contributor-badge').forEach(badge => {
+                badge.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.05)';
+                });
+                
+                badge.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+
+            // Theme detection and application
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const savedTheme = localStorage.getItem('darkMode');
+            
+            if (savedTheme === 'true' || (savedTheme === null && prefersDark)) {
+                document.body.classList.add('dark-mode');
+            }
+        });
+    </script>
+</body>
+</html>
