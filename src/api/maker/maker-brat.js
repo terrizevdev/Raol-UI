@@ -3,7 +3,6 @@ import axios from "axios"
 export default (app) => {
   async function generateBratImage(text, background = null, color = null) {
     try {
-      // Prepare the request parameters
       const params = new URLSearchParams()
       params.append("text", text)
 
@@ -15,17 +14,14 @@ export default (app) => {
         params.append("color", color)
       }
 
-      // Make request to BRAT API
       const response = await axios.get(`https://raolbyte-brat.hf.space/maker/brat?${params.toString()}`, {
-        timeout: 30000, // 30 second timeout
+        timeout: 30000,
         headers: {
           "User-Agent": "Raol-APIs/2.0.0",
         },
       })
 
-      // Check if response contains image_url
       if (response.data && response.data.image_url) {
-        // Download the actual image
         const imageResponse = await axios.get(response.data.image_url, {
           responseType: "arraybuffer",
           timeout: 30000,
@@ -55,7 +51,6 @@ export default (app) => {
 
   async function generateBratVideo(text, background = null, color = null) {
     try {
-      // Prepare the request parameters
       const params = new URLSearchParams()
       params.append("text", text)
 
@@ -67,17 +62,14 @@ export default (app) => {
         params.append("color", color)
       }
 
-      // Make request to BRATVID API
       const response = await axios.get(`https://raolbyte-brat.hf.space/maker/bratvid?${params.toString()}`, {
-        timeout: 60000, // 60 second timeout for video generation
+        timeout: 60000,
         headers: {
           "User-Agent": "Raol-APIs/2.0.0",
         },
       })
 
-      // Check if response contains video_url
       if (response.data && response.data.video_url) {
-        // Download the actual video
         const videoResponse = await axios.get(response.data.video_url, {
           responseType: "arraybuffer",
           timeout: 60000,
@@ -105,12 +97,10 @@ export default (app) => {
     }
   }
 
-  // BRAT Image Generator
   app.get("/maker/brat", async (req, res) => {
     try {
       const { text, background, color } = req.query
 
-      // Validate required parameter
       if (!text) {
         return res.status(400).json({
           status: false,
@@ -119,7 +109,6 @@ export default (app) => {
         })
       }
 
-      // Validate text length
       if (text.length > 500) {
         return res.status(400).json({
           status: false,
@@ -128,7 +117,6 @@ export default (app) => {
         })
       }
 
-      // Validate color format if provided
       if (background && !/^#[0-9A-Fa-f]{6}$/.test(background)) {
         return res.status(400).json({
           status: false,
@@ -145,16 +133,13 @@ export default (app) => {
         })
       }
 
-      // Generate the BRAT image
       const imageBuffer = await generateBratImage(text, background, color)
 
-      // Set appropriate headers for image response
       res.setHeader("Content-Type", "image/png")
       res.setHeader("Content-Length", imageBuffer.length)
-      res.setHeader("Cache-Control", "public, max-age=3600") // Cache for 1 hour
+      res.setHeader("Cache-Control", "public, max-age=3600")
       res.setHeader("Content-Disposition", `inline; filename="brat_${Date.now()}.png"`)
 
-      // Send the image buffer
       res.end(imageBuffer)
     } catch (error) {
       console.error("BRAT API Error:", error)
@@ -167,12 +152,10 @@ export default (app) => {
     }
   })
 
-  // BRAT Video Generator
   app.get("/maker/bratvid", async (req, res) => {
     try {
       const { text, background, color } = req.query
 
-      // Validate required parameter
       if (!text) {
         return res.status(400).json({
           status: false,
@@ -181,7 +164,6 @@ export default (app) => {
         })
       }
 
-      // Validate text length
       if (text.length > 500) {
         return res.status(400).json({
           status: false,
@@ -190,7 +172,6 @@ export default (app) => {
         })
       }
 
-      // Validate color format if provided
       if (background && !/^#[0-9A-Fa-f]{6}$/.test(background)) {
         return res.status(400).json({
           status: false,
@@ -207,18 +188,36 @@ export default (app) => {
         })
       }
 
-      // Generate the BRAT video
       const videoBuffer = await generateBratVideo(text, background, color)
 
-      // Set appropriate headers for video response
       res.setHeader("Content-Type", "video/mp4")
       res.setHeader("Content-Length", videoBuffer.length)
-      res.setHeader("Cache-Control", "public, max-age=3600") // Cache for 1 hour
+      res.setHeader("Cache-Control", "public, max-age=3600")
       res.setHeader("Content-Disposition", `inline; filename="bratvid_${Date.now()}.mp4"`)
       res.setHeader("Accept-Ranges", "bytes")
+      res.setHeader("Access-Control-Allow-Origin", "*")
+      res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+      res.setHeader("Access-Control-Allow-Headers", "Range")
 
-      // Send the video buffer
-      res.end(videoBuffer)
+      if (req.method === "HEAD") {
+        return res.end()
+      }
+
+      const range = req.headers.range
+      if (range) {
+        const parts = range.replace(/bytes=/, "").split("-")
+        const start = Number.parseInt(parts[0], 10)
+        const end = parts[1] ? Number.parseInt(parts[1], 10) : videoBuffer.length - 1
+        const chunksize = end - start + 1
+        const chunk = videoBuffer.slice(start, end + 1)
+
+        res.status(206)
+        res.setHeader("Content-Range", `bytes ${start}-${end}/${videoBuffer.length}`)
+        res.setHeader("Content-Length", chunksize)
+        res.end(chunk)
+      } else {
+        res.end(videoBuffer)
+      }
     } catch (error) {
       console.error("BRATVID API Error:", error)
 
