@@ -23,7 +23,7 @@
           "name": "LuminAI",
           "desc": "Advanced AI assistant powered by LuminAI for intelligent conversations",
           "path": "/ai/luminai?text=",
-          "status": "ready",
+          "status": "error",
           "params": {
             "text": "Text message for the AI to respond to"
           }
