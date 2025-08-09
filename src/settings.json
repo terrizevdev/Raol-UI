@@ -17,6 +17,56 @@
   },
   "categories": [
     {
+      "name": "Artificial Intelligence",
+      "items": [
+        {
+          "name": "LuminAI",
+          "desc": "Advanced AI assistant powered by LuminAI for intelligent conversations",
+          "path": "/ai/luminai?text=",
+          "status": "ready",
+          "params": {
+            "text": "Text message for the AI to respond to"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Random Images",
+      "items": [
+        {
+          "name": "Blue Archive",
+          "desc": "Get random high-quality Blue Archive character images",
+          "path": "/random/ba",
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "name": "Image Makers",
+      "items": [
+        {
+          "name": "BRAT Generator",
+          "desc": "Generate BRAT-style text images with customizable colors and backgrounds",
+          "path": "/maker/brat?text=Hello World",
+          "status": "ready",
+          "params": {
+            "text": "Text to be inserted into the BRAT image (required)"
+          },
+          "innerDesc": "Creates a BRAT-style image with your custom text. You can customize the background and text colors using hex color codes. The generated image will be returned directly as a PNG file."
+        },
+        {
+          "name": "BRAT Video Generator",
+          "desc": "Generate animated BRAT-style text videos with customizable colors and backgrounds",
+          "path": "/maker/bratvid?text=Hello World",
+          "status": "ready",
+          "params": {
+            "text": "Text to be inserted into the BRAT video (required)"
+          },
+          "innerDesc": "Creates an animated BRAT-style video with your custom text. You can customize the background and text colors using hex color codes. The generated video will be returned directly as an MP4 file."
+        }
+      ]
+    },
+    {
       "name": "System Monitoring",
       "items": [
         {
@@ -54,60 +104,6 @@
           "desc": "Comprehensive health check with system status indicators",
           "path": "/api/system/health",
           "status": "ready"
-        }
-      ]
-    },
-    {
-      "name": "Artificial Intelligence",
-      "items": [
-        {
-          "name": "LuminAI",
-          "desc": "Advanced AI assistant powered by LuminAI for intelligent conversations",
-          "path": "/ai/luminai?text=",
-          "status": "ready",
-          "params": {
-            "text": "Text message for the AI to respond to"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Random Images",
-      "items": [
-        {
-          "name": "Blue Archive",
-          "desc": "Get random high-quality Blue Archive character images",
-          "path": "/random/ba",
-          "status": "ready"
-        }
-      ]
-    },
-    {
-      "name": "Image Makers",
-      "items": [
-        {
-          "name": "BRAT Generator",
-          "desc": "Generate BRAT-style text images with customizable colors and backgrounds",
-          "path": "/maker/brat?text=Hello World",
-          "status": "ready",
-          "params": {
-            "text": "Text to be inserted into the BRAT image (required)",
-            "background": "Background color in hex format (optional, e.g., #000000)",
-            "color": "Text color in hex format (optional, e.g., #FFFFFF)"
-          },
-          "innerDesc": "Creates a BRAT-style image with your custom text. You can customize the background and text colors using hex color codes. The generated image will be returned directly as a PNG file."
-        },
-        {
-          "name": "BRAT Video Generator",
-          "desc": "Generate animated BRAT-style text videos with customizable colors and backgrounds",
-          "path": "/maker/bratvid?text=Hello World",
-          "status": "ready",
-          "params": {
-            "text": "Text to be inserted into the BRAT video (required)",
-            "background": "Background color in hex format (optional, e.g., #000000)",
-            "color": "Text color in hex format (optional, e.g., #FFFFFF)"
-          },
-          "innerDesc": "Creates an animated BRAT-style video with your custom text. You can customize the background and text colors using hex color codes. The generated video will be returned directly as an MP4 file."
         }
       ]
     }
