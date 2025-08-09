@@ -51,8 +51,7 @@
           "status": "ready",
           "params": {
             "text": "Text to be inserted into the BRAT image (required)"
-          },
-          "innerDesc": "Creates a BRAT-style image with your custom text. You can customize the background and text colors using hex color codes. The generated image will be returned directly as a PNG file."
+          }
         },
         {
           "name": "BRAT Video Generator",
@@ -61,8 +60,7 @@
           "status": "ready",
           "params": {
             "text": "Text to be inserted into the BRAT video (required)"
-          },
-          "innerDesc": "Creates an animated BRAT-style video with your custom text. You can customize the background and text colors using hex color codes. The generated video will be returned directly as an MP4 file."
+          }
         }
       ]
     },
