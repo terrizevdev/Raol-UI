@@ -2497,3 +2497,30 @@ input:checked + .slider:before {
   position: relative;
   z-index: 1050;
 }
+
+/* Video response styling */
+.response-video {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  transition: var(--hover-transition);
+}
+
+.response-video:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+}
+
+/* Download video button styling */
+.download-video-btn {
+  background: linear-gradient(135deg, var(--success-color), #00a085);
+  color: white;
+  border: none;
+  transition: var(--hover-transition);
+}
+
+.download-video-btn:hover {
+  background: linear-gradient(135deg, #00a085, var(--success-color));
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+  color: white;
+}

@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Check if there's a shared API in URL - if yes, don't show sponsor modal initially
       const sharedPath = parseSharedApiFromUrl()
-      
+
       // Show sponsor modal if enabled and should show on load, but NOT if there's a shared API
       if (sponsorSettings.enabled && sponsorSettings.showOnLoad && !sharedPath) {
         setTimeout(() => {
@@ -507,7 +507,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const currentShare = getUrlParameter("share")
         if (currentShare) {
           removeUrlParameter("share")
-          
+
           // Show sponsor modal immediately after closing shared API modal (if sponsor is enabled)
           if (sponsorSettings.enabled && sponsorSettings.showOnLoad) {
             // Reduced delay to 100ms for much faster appearance
@@ -848,7 +848,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const handleSearch = () => {
     if (!DOM.searchInput || !DOM.apiContent) return
     const searchTerm = DOM.searchInput.value.toLowerCase().trim()
-    
+
     // Show/hide clear button based on input
     if (DOM.clearSearchBtn) {
       DOM.clearSearchBtn.classList.toggle("visible", searchTerm.length > 0)
@@ -889,16 +889,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       e.preventDefault()
       e.stopPropagation()
     }
-    
+
     if (!DOM.searchInput) return
-    
+
     DOM.searchInput.value = ""
     DOM.searchInput.focus()
     handleSearch()
-    
+
     // Hide clear button
     DOM.clearSearchBtn.classList.remove("visible")
-    
+
     // Add shake animation
     DOM.searchInput.classList.add("shake-animation")
     setTimeout(() => DOM.searchInput.classList.remove("shake-animation"), 400)
@@ -959,8 +959,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Hide all footer buttons initially
     const downloadImageBtn = DOM.modal.element.querySelector(".download-image-btn")
+    const downloadVideoBtn = DOM.modal.element.querySelector(".download-video-btn")
     const shareApiBtn = DOM.modal.element.querySelector(".share-api-btn")
     if (downloadImageBtn) downloadImageBtn.style.display = "none"
+    if (downloadVideoBtn) downloadVideoBtn.style.display = "none"
     if (shareApiBtn) shareApiBtn.style.display = "none"
 
     // Create share button if it doesn't exist
@@ -1161,6 +1163,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         downloadImageBtn.href = imageUrl
         downloadImageBtn.download = `${apiName.toLowerCase().replace(/\s+/g, "-")}.${blob.type.split("/")[1] || "png"}`
         downloadImageBtn.style.display = "inline-block"
+      } else if (contentType && contentType.includes("video/")) {
+        const blob = await response.blob()
+        const videoUrl = URL.createObjectURL(blob)
+        const video = document.createElement("video")
+        video.src = videoUrl
+        video.controls = true
+        video.className = "response-video w-100 rounded shadow-sm fade-in"
+        video.style.maxHeight = "400px"
+        video.preload = "metadata"
+
+        // Add video to content
+        DOM.modal.content.appendChild(video)
+
+        // Create download button in modal footer
+        let downloadVideoBtn = DOM.modal.element.querySelector(".download-video-btn")
+        if (!downloadVideoBtn) {
+          downloadVideoBtn = document.createElement("a")
+          downloadVideoBtn.className = "btn btn-success me-2 download-video-btn"
+          downloadVideoBtn.innerHTML = '<i class="fas fa-download me-2"></i> Download Video'
+          downloadVideoBtn.style.textDecoration = "none"
+
+          // Insert the download button before the submit button in the modal footer
+          const modalFooter = DOM.modal.element.querySelector(".modal-footer")
+          modalFooter.insertBefore(downloadVideoBtn, DOM.modal.submitBtn)
+        }
+
+        // Update download button properties
+        downloadVideoBtn.href = videoUrl
+        downloadVideoBtn.download = `${apiName.toLowerCase().replace(/\s+/g, "-")}.${blob.type.split("/")[1] || "mp4"}`
+        downloadVideoBtn.style.display = "inline-block"
       } else if (contentType && contentType.includes("application/json")) {
         const data = await response.json()
         const formattedJson = syntaxHighlightJson(JSON.stringify(data, null, 2))
