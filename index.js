@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename)
 const require = createRequire(import.meta.url)
 
 const app = express()
-const PORT = process.env.PORT || 4000
+let PORT = process.env.PORT || 4000
 
 app.enable("trust proxy")
 app.set("json spaces", 2)
@@ -64,7 +64,7 @@ setInterval(() => {
 
 app.use((req, res, next) => {
   try {
-    const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"))
+    const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "./src/settings.json"), "utf-8"))
 
     const skipPaths = ["/api/settings", "/assets/", "/src/", "/api/preview-image", "/api-page/sponsor.json", "/support"]
     const shouldSkip = skipPaths.some((path) => req.path.startsWith(path))
@@ -281,8 +281,32 @@ app.use((err, req, res, next) => {
   }
 })
 
-app.listen(PORT, () => {
-  console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Server is running on port ${PORT} `))
-})
+const findAvailablePort = (startPort) => {
+  return new Promise((resolve) => {
+    const server = app
+      .listen(startPort, () => {
+        const port = server.address().port
+        server.close(() => resolve(port))
+      })
+      .on("error", () => {
+        resolve(findAvailablePort(startPort + 1))
+      })
+  })
+}
+
+const startServer = async () => {
+  try {
+    PORT = await findAvailablePort(PORT)
+
+    app.listen(PORT, () => {
+      console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Server is running on port ${PORT} `))
+    })
+  } catch (err) {
+    console.error(chalk.bgRed.white(` Server failed to start: ${err.message} `))
+    process.exit(1)
+  }
+}
+
+startServer()
 
 export default app
