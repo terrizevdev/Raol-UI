@@ -918,34 +918,47 @@ a:hover {
   padding: 0; /* Remove padding to let banner fill the space */
   position: relative;
   overflow: hidden;
-  min-height: 200px; /* Increase height for better banner display */
+  min-height: 180px; /* Optimized height for better banner display */
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--background-color); /* Add background fallback */
 }
 
 .sponsor-banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Changed from contain to cover for better fill */
+  object-position: center;
+  transition: transform 0.3s ease;
+  border-radius: 0; /* Remove border radius for full coverage */
+  display: block;
+  max-width: 100%;
+  height: auto;
+  min-height: 180px; /* Ensure minimum height */
+}
+
+.sponsor-card:hover .sponsor-banner-image {
+  transform: scale(1.05); /* Slightly more zoom on hover */
+}
+
+.sponsor-content {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  z-index: 0;
-  transition: transform 0.3s ease;
-}
-
-.sponsor-card:hover .sponsor-banner-image {
-  transform: scale(1.02); /* Slight zoom on hover */
-}
-
-.sponsor-content {
-  position: relative;
-  z-index: 1;
-  width: 100%;
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: var(--space-md); /* Add padding back to content */
+  background: rgba(0, 0, 0, 0.1); /* Subtle overlay for better text readability if needed */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+.sponsor-card:hover .sponsor-content {
+  opacity: 1;
 }
 
 /* Remove all button-related styles */
@@ -1059,6 +1072,11 @@ a:hover {
 
   .sponsor-card-body {
     padding: var(--space-md);
+    min-height: 150px; /* Reduced height for mobile */
+  }
+  
+  .sponsor-banner-image {
+    min-height: 150px;
   }
 }
 
@@ -1121,6 +1139,68 @@ a:hover {
   .sponsor-name {
     font-size: 1rem;
   }
+  
+  .sponsor-card-body {
+    min-height: 120px; /* Further reduced for small screens */
+  }
+  
+  .sponsor-banner-image {
+    min-height: 120px;
+  }
+}
+
+/* Additional responsive improvements */
+@media (max-width: 480px) {
+  .sponsor-card-body {
+    min-height: 140px;
+  }
+  
+  .sponsor-banner-image {
+    min-height: 140px;
+    object-fit: cover;
+  }
+}
+
+@media (min-width: 768px) {
+  .sponsor-card-body {
+    min-height: 200px;
+  }
+  
+  .sponsor-banner-image {
+    min-height: 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sponsor-card-body {
+    min-height: 220px;
+  }
+  
+  .sponsor-banner-image {
+    min-height: 220px;
+  }
+}
+
+/* Ensure images load properly */
+.sponsor-banner-image {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Loading state for images */
+.sponsor-banner-image:not([src]) {
+  background: var(--highlight-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sponsor-banner-image:not([src])::before {
+  content: "Loading...";
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 /* Dark mode specific navbar styles */
