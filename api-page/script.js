@@ -248,14 +248,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!response.ok) throw new Error(`Failed to load sponsor settings: ${response.status}`)
       sponsorSettings = await response.json()
 
-      // Check if there's a shared API in URL - if yes, don't show sponsor modal initially
       const sharedPath = parseSharedApiFromUrl()
 
-      // Show sponsor modal if enabled and should show on load, but NOT if there's a shared API
       if (sponsorSettings.enabled && sponsorSettings.showOnLoad && !sharedPath) {
         setTimeout(() => {
           showSponsorModal()
-        }, 800) // Reduced from 2000ms to 800ms - much faster!
+        }, 800)
       }
     } catch (error) {
       console.error("Error loading sponsor settings:", error)
@@ -268,23 +266,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const modalBody = document.getElementById("sponsorModalBody")
     const modalTitle = document.getElementById("sponsorModalLabel")
 
-    // Set modal title
     modalTitle.textContent = sponsorSettings.title || "Sponsored Ads"
 
-    // Clear existing content
     modalBody.innerHTML = ""
 
-    // Filter active sponsors
     const activeSponsors = sponsorSettings.sponsors.filter((sponsor) => sponsor.active)
 
     if (activeSponsors.length === 0) return
 
-    // Create sponsor cards
     activeSponsors.forEach((sponsor) => {
       const sponsorCard = document.createElement("div")
       sponsorCard.className = "sponsor-card"
 
-      // Create sponsor header
       const sponsorHeader = document.createElement("div")
       sponsorHeader.className = "sponsor-card-header"
 
@@ -292,13 +285,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       sponsorLogo.className = "sponsor-logo"
       sponsorLogo.textContent = sponsor.name.charAt(0)
 
-      // Use actual logo image URL if provided (support both local paths and URLs)
       if (sponsor.logo && (sponsor.logo.startsWith("http") || sponsor.logo.startsWith("/"))) {
         const logoImg = document.createElement("img")
         logoImg.src = sponsor.logo
         logoImg.alt = sponsor.name
         logoImg.onerror = () => {
-          // Fallback to text if image fails to load
           sponsorLogo.innerHTML = sponsor.name.charAt(0)
         }
         sponsorLogo.innerHTML = ""
@@ -312,13 +303,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       sponsorHeader.appendChild(sponsorLogo)
       sponsorHeader.appendChild(sponsorName)
 
-      // Create sponsor body
       const sponsorBody = document.createElement("div")
       sponsorBody.className = "sponsor-card-body"
       sponsorBody.style.background = sponsor.backgroundColor || "var(--card-background)"
       sponsorBody.style.color = sponsor.textColor || "var(--text-color)"
 
-      // Add banner image if provided (support both local paths and URLs)
       if (sponsor.bannerImage && (sponsor.bannerImage.startsWith("http") || sponsor.bannerImage.startsWith("/"))) {
         const bannerImg = document.createElement("img")
         bannerImg.src = sponsor.bannerImage
@@ -326,23 +315,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         bannerImg.className = "sponsor-banner-image"
         bannerImg.onerror = () => {
           console.warn(`Failed to load banner image for ${sponsor.name}: ${sponsor.bannerImage}`)
-          // Optionally hide the image container if loading fails
           bannerImg.style.display = "none"
         }
         sponsorBody.appendChild(bannerImg)
       }
 
-      // Create content wrapper (no button, just the banner)
       const sponsorContent = document.createElement("div")
       sponsorContent.className = "sponsor-content"
 
-      // Make the entire card clickable instead of having a button
       sponsorCard.style.cursor = "pointer"
       sponsorCard.addEventListener("click", () => {
         window.open(sponsor.url, "_blank", "noopener,noreferrer")
       })
 
-      // Add hover effect for the clickable card
       sponsorCard.addEventListener("mouseenter", () => {
         sponsorCard.style.transform = "translateY(-2px)"
         sponsorCard.style.transition = "transform 0.3s ease"
@@ -358,11 +343,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       modalBody.appendChild(sponsorCard)
     })
 
-    // Show the modal
     const sponsorModal = new window.bootstrap.Modal(document.getElementById("sponsorModal"))
     sponsorModal.show()
 
-    // Set up interval for periodic showing if configured
     if (sponsorSettings.showInterval && sponsorSettings.showInterval > 0) {
       setInterval(() => {
         if (sponsorSettings.enabled) {
@@ -849,7 +832,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!DOM.searchInput || !DOM.apiContent) return
     const searchTerm = DOM.searchInput.value.toLowerCase().trim()
 
-    // Show/hide clear button based on input
     if (DOM.clearSearchBtn) {
       DOM.clearSearchBtn.classList.toggle("visible", searchTerm.length > 0)
     }
@@ -896,10 +878,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     DOM.searchInput.focus()
     handleSearch()
 
-    // Hide clear button
     DOM.clearSearchBtn.classList.remove("visible")
 
-    // Add shake animation
     DOM.searchInput.classList.add("shake-animation")
     setTimeout(() => DOM.searchInput.classList.remove("shake-animation"), 400)
   }
