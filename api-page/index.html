@@ -95,6 +95,18 @@
         }, 500);
         
         document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
+                if (e.key === 'F12' || 
+                    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||
+                    (e.ctrlKey && e.key === 'U')) {
+                    e.preventDefault();
+                    window.location.href = 'about:blank';
+                    window.close();
+                    return false;
+                }
+                return true;
+            }
+            
             if (e.key === 'F12' || 
                 (e.ctrlKey && e.shiftKey && e.key === 'I') ||
                 (e.ctrlKey && e.shiftKey && e.key === 'C') ||
@@ -109,6 +121,9 @@
         });
         
         document.addEventListener('contextmenu', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return true;
+            }
             e.preventDefault();
             return false;
         });
@@ -399,20 +414,18 @@
     
     (function() {
         document.addEventListener('selectstart', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
+                return true;
+            }
             e.preventDefault();
         });
         
         document.addEventListener('dragstart', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return true;
+            }
             e.preventDefault();
         });
-        
-        document.onselectstart = function() {
-            return false;
-        };
-        
-        document.onmousedown = function() {
-            return false;
-        };
         
         window.addEventListener('resize', function() {
             if (window.outerWidth - window.innerWidth > 200 || 
