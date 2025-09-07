@@ -1,7 +1,7 @@
 # Raol APIs
 
 <div align="center">
-  <img src="src/icon.png" alt="Raol APIs Logo" width="120" height="120">
+  <img src="https://github.com/raolbyte/raolbyte/blob/main/banner.png" alt="Raol APIs Logo" width="120" height="120">
   
   **Experience the next generation of API documentation with real-time monitoring, interactive testing, and comprehensive system insights.**
   
