@@ -5,7 +5,7 @@
   
   **Simple and easy to use API.**
   
-  [![Version](https://img.shields.io/badge/version-v2.0.0-blue.svg)](https://github.com/raolbyte/Raol-UI)
+  [![Version](https://img.shields.io/badge/version-v5.1.1-blue.svg)](https://github.com/raolbyte/Raol-UI)
   [![Node.js](https://img.shields.io/badge/node.js-%3E%3D%2018.0.0-green.svg)](https://nodejs.org/)
   [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
   [![Status](https://img.shields.io/badge/status-online-brightgreen.svg)](https://raol-apis.vercel.app)
