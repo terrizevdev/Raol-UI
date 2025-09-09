@@ -76,11 +76,10 @@ The `src/settings.json` file controls all aspects of your API service:
 ```json
 {
   "name": "Raol Api'S",
-  "version": "v2.0.0",
+  "version": "v5.1.1",
   "description": "Experience the next generation of API documentation...",
   "maintenance": {
-    "enabled": false,
-    "gifUrl": "https://example.com/maintenance.gif"
+    "enabled": false
   },
   "bannerImage": "/src/banner.jpg",
   "previewImage": "/src/preview.png",
@@ -128,8 +127,7 @@ The `src/settings.json` file controls all aspects of your API service:
 #### Maintenance Mode
 ```json
 "maintenance": {
-  "enabled": true,
-  "gifUrl": "https://example.com/maintenance.gif"
+  "enabled": true
 }
 ```
 
@@ -231,8 +229,7 @@ Enable maintenance mode to temporarily disable API access:
 
 ```json
 "maintenance": {
-  "enabled": true,
-  "gifUrl": "https://example.com/maintenance.gif"
+  "enabled": true
 }
 ```
 
