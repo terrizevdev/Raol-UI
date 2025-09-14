@@ -87,7 +87,7 @@ The `src/settings.json` file controls all aspects of your API service:
     "status": "Online"
   },
   "apiSettings": {
-    "creator": "VGX Team",
+    "creator": "RaolByte",
     "requireApikey": false,
     "apikey": {
       "your-api-key": {
@@ -183,7 +183,7 @@ curl "http://localhost:3000/ai/luminai?text=Hello&apikey=your-secret-key"
 ```json
 {
   "status": false,
-  "creator": "VGX Team",
+  "creator": "RaolByte",
   "error": "API key required",
   "message": "Please provide a valid API key in the query parameters"
 }
@@ -193,7 +193,7 @@ curl "http://localhost:3000/ai/luminai?text=Hello&apikey=your-secret-key"
 ```json
 {
   "status": false,
-  "creator": "VGX Team",
+  "creator": "RaolByte",
   "error": "Invalid API key",
   "message": "The provided API key is not valid or does not exist"
 }
@@ -217,7 +217,7 @@ curl "http://localhost:3000/ai/luminai?text=Hello&apikey=your-secret-key"
 ```json
 {
   "status": false,
-  "creator": "VGX Team",
+  "creator": "RaolByte",
   "error": "Rate limit exceeded",
   "message": "You have exceeded the rate limit for this API key"
 }
@@ -250,7 +250,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <p>Made with ❤️ by <strong>VGX Team</strong></p>
+  <p>Made with ❤️ by <strong>RaolByte</strong></p>
   <p>
     <a href="https://github.com/raolbyte/Raol-UI">⭐ Star this repo</a> •
     <a href="https://github.com/raolbyte/Raol-UI/issues">🐛 Report Bug</a> •
