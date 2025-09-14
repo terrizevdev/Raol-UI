@@ -11,7 +11,7 @@
     "status": "Online"
   },
   "apiSettings": {
-    "creator": "VGX Team",
+    "creator": "RaolByte",
     "requireApikey": false,
     "apikey": {
       "demo": {
@@ -70,6 +70,37 @@
           "params": {
             "text": "Text to be inserted into the BRAT video (required)"
           }
+        }
+      ]
+    },
+    {
+      "name": "Media Players",
+      "items": [
+        {
+          "name": "Music Players List",
+          "desc": "Get comprehensive list of music players and streaming services with filtering options",
+          "path": "/media/players",
+          "status": "ready",
+          "params": {
+            "type": "Filter by player type (streaming, desktop)",
+            "format": "Filter by supported audio format (mp3, flac, aac, etc)",
+            "feature": "Filter by specific features (lossless, offline, etc)"
+          }
+        },
+        {
+          "name": "Player Details",
+          "desc": "Get detailed information about a specific music player",
+          "path": "/media/players/Spotify",
+          "status": "ready",
+          "params": {
+            "name": "Player name (Spotify, Apple Music, VLC, etc)"
+          }
+        },
+        {
+          "name": "Audio Formats",
+          "desc": "Get information about supported audio formats across all players",
+          "path": "/media/formats",
+          "status": "ready"
         }
       ]
     }
