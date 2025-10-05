@@ -137,8 +137,7 @@ Manage API keys:
 
 #### `/restart`
 Restart the API server:
-- Interactive confirmation with ✅/❌ reactions
-- 30-second timeout for confirmation
+- Immediate execution without confirmation
 - Graceful shutdown with 2-second delay
 - Clear status updates throughout the process
 

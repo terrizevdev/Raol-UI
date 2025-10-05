@@ -375,87 +375,30 @@ async function handleApiKey(interaction) {
 
 async function handleRestart(interaction) {
   try {
-    const confirmEmbed = new EmbedBuilder()
-      .setTitle('⚠️ Server Restart Confirmation')
-      .setDescription('Are you sure you want to restart the API server?')
-      .setColor(0xff9900)
+    const restartEmbed = new EmbedBuilder()
+      .setTitle('🔄 Restarting Server...')
+      .setDescription('The API server is being restarted. Please wait...')
+      .setColor(0x0099ff)
       .addFields(
-        { name: 'Warning', value: 'This will temporarily disconnect all active connections', inline: false },
         { name: 'Duration', value: 'Restart typically takes 2-5 seconds', inline: true },
         { name: 'Status', value: 'All data will be preserved', inline: true }
       )
-      .setFooter({ text: 'React with ✅ to confirm or ❌ to cancel' })
       .setTimestamp()
 
-    const confirmMessage = await interaction.reply({ 
-      embeds: [confirmEmbed], 
-      fetchReply: true 
-    })
+    await interaction.reply({ embeds: [restartEmbed] })
 
-    await confirmMessage.react('✅')
-    await confirmMessage.react('❌')
+    setTimeout(() => {
+      console.log('Discord bot initiated server restart')
+      process.exit(0)
+    }, 2000)
 
-    const filter = (reaction, user) => {
-      return ['✅', '❌'].includes(reaction.emoji.name) && user.id === interaction.user.id
-    }
+    const successEmbed = new EmbedBuilder()
+      .setTitle('✅ Restart Initiated')
+      .setDescription('Server restart has been initiated successfully.')
+      .setColor(0x00ff00)
+      .setTimestamp()
 
-    try {
-      const collected = await confirmMessage.awaitReactions({ 
-        filter, 
-        max: 1, 
-        time: 30000, 
-        errors: ['time'] 
-      })
-
-      const reaction = collected.first()
-      
-      if (reaction.emoji.name === '❌') {
-        const cancelEmbed = new EmbedBuilder()
-          .setTitle('❌ Restart Cancelled')
-          .setDescription('Server restart has been cancelled.')
-          .setColor(0xff0000)
-          .setTimestamp()
-
-        await interaction.editReply({ embeds: [cancelEmbed], components: [] })
-        return
-      }
-
-      if (reaction.emoji.name === '✅') {
-        const restartEmbed = new EmbedBuilder()
-          .setTitle('🔄 Restarting Server...')
-          .setDescription('The API server is being restarted. Please wait...')
-          .setColor(0x0099ff)
-          .setTimestamp()
-
-        await interaction.editReply({ embeds: [restartEmbed], components: [] })
-
-        setTimeout(() => {
-          console.log('Discord bot initiated server restart')
-          process.exit(0)
-        }, 2000)
-
-        const successEmbed = new EmbedBuilder()
-          .setTitle('✅ Restart Initiated')
-          .setDescription('Server restart has been initiated successfully.')
-          .setColor(0x00ff00)
-          .setTimestamp()
-
-        await interaction.followUp({ embeds: [successEmbed], ephemeral: true })
-      }
-
-    } catch (error) {
-      if (error.name === 'TimeoutError') {
-        const timeoutEmbed = new EmbedBuilder()
-          .setTitle('⏰ Restart Timeout')
-          .setDescription('Restart confirmation timed out. Please try again.')
-          .setColor(0xff9900)
-          .setTimestamp()
-
-        await interaction.editReply({ embeds: [timeoutEmbed], components: [] })
-      } else {
-        throw error
-      }
-    }
+    await interaction.followUp({ embeds: [successEmbed], ephemeral: true })
 
   } catch (error) {
     console.error('Error in restart command:', error)
@@ -467,7 +410,7 @@ async function handleRestart(interaction) {
         .setColor(0xff0000)
         .setTimestamp()
 
-      await interaction.editReply({ embeds: [errorEmbed], components: [] })
+      await interaction.reply({ embeds: [errorEmbed] })
     } catch (replyError) {
       console.error('Failed to send error message:', replyError)
     }
