@@ -19,8 +19,22 @@ const client = new Client({
 
 const commands = [
   new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('Show available commands and help information'),
+  
+  new SlashCommandBuilder()
     .setName('stats')
-    .setDescription('Check API statistics')
+    .setDescription('View API statistics')
+    .addStringOption(option =>
+      option.setName('action')
+        .setDescription('Stats action to perform')
+        .setRequired(false)
+        .addChoices(
+          { name: 'Start auto stats (30s)', value: 'start_auto' },
+          { name: 'Stop auto stats', value: 'stop_auto' },
+          { name: 'View current stats', value: 'view' }
+        )
+    )
     .addStringOption(option =>
       option.setName('time')
         .setDescription('Time period for statistics')
@@ -52,6 +66,25 @@ const commands = [
     ),
   
   new SlashCommandBuilder()
+    .setName('activity')
+    .setDescription('Manage bot activity status')
+    .addStringOption(option =>
+      option.setName('action')
+        .setDescription('Activity action to perform')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Set custom activity', value: 'set_custom' },
+          { name: 'Reset to auto', value: 'reset_auto' },
+          { name: 'Show current', value: 'show_current' }
+        )
+    )
+    .addStringOption(option =>
+      option.setName('status')
+        .setDescription('Custom status text (only for set_custom action)')
+        .setRequired(false)
+    ),
+  
+  new SlashCommandBuilder()
     .setName('apikey')
     .setDescription('Manage API keys')
     .addSubcommand(subcommand =>
@@ -67,6 +100,31 @@ const commands = [
           option.setName('name')
             .setDescription('Name for the API key')
             .setRequired(true)
+        )
+        .addStringOption(option =>
+          option.setName('category')
+            .setDescription('Category for the API key')
+            .setRequired(true)
+            .addChoices(
+              { name: 'Free', value: 'free' },
+              { name: 'Premium', value: 'premium' },
+              { name: 'VIP', value: 'vip' },
+              { name: 'Admin', value: 'admin' }
+            )
+        )
+        .addStringOption(option =>
+          option.setName('ratelimit')
+            .setDescription('Rate limit for the API key')
+            .setRequired(true)
+            .addChoices(
+              { name: '100/minute', value: '100/minute' },
+              { name: '500/minute', value: '500/minute' },
+              { name: '1000/minute', value: '1000/minute' },
+              { name: '5000/day', value: '5000/day' },
+              { name: '10000/day', value: '10000/day' },
+              { name: '50000/day', value: '50000/day' },
+              { name: 'Unlimited', value: 'unlimited' }
+            )
         )
     )
     .addSubcommand(subcommand =>
@@ -111,6 +169,8 @@ let statsData = {
 
 let autoStatsChannel = null
 let autoStatsMessage = null
+let autoStatsInterval = null
+let customActivity = null
 
 client.once('ready', async () => {
   console.log(`Discord bot logged in as ${client.user.tag}`)
@@ -126,16 +186,19 @@ client.once('ready', async () => {
     console.error('Error refreshing application commands:', error)
   }
 
-  setInterval(async () => {
-    if (autoStatsChannel && autoStatsMessage) {
-      try {
-        const embed = await generateStatsEmbed('30m')
-        await autoStatsMessage.edit({ embeds: [embed] })
-      } catch (error) {
-        console.error('Error updating auto stats:', error)
-      }
+  // Set up automatic activity rotation
+  setInterval(() => {
+    if (!customActivity) {
+      const activities = [
+        { name: 'API requests', type: 3 },
+        { name: 'with RaolByte APIs', type: 0 },
+        { name: 'the server status', type: 3 },
+        { name: 'API documentation', type: 3 }
+      ]
+      const randomActivity = activities[Math.floor(Math.random() * activities.length)]
+      client.user.setActivity(randomActivity.name, { type: randomActivity.type })
     }
-  }, 30 * 60 * 1000)
+  }, 30000) // Change every 30 seconds
 })
 
 client.on('interactionCreate', async interaction => {
@@ -145,8 +208,14 @@ client.on('interactionCreate', async interaction => {
 
   try {
     switch (commandName) {
+      case 'help':
+        await handleHelp(interaction)
+        break
       case 'stats':
         await handleStats(interaction)
+        break
+      case 'activity':
+        await handleActivity(interaction)
         break
       case 'maintenance':
         await handleMaintenance(interaction)
@@ -245,18 +314,144 @@ async function generateStatsEmbed(timeStr = '30m') {
   return embed
 }
 
+async function handleHelp(interaction) {
+  const embed = new EmbedBuilder()
+    .setTitle('🤖 RaolByte API Bot Commands')
+    .setColor(0x0099ff)
+    .setDescription('Here are all available commands for the RaolByte API bot:')
+    .addFields(
+      { name: '📊 `/stats`', value: 'View API statistics and manage auto-updating stats', inline: false },
+      { name: '🎮 `/activity`', value: 'Manage bot activity status (custom/auto)', inline: false },
+      { name: '🔧 `/maintenance`', value: 'Toggle maintenance mode for the API', inline: false },
+      { name: '🔑 `/apikey`', value: 'Manage API keys with categories and rate limits', inline: false }
+    )
+    .addFields(
+      { name: '📊 Stats Options', value: '• `action:Start auto stats (30s)` - Enable auto-updating stats\n• `action:Stop auto stats` - Disable auto-updating stats\n• `action:View current stats` - Show current statistics', inline: false },
+      { name: '🎮 Activity Options', value: '• `action:Set custom activity` - Set custom bot status\n• `action:Reset to auto` - Reset to automatic status\n• `action:Show current` - Show current activity', inline: false },
+      { name: '🔑 API Key Categories', value: '• **Free** - Basic access with limited rate limits\n• **Premium** - Enhanced access with higher limits\n• **VIP** - Priority access with premium limits\n• **Admin** - Full access with unlimited rate limits', inline: false }
+    )
+    .setTimestamp()
+    .setFooter({ text: 'RaolByte API Bot • Use /help for more information' })
+
+  await interaction.reply({ embeds: [embed] })
+}
+
 async function handleStats(interaction) {
+  const action = interaction.options.getString('action') || 'view'
   const timeStr = interaction.options.getString('time') || '30m'
-  const embed = await generateStatsEmbed(timeStr)
   
-  if (interaction.options.getString('setup-auto') === 'true') {
-    autoStatsChannel = interaction.channel
-    const message = await interaction.reply({ embeds: [embed], fetchReply: true })
-    autoStatsMessage = message
-    await interaction.followUp({ content: 'Auto stats enabled! Stats will update every 30 minutes.', ephemeral: true })
-  } else {
-    await interaction.reply({ embeds: [embed] })
+  switch (action) {
+    case 'start_auto':
+      if (autoStatsInterval) {
+        clearInterval(autoStatsInterval)
+      }
+      
+      autoStatsChannel = interaction.channel
+      const embed = await generateStatsEmbed(timeStr)
+      const message = await interaction.reply({ embeds: [embed], fetchReply: true })
+      autoStatsMessage = message
+      
+      // Update every 30 seconds as requested
+      autoStatsInterval = setInterval(async () => {
+        if (autoStatsChannel && autoStatsMessage) {
+          try {
+            const updatedEmbed = await generateStatsEmbed(timeStr)
+            await autoStatsMessage.edit({ embeds: [updatedEmbed] })
+          } catch (error) {
+            console.error('Error updating auto stats:', error)
+          }
+        }
+      }, 30000) // 30 seconds
+      
+      await interaction.followUp({ content: '✅ Auto stats enabled! Stats will update every 30 seconds.', ephemeral: true })
+      break
+      
+    case 'stop_auto':
+      if (autoStatsInterval) {
+        clearInterval(autoStatsInterval)
+        autoStatsInterval = null
+        autoStatsChannel = null
+        autoStatsMessage = null
+        await interaction.reply({ content: '✅ Auto stats disabled!', ephemeral: true })
+      } else {
+        await interaction.reply({ content: '❌ Auto stats is not currently enabled.', ephemeral: true })
+      }
+      break
+      
+    case 'view':
+    default:
+      const statsEmbed = await generateStatsEmbed(timeStr)
+      await interaction.reply({ embeds: [statsEmbed] })
+      break
   }
+}
+
+async function handleActivity(interaction) {
+  const action = interaction.options.getString('action')
+  const status = interaction.options.getString('status')
+  
+  try {
+    switch (action) {
+      case 'set_custom':
+        if (!status) {
+          await interaction.reply({ content: '❌ Please provide a custom status text!', ephemeral: true })
+          return
+        }
+        
+        customActivity = status
+        await client.user.setActivity(status, { type: 3 }) // 3 = WATCHING
+        
+        const setEmbed = new EmbedBuilder()
+          .setTitle('🎮 Activity Status')
+          .setColor(0x00ff00)
+          .setDescription(`✅ Custom activity set to: **${status}**`)
+          .setTimestamp()
+        
+        await interaction.reply({ embeds: [setEmbed] })
+        break
+        
+      case 'reset_auto':
+        customActivity = null
+        await client.user.setActivity('API requests', { type: 3 })
+        
+        const resetEmbed = new EmbedBuilder()
+          .setTitle('🎮 Activity Status')
+          .setColor(0x0099ff)
+          .setDescription('✅ Activity reset to automatic rotation')
+          .setTimestamp()
+        
+        await interaction.reply({ embeds: [resetEmbed] })
+        break
+        
+      case 'show_current':
+        const currentActivity = client.user.presence.activities[0]
+        const activityText = currentActivity ? `${currentActivity.name} (${getActivityTypeName(currentActivity.type)})` : 'No activity set'
+        
+        const showEmbed = new EmbedBuilder()
+          .setTitle('🎮 Current Activity')
+          .setColor(0x0099ff)
+          .setDescription(`**Current Status:** ${activityText}\n**Mode:** ${customActivity ? 'Custom' : 'Automatic'}`)
+          .setTimestamp()
+        
+        await interaction.reply({ embeds: [showEmbed] })
+        break
+    }
+  } catch (error) {
+    console.error('Error handling activity command:', error)
+    await interaction.reply({ content: '❌ Error managing activity status.', ephemeral: true })
+  }
+}
+
+function getActivityTypeName(type) {
+  const types = {
+    0: 'Playing',
+    1: 'Streaming',
+    2: 'Listening',
+    3: 'Watching',
+    4: 'Custom',
+    5: 'Competing'
+  }
+  return types[type] || 'Unknown'
 }
 
 async function handleMaintenance(interaction) {
@@ -299,61 +494,153 @@ async function handleApiKey(interaction) {
       settings.apiKeys = []
     }
     
+    if (!settings.apiSettings) {
+      settings.apiSettings = {}
+    }
+    
+    if (!settings.apiSettings.apikey) {
+      settings.apiSettings.apikey = {}
+    }
+    
     switch (subcommand) {
       case 'add':
         const key = interaction.options.getString('key')
         const name = interaction.options.getString('name')
+        const category = interaction.options.getString('category')
+        const ratelimit = interaction.options.getString('ratelimit')
         
-        if (settings.apiKeys.some(k => k.key === key)) {
-          await interaction.reply({ content: 'API key already exists!', ephemeral: true })
+        // Check if key already exists in both arrays
+        if (settings.apiKeys.some(k => k.key === key) || settings.apiSettings.apikey[key]) {
+          await interaction.reply({ content: '❌ API key already exists!', ephemeral: true })
           return
         }
         
-        settings.apiKeys.push({ key, name, active: true, createdAt: new Date().toISOString() })
+        // Add to both arrays for compatibility
+        settings.apiKeys.push({ 
+          key, 
+          name, 
+          category,
+          ratelimit,
+          active: true, 
+          createdAt: new Date().toISOString() 
+        })
+        
+        settings.apiSettings.apikey[key] = {
+          rateLimit: ratelimit,
+          enabled: true,
+          category: category,
+          name: name
+        }
+        
         fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
         
-        await interaction.reply({ content: `API key "${name}" added successfully!`, ephemeral: true })
+        const addEmbed = new EmbedBuilder()
+          .setTitle('🔑 API Key Added')
+          .setColor(0x00ff00)
+          .setDescription(`✅ API key **${name}** added successfully!`)
+          .addFields(
+            { name: 'Category', value: category.charAt(0).toUpperCase() + category.slice(1), inline: true },
+            { name: 'Rate Limit', value: ratelimit, inline: true },
+            { name: 'Key Preview', value: `\`${key.substring(0, 8)}...\``, inline: true }
+          )
+          .setTimestamp()
+        
+        await interaction.reply({ embeds: [addEmbed], ephemeral: true })
         break
         
       case 'delete':
         const keyToDelete = interaction.options.getString('key')
         const keyIndex = settings.apiKeys.findIndex(k => k.key === keyToDelete)
         
-        if (keyIndex === -1) {
-          await interaction.reply({ content: 'API key not found!', ephemeral: true })
+        if (keyIndex === -1 && !settings.apiSettings.apikey[keyToDelete]) {
+          await interaction.reply({ content: '❌ API key not found!', ephemeral: true })
           return
         }
         
-        const deletedKey = settings.apiKeys.splice(keyIndex, 1)[0]
+        let deletedKey = null
+        if (keyIndex !== -1) {
+          deletedKey = settings.apiKeys.splice(keyIndex, 1)[0]
+        }
+        
+        if (settings.apiSettings.apikey[keyToDelete]) {
+          if (!deletedKey) {
+            deletedKey = {
+              name: settings.apiSettings.apikey[keyToDelete].name || 'Unknown',
+              key: keyToDelete
+            }
+          }
+          delete settings.apiSettings.apikey[keyToDelete]
+        }
+        
         fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
         
-        await interaction.reply({ content: `API key "${deletedKey.name}" deleted successfully!`, ephemeral: true })
+        await interaction.reply({ content: `✅ API key **${deletedKey.name}** deleted successfully!`, ephemeral: true })
         break
         
       case 'toggle':
         const toggleAction = interaction.options.getString('action')
-        settings.apiSettings = settings.apiSettings || {}
         settings.apiSettings.requireApikey = toggleAction === 'enable'
         fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
         
-        await interaction.reply({ content: `API key requirement ${toggleAction === 'enable' ? 'enabled' : 'disabled'}!`, ephemeral: true })
+        const toggleEmbed = new EmbedBuilder()
+          .setTitle('🔧 API Key Requirement')
+          .setColor(toggleAction === 'enable' ? 0x00ff00 : 0xff9900)
+          .setDescription(`API key requirement has been **${toggleAction === 'enable' ? 'enabled' : 'disabled'}**!`)
+          .setTimestamp()
+        
+        await interaction.reply({ embeds: [toggleEmbed] })
         break
         
       case 'list':
-        if (settings.apiKeys.length === 0) {
-          await interaction.reply({ content: 'No API keys found!', ephemeral: true })
+        // Combine both sources of API keys
+        const allApiKeys = []
+        
+        // Add from apiKeys array
+        settings.apiKeys.forEach(apiKey => {
+          allApiKeys.push({
+            ...apiKey,
+            source: 'array'
+          })
+        })
+        
+        // Add from apiSettings.apikey object (default keys)
+        Object.entries(settings.apiSettings.apikey).forEach(([key, config]) => {
+          if (!settings.apiKeys.some(k => k.key === key)) {
+            allApiKeys.push({
+              key: key,
+              name: config.name || 'Default Key',
+              category: config.category || 'default',
+              ratelimit: config.rateLimit || 'unlimited',
+              active: config.enabled !== false,
+              createdAt: 'Default',
+              source: 'default'
+            })
+          }
+        })
+        
+        if (allApiKeys.length === 0) {
+          await interaction.reply({ content: '❌ No API keys found!', ephemeral: true })
           return
         }
         
         const embed = new EmbedBuilder()
-          .setTitle('🔑 API Keys')
+          .setTitle('🔑 API Keys List')
           .setColor(0x0099ff)
+          .setDescription(`Found **${allApiKeys.length}** API key(s)`)
           .setTimestamp()
         
-        settings.apiKeys.forEach((apiKey, index) => {
+        allApiKeys.forEach((apiKey, index) => {
+          const categoryEmoji = {
+            'free': '🆓',
+            'premium': '⭐',
+            'vip': '💎',
+            'admin': '👑',
+            'default': '🔧'
+          }[apiKey.category] || '❓'
+          
           embed.addFields({
-            name: `${index + 1}. ${apiKey.name}`,
-            value: `Key: \`${apiKey.key.substring(0, 8)}...\`\nStatus: ${apiKey.active ? '✅ Active' : '❌ Inactive'}\nCreated: ${new Date(apiKey.createdAt).toLocaleDateString()}`,
+            name: `${index + 1}. ${categoryEmoji} ${apiKey.name}`,
+            value: `**Key:** \`${apiKey.key.substring(0, 8)}...\`\n**Category:** ${apiKey.category.charAt(0).toUpperCase() + apiKey.category.slice(1)}\n**Rate Limit:** ${apiKey.ratelimit}\n**Status:** ${apiKey.active ? '✅ Active' : '❌ Inactive'}\n**Created:** ${apiKey.createdAt}\n**Source:** ${apiKey.source === 'default' ? 'Default' : 'Custom'}`,
             inline: false
           })
         })
@@ -362,7 +649,8 @@ async function handleApiKey(interaction) {
         break
     }
   } catch (error) {
-    await interaction.reply({ content: 'Error managing API keys.', ephemeral: true })
+    console.error('Error handling API key command:', error)
+    await interaction.reply({ content: '❌ Error managing API keys.', ephemeral: true })
   }
 }
 
