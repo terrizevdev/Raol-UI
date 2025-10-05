@@ -155,6 +155,96 @@ const commands = [
       subcommand
         .setName('list')
         .setDescription('List all API keys')
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('endpoint')
+    .setDescription('Manage API endpoints')
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('add')
+        .setDescription('Add new API endpoint')
+        .addStringOption(option =>
+          option.setName('name')
+            .setDescription('Endpoint name (e.g., "weather", "translate")')
+            .setRequired(true)
+        )
+        .addStringOption(option =>
+          option.setName('category')
+            .setDescription('Category folder for the endpoint')
+            .setRequired(true)
+            .addChoices(
+              { name: 'AI', value: 'ai' },
+              { name: 'Maker', value: 'maker' },
+              { name: 'Random', value: 'random' },
+              { name: 'Tools', value: 'tools' },
+              { name: 'Games', value: 'games' },
+              { name: 'Social', value: 'social' },
+              { name: 'News', value: 'news' },
+              { name: 'Custom', value: 'custom' }
+            )
+        )
+        .addStringOption(option =>
+          option.setName('method')
+            .setDescription('HTTP method for the endpoint')
+            .setRequired(true)
+            .addChoices(
+              { name: 'GET', value: 'GET' },
+              { name: 'POST', value: 'POST' },
+              { name: 'PUT', value: 'PUT' },
+              { name: 'DELETE', value: 'DELETE' }
+            )
+        )
+        .addStringOption(option =>
+          option.setName('description')
+            .setDescription('Description of what the endpoint does')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('parameters')
+            .setDescription('Required parameters (comma-separated, e.g., "text,limit")')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('optional_parameters')
+            .setDescription('Optional parameters (comma-separated, e.g., "format,count")')
+            .setRequired(false)
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('delete')
+        .setDescription('Delete an API endpoint')
+        .addStringOption(option =>
+          option.setName('name')
+            .setDescription('Endpoint name to delete')
+            .setRequired(true)
+        )
+        .addStringOption(option =>
+          option.setName('category')
+            .setDescription('Category of the endpoint to delete')
+            .setRequired(true)
+            .addChoices(
+              { name: 'AI', value: 'ai' },
+              { name: 'Maker', value: 'maker' },
+              { name: 'Random', value: 'random' },
+              { name: 'Tools', value: 'tools' },
+              { name: 'Games', value: 'games' },
+              { name: 'Social', value: 'social' },
+              { name: 'News', value: 'news' },
+              { name: 'Custom', value: 'custom' }
+            )
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('list')
+        .setDescription('List all available API endpoints')
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('scan')
+        .setDescription('Scan and show detected API paths from folder structure')
     )
 ]
 
@@ -221,6 +311,9 @@ client.on('interactionCreate', async interaction => {
         break
       case 'apikey':
         await handleApiKey(interaction)
+        break
+      case 'endpoint':
+        await handleEndpoint(interaction)
         break
     }
   } catch (error) {
@@ -322,12 +415,14 @@ async function handleHelp(interaction) {
       { name: '📊 `/stats`', value: 'View API statistics and manage auto-updating stats', inline: false },
       { name: '🎮 `/activity`', value: 'Manage bot activity status (custom/auto)', inline: false },
       { name: '🔧 `/maintenance`', value: 'Toggle maintenance mode for the API', inline: false },
-      { name: '🔑 `/apikey`', value: 'Manage API keys with categories and rate limits', inline: false }
+      { name: '🔑 `/apikey`', value: 'Manage API keys with categories and rate limits', inline: false },
+      { name: '🚀 `/endpoint`', value: 'Add, list, and manage API endpoints automatically', inline: false }
     )
     .addFields(
       { name: '📊 Stats Options', value: '• `action:Start auto stats (30s)` - Enable auto-updating stats\n• `action:Stop auto stats` - Disable auto-updating stats\n• `action:View current stats` - Show current statistics', inline: false },
       { name: '🎮 Activity Options', value: '• `action:Set custom activity` - Set custom bot status\n• `action:Reset to auto` - Reset to automatic status\n• `action:Show current` - Show current activity', inline: false },
-      { name: '🔑 API Key Categories', value: '• **Free** - Basic access with limited rate limits\n• **Premium** - Enhanced access with higher limits\n• **VIP** - Priority access with premium limits\n• **Admin** - Full access with unlimited rate limits', inline: false }
+      { name: '🔑 API Key Categories', value: '• **Free** - Basic access with limited rate limits\n• **Premium** - Enhanced access with higher limits\n• **VIP** - Priority access with premium limits\n• **Admin** - Full access with unlimited rate limits', inline: false },
+      { name: '🚀 Endpoint Options', value: '• `add` - Create new API endpoint with auto-detected path\n• `delete` - Delete an existing API endpoint\n• `list` - Show all available endpoints\n• `scan` - Scan folder structure for existing endpoints', inline: false }
     )
     .setTimestamp()
     .setFooter({ text: 'RaolByte API Bot • Use /help for more information' })
@@ -645,6 +740,713 @@ async function handleApiKey(interaction) {
     console.error('Error handling API key command:', error)
     await interaction.reply({ content: '❌ Error managing API keys.', ephemeral: true })
   }
+}
+
+async function handleEndpoint(interaction) {
+  const subcommand = interaction.options.getSubcommand()
+  
+  try {
+    switch (subcommand) {
+      case 'add':
+        await handleAddEndpoint(interaction)
+        break
+      case 'delete':
+        await handleDeleteEndpoint(interaction)
+        break
+      case 'list':
+        await handleListEndpoints(interaction)
+        break
+      case 'scan':
+        await handleScanEndpoints(interaction)
+        break
+    }
+  } catch (error) {
+    console.error('Error handling endpoint command:', error)
+    await interaction.reply({ content: '❌ Error managing endpoints.', ephemeral: true })
+  }
+}
+
+async function handleAddEndpoint(interaction) {
+  const name = interaction.options.getString('name')
+  const category = interaction.options.getString('category')
+  const method = interaction.options.getString('method')
+  const description = interaction.options.getString('description') || `API endpoint for ${name}`
+  const parameters = interaction.options.getString('parameters') || ''
+  const optionalParameters = interaction.options.getString('optional_parameters') || ''
+  
+  // Validate endpoint name
+  if (!/^[a-zA-Z0-9-_]+$/.test(name)) {
+    await interaction.reply({ 
+      content: '❌ Invalid endpoint name! Only letters, numbers, hyphens, and underscores are allowed.', 
+      ephemeral: true 
+    })
+    return
+  }
+  
+  try {
+    const apiFolder = path.join(__dirname, 'api')
+    const categoryFolder = path.join(apiFolder, category)
+    const fileName = `${name}.js`
+    const filePath = path.join(categoryFolder, fileName)
+    
+    // Create category folder if it doesn't exist
+    if (!fs.existsSync(categoryFolder)) {
+      fs.mkdirSync(categoryFolder, { recursive: true })
+    }
+    
+    // Check if file already exists
+    if (fs.existsSync(filePath)) {
+      await interaction.reply({ 
+        content: `❌ Endpoint **${name}** already exists in category **${category}**!`, 
+        ephemeral: true 
+      })
+      return
+    }
+    
+    // Generate endpoint template
+    const endpointTemplate = generateEndpointTemplate(name, category, method, description, parameters, optionalParameters)
+    
+    // Write file
+    fs.writeFileSync(filePath, endpointTemplate)
+    
+    // Update settings.json to include the new endpoint in documentation
+    await updateSettingsWithEndpoint(name, category, method, description, parameters, optionalParameters)
+    
+    const embed = new EmbedBuilder()
+      .setTitle('🚀 Endpoint Created')
+      .setColor(0x00ff00)
+      .setDescription(`✅ API endpoint **${name}** created successfully!`)
+      .addFields(
+        { name: 'Category', value: category.charAt(0).toUpperCase() + category.slice(1), inline: true },
+        { name: 'Method', value: method, inline: true },
+        { name: 'Path', value: `/${category}/${name}`, inline: true },
+        { name: 'File', value: `src/api/${category}/${fileName}`, inline: false },
+        { name: 'Description', value: description, inline: false }
+      )
+      .setTimestamp()
+    
+    if (parameters) {
+      embed.addFields({ name: 'Required Parameters', value: parameters, inline: false })
+    }
+    
+    if (optionalParameters) {
+      embed.addFields({ name: 'Optional Parameters', value: optionalParameters, inline: false })
+    }
+    
+    await interaction.reply({ embeds: [embed] })
+    
+  } catch (error) {
+    console.error('Error creating endpoint:', error)
+    await interaction.reply({ 
+      content: `❌ Error creating endpoint: ${error.message}`, 
+      ephemeral: true 
+    })
+  }
+}
+
+async function handleDeleteEndpoint(interaction) {
+  const name = interaction.options.getString('name')
+  const category = interaction.options.getString('category')
+  
+  try {
+    const apiFolder = path.join(__dirname, 'api')
+    const categoryFolder = path.join(apiFolder, category)
+    const fileName = `${name}.js`
+    const filePath = path.join(categoryFolder, fileName)
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      await interaction.reply({ 
+        content: `❌ Endpoint **${name}** not found in category **${category}**!`, 
+        ephemeral: true 
+      })
+      return
+    }
+    
+    // Delete the file
+    fs.unlinkSync(filePath)
+    
+    // Update settings.json to remove the endpoint from documentation
+    await removeEndpointFromSettings(name, category)
+    
+    const embed = new EmbedBuilder()
+      .setTitle('🗑️ Endpoint Deleted')
+      .setColor(0xff0000)
+      .setDescription(`✅ API endpoint **${name}** deleted successfully!`)
+      .addFields(
+        { name: 'Category', value: category.charAt(0).toUpperCase() + category.slice(1), inline: true },
+        { name: 'Path', value: `/${category}/${name}`, inline: true },
+        { name: 'File', value: `src/api/${category}/${fileName}`, inline: false }
+      )
+      .setTimestamp()
+    
+    await interaction.reply({ embeds: [embed] })
+    
+  } catch (error) {
+    console.error('Error deleting endpoint:', error)
+    await interaction.reply({ 
+      content: `❌ Error deleting endpoint: ${error.message}`, 
+      ephemeral: true 
+    })
+  }
+}
+
+async function handleListEndpoints(interaction) {
+  try {
+    const apiFolder = path.join(__dirname, 'api')
+    const endpoints = []
+    
+    if (fs.existsSync(apiFolder)) {
+      const categories = fs.readdirSync(apiFolder)
+      
+      for (const category of categories) {
+        const categoryPath = path.join(apiFolder, category)
+        if (fs.statSync(categoryPath).isDirectory()) {
+          const files = fs.readdirSync(categoryPath)
+          const jsFiles = files.filter(file => file.endsWith('.js'))
+          
+          for (const file of jsFiles) {
+            const endpointName = path.basename(file, '.js')
+            endpoints.push({
+              name: endpointName,
+              category: category,
+              path: `/${category}/${endpointName}`,
+              file: `src/api/${category}/${file}`
+            })
+          }
+        }
+      }
+    }
+    
+    if (endpoints.length === 0) {
+      await interaction.reply({ 
+        content: '❌ No endpoints found!', 
+        ephemeral: true 
+      })
+      return
+    }
+    
+    const embed = new EmbedBuilder()
+      .setTitle('🚀 Available API Endpoints')
+      .setColor(0x0099ff)
+      .setDescription(`Found **${endpoints.length}** endpoint(s)`)
+      .setTimestamp()
+    
+    // Group endpoints by category
+    const groupedEndpoints = {}
+    endpoints.forEach(endpoint => {
+      if (!groupedEndpoints[endpoint.category]) {
+        groupedEndpoints[endpoint.category] = []
+      }
+      groupedEndpoints[endpoint.category].push(endpoint)
+    })
+    
+    Object.entries(groupedEndpoints).forEach(([category, categoryEndpoints]) => {
+      const categoryEmoji = {
+        'ai': '🤖',
+        'maker': '🛠️',
+        'random': '🎲',
+        'tools': '🔧',
+        'games': '🎮',
+        'social': '👥',
+        'news': '📰',
+        'custom': '⚙️'
+      }[category] || '📁'
+      
+      const endpointList = categoryEndpoints.map(ep => 
+        `• **${ep.name}** - \`${ep.path}\``
+      ).join('\n')
+      
+      embed.addFields({
+        name: `${categoryEmoji} ${category.charAt(0).toUpperCase() + category.slice(1)} (${categoryEndpoints.length})`,
+        value: endpointList,
+        inline: false
+      })
+    })
+    
+    await interaction.reply({ embeds: [embed] })
+    
+  } catch (error) {
+    console.error('Error listing endpoints:', error)
+    await interaction.reply({ 
+      content: '❌ Error listing endpoints.', 
+      ephemeral: true 
+    })
+  }
+}
+
+async function handleScanEndpoints(interaction) {
+  try {
+    const apiFolder = path.join(__dirname, 'api')
+    const scanResults = []
+    
+    if (fs.existsSync(apiFolder)) {
+      const categories = fs.readdirSync(apiFolder)
+      
+      for (const category of categories) {
+        const categoryPath = path.join(apiFolder, category)
+        if (fs.statSync(categoryPath).isDirectory()) {
+          const files = fs.readdirSync(categoryPath)
+          const jsFiles = files.filter(file => file.endsWith('.js'))
+          
+          scanResults.push({
+            category: category,
+            count: jsFiles.length,
+            files: jsFiles
+          })
+        }
+      }
+    }
+    
+    const embed = new EmbedBuilder()
+      .setTitle('🔍 API Structure Scan')
+      .setColor(0x0099ff)
+      .setDescription('Detected API folder structure:')
+      .setTimestamp()
+    
+    if (scanResults.length === 0) {
+      embed.setDescription('No API categories found!')
+    } else {
+      scanResults.forEach(result => {
+        const categoryEmoji = {
+          'ai': '🤖',
+          'maker': '🛠️',
+          'random': '🎲',
+          'tools': '🔧',
+          'games': '🎮',
+          'social': '👥',
+          'news': '📰',
+          'custom': '⚙️'
+        }[result.category] || '📁'
+        
+        const fileList = result.files.length > 0 
+          ? result.files.map(f => `\`${f}\``).join(', ')
+          : 'No files'
+        
+        embed.addFields({
+          name: `${categoryEmoji} ${result.category.charAt(0).toUpperCase() + result.category.slice(1)} (${result.count} files)`,
+          value: fileList,
+          inline: false
+        })
+      })
+    }
+    
+    await interaction.reply({ embeds: [embed] })
+    
+  } catch (error) {
+    console.error('Error scanning endpoints:', error)
+    await interaction.reply({ 
+      content: '❌ Error scanning API structure.', 
+      ephemeral: true 
+    })
+  }
+}
+
+// Helper function to update settings.json with new endpoint
+async function updateSettingsWithEndpoint(name, category, method, description, parameters, optionalParameters) {
+  try {
+    const settingsPath = path.join(__dirname, 'settings.json')
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+    
+    // Category display names mapping
+    const categoryDisplayNames = {
+      'ai': 'Artificial Intelligence',
+      'maker': 'Image Makers',
+      'random': 'Random Images',
+      'tools': 'Tools',
+      'games': 'Games',
+      'social': 'Social',
+      'news': 'News',
+      'custom': 'Custom'
+    }
+    
+    const categoryDisplayName = categoryDisplayNames[category] || category.charAt(0).toUpperCase() + category.slice(1)
+    
+    // Create parameter object for documentation
+    const paramObj = {}
+    if (parameters) {
+      const paramList = parameters.split(',').map(p => p.trim())
+      paramList.forEach(param => {
+        paramObj[param] = `Required: Description for ${param} parameter`
+      })
+    }
+    
+    if (optionalParameters) {
+      const optionalParamList = optionalParameters.split(',').map(p => p.trim())
+      optionalParamList.forEach(param => {
+        paramObj[param] = `Optional: Description for ${param} parameter`
+      })
+    }
+    
+    // Create endpoint path with parameters
+    const allParams = []
+    if (parameters) allParams.push(...parameters.split(',').map(p => p.trim() + '='))
+    if (optionalParameters) allParams.push(...optionalParameters.split(',').map(p => p.trim() + '='))
+    const endpointPath = `/${category}/${name}${allParams.length > 0 ? '?' + allParams.join('&') : ''}`
+    
+    // Find or create category
+    let categoryIndex = settings.categories.findIndex(cat => cat.name === categoryDisplayName)
+    if (categoryIndex === -1) {
+      // Create new category
+      settings.categories.push({
+        name: categoryDisplayName,
+        items: []
+      })
+      categoryIndex = settings.categories.length - 1
+    }
+    
+    // Add endpoint to category
+    settings.categories[categoryIndex].items.push({
+      name: name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' '),
+      desc: description,
+      path: endpointPath,
+      status: "ready",
+      params: paramObj
+    })
+    
+    // Write updated settings
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+    
+  } catch (error) {
+    console.error('Error updating settings.json:', error)
+    throw error
+  }
+}
+
+// Helper function to remove endpoint from settings.json
+async function removeEndpointFromSettings(name, category) {
+  try {
+    const settingsPath = path.join(__dirname, 'settings.json')
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+    
+    // Category display names mapping
+    const categoryDisplayNames = {
+      'ai': 'Artificial Intelligence',
+      'maker': 'Image Makers',
+      'random': 'Random Images',
+      'tools': 'Tools',
+      'games': 'Games',
+      'social': 'Social',
+      'news': 'News',
+      'custom': 'Custom'
+    }
+    
+    const categoryDisplayName = categoryDisplayNames[category] || category.charAt(0).toUpperCase() + category.slice(1)
+    
+    // Find category and remove endpoint
+    const categoryIndex = settings.categories.findIndex(cat => cat.name === categoryDisplayName)
+    if (categoryIndex !== -1) {
+      const itemIndex = settings.categories[categoryIndex].items.findIndex(item => 
+        item.name.toLowerCase().replace(/\s+/g, '-') === name.toLowerCase()
+      )
+      if (itemIndex !== -1) {
+        settings.categories[categoryIndex].items.splice(itemIndex, 1)
+        
+        // Remove category if no items left
+        if (settings.categories[categoryIndex].items.length === 0) {
+          settings.categories.splice(categoryIndex, 1)
+        }
+      }
+    }
+    
+    // Write updated settings
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+    
+  } catch (error) {
+    console.error('Error removing endpoint from settings.json:', error)
+    throw error
+  }
+}
+
+function generateEndpointTemplate(name, category, method, description, parameters, optionalParameters) {
+  const paramList = parameters ? parameters.split(',').map(p => p.trim()) : []
+  const optionalParamList = optionalParameters ? optionalParameters.split(',').map(p => p.trim()) : []
+  const allParamList = [...paramList, ...optionalParamList]
+  
+  // Generate parameter validation (only for required parameters)
+  const paramValidation = paramList.map(param => 
+    `      if (!${param}) {
+        return res.status(400).json({ 
+          status: false, 
+          error: "${param} is required" 
+        })
+      }`
+  ).join('\n')
+  
+  // Generate parameter usage (for all parameters)
+  const paramUsage = allParamList.map(param => 
+    `      const ${param} = req.${method === 'GET' ? 'query' : 'body'}.${param}`
+  ).join('\n')
+  
+  // Generate parameter examples for documentation
+  const paramExamples = paramList.map(param => {
+    const examples = {
+      'text': 'Hello World',
+      'message': 'Hello World',
+      'query': 'search term',
+      'limit': '10',
+      'count': '5',
+      'id': '123',
+      'url': 'https://example.com',
+      'email': 'user@example.com',
+      'username': 'john_doe',
+      'password': 'secure_password',
+      'token': 'your_token_here',
+      'key': 'your_key_here',
+      'data': 'your_data_here',
+      'content': 'your_content_here',
+      'value': 'your_value_here',
+      'input': 'your_input_here',
+      'output': 'your_output_here',
+      'result': 'your_result_here',
+      'response': 'your_response_here',
+      'status': 'active',
+      'type': 'text',
+      'format': 'json',
+      'size': 'medium',
+      'color': 'blue',
+      'theme': 'dark',
+      'mode': 'production',
+      'version': '1.0',
+      'language': 'en',
+      'country': 'US',
+      'timezone': 'UTC',
+      'date': '2024-01-01',
+      'time': '12:00:00',
+      'duration': '60',
+      'interval': '30',
+      'frequency': 'daily',
+      'priority': 'high',
+      'level': 'info',
+      'category': 'general',
+      'tag': 'important',
+      'label': 'main',
+      'title': 'Sample Title',
+      'description': 'Sample Description',
+      'name': 'Sample Name',
+      'author': 'John Doe',
+      'source': 'api',
+      'target': 'database',
+      'action': 'create',
+      'operation': 'read',
+      'command': 'execute',
+      'function': 'process',
+      'method': 'POST',
+      'endpoint': '/api/example',
+      'path': '/example',
+      'route': '/example',
+      'url': 'https://api.example.com',
+      'host': 'api.example.com',
+      'port': '3000',
+      'protocol': 'https',
+      'domain': 'example.com',
+      'subdomain': 'api',
+      'prefix': 'v1',
+      'suffix': 'json',
+      'extension': '.js',
+      'filename': 'example.js',
+      'directory': '/api',
+      'folder': 'endpoints',
+      'file': 'example.js',
+      'config': '{"key": "value"}',
+      'options': '{"option1": true}',
+      'settings': '{"setting1": "value1"}',
+      'preferences': '{"pref1": "value1"}',
+      'parameters': '{"param1": "value1"}',
+      'arguments': '["arg1", "arg2"]',
+      'flags': '["--verbose", "--debug"]',
+      'options': '{"option1": true, "option2": false}',
+      'filters': '{"filter1": "value1"}',
+      'sort': 'name',
+      'order': 'asc',
+      'direction': 'forward',
+      'reverse': 'false',
+      'ascending': 'true',
+      'descending': 'false',
+      'min': '0',
+      'max': '100',
+      'start': '0',
+      'end': '10',
+      'begin': '1',
+      'finish': '100',
+      'first': '0',
+      'last': '9',
+      'previous': '0',
+      'next': '10',
+      'before': '2024-01-01',
+      'after': '2024-01-02',
+      'since': '2024-01-01',
+      'until': '2024-12-31',
+      'from': '2024-01-01',
+      'to': '2024-12-31',
+      'beginning': '2024-01-01',
+      'ending': '2024-12-31',
+      'start_date': '2024-01-01',
+      'end_date': '2024-12-31',
+      'created_at': '2024-01-01T00:00:00Z',
+      'updated_at': '2024-01-01T00:00:00Z',
+      'deleted_at': null,
+      'published_at': '2024-01-01T00:00:00Z',
+      'expires_at': '2024-12-31T23:59:59Z',
+      'valid_until': '2024-12-31T23:59:59Z',
+      'active_until': '2024-12-31T23:59:59Z',
+      'expires_in': '86400',
+      'ttl': '3600',
+      'timeout': '30',
+      'delay': '5',
+      'retry': '3',
+      'attempts': '5',
+      'max_attempts': '10',
+      'min_attempts': '1',
+      'max_retries': '3',
+      'min_retries': '0',
+      'retry_delay': '1000',
+      'retry_interval': '5000',
+      'retry_count': '0',
+      'retry_limit': '5',
+      'retry_timeout': '30000',
+      'retry_backoff': 'exponential',
+      'retry_strategy': 'linear',
+      'retry_policy': 'fixed',
+      'retry_jitter': 'true',
+      'retry_max_delay': '60000',
+      'retry_min_delay': '1000',
+      'retry_factor': '2',
+      'retry_multiplier': '1.5',
+      'retry_base_delay': '1000',
+      'retry_max_interval': '30000',
+      'retry_min_interval': '1000',
+      'retry_initial_interval': '1000',
+      'retry_randomization_factor': '0.1',
+      'retry_max_elapsed_time': '300000',
+      'retry_max_elapsed_duration': '5m',
+      'retry_max_elapsed_seconds': '300',
+      'retry_max_elapsed_milliseconds': '300000',
+      'retry_max_elapsed_microseconds': '300000000',
+      'retry_max_elapsed_nanoseconds': '300000000000',
+      'retry_max_elapsed_timeout': '300000',
+      'retry_max_elapsed_delay': '300000',
+      'retry_max_elapsed_wait': '300000',
+      'retry_max_elapsed_sleep': '300000',
+      'retry_max_elapsed_pause': '300000',
+      'retry_max_elapsed_break': '300000',
+      'retry_max_elapsed_stop': '300000',
+      'retry_max_elapsed_halt': '300000',
+      'retry_max_elapsed_cease': '300000',
+      'retry_max_elapsed_terminate': '300000',
+      'retry_max_elapsed_finish': '300000',
+      'retry_max_elapsed_complete': '300000',
+      'retry_max_elapsed_done': '300000',
+      'retry_max_elapsed_end': '300000',
+      'retry_max_elapsed_conclude': '300000',
+      'retry_max_elapsed_close': '300000',
+      'retry_max_elapsed_shut': '300000',
+      'retry_max_elapsed_lock': '300000',
+      'retry_max_elapsed_seal': '300000',
+      'retry_max_elapsed_secure': '300000',
+      'retry_max_elapsed_fix': '300000',
+      'retry_max_elapsed_fasten': '300000',
+      'retry_max_elapsed_bind': '300000',
+      'retry_max_elapsed_tie': '300000',
+      'retry_max_elapsed_attach': '300000',
+      'retry_max_elapsed_connect': '300000',
+      'retry_max_elapsed_link': '300000',
+      'retry_max_elapsed_join': '300000',
+      'retry_max_elapsed_unite': '300000',
+      'retry_max_elapsed_merge': '300000',
+      'retry_max_elapsed_combine': '300000',
+      'retry_max_elapsed_mix': '300000',
+      'retry_max_elapsed_blend': '300000',
+      'retry_max_elapsed_fuse': '300000',
+      'retry_max_elapsed_amalgamate': '300000',
+      'retry_max_elapsed_consolidate': '300000',
+      'retry_max_elapsed_integrate': '300000',
+      'retry_max_elapsed_incorporate': '300000',
+      'retry_max_elapsed_assimilate': '300000',
+      'retry_max_elapsed_absorb': '300000',
+      'retry_max_elapsed_engulf': '300000',
+      'retry_max_elapsed_swallow': '300000',
+      'retry_max_elapsed_consume': '300000',
+      'retry_max_elapsed_devour': '300000',
+      'retry_max_elapsed_ingest': '300000',
+      'retry_max_elapsed_intake': '300000',
+      'retry_max_elapsed_imbibe': '300000',
+      'retry_max_elapsed_sip': '300000',
+      'retry_max_elapsed_slurp': '300000',
+      'retry_max_elapsed_gulp': '300000',
+      'retry_max_elapsed_swig': '300000',
+      'retry_max_elapsed_quaff': '300000',
+      'retry_max_elapsed_swill': '300000',
+      'retry_max_elapsed_drain': '300000',
+      'retry_max_elapsed_empty': '300000',
+      'retry_max_elapsed_void': '300000',
+      'retry_max_elapsed_clear': '300000',
+      'retry_max_elapsed_clean': '300000',
+      'retry_max_elapsed_purge': '300000',
+      'retry_max_elapsed_flush': '300000',
+      'retry_max_elapsed_rinse': '300000',
+      'retry_max_elapsed_wash': '300000',
+      'retry_max_elapsed_scrub': '300000',
+      'retry_max_elapsed_cleanse': '300000',
+      'retry_max_elapsed_purify': '300000',
+      'retry_max_elapsed_sanitize': '300000',
+      'retry_max_elapsed_sterilize': '300000',
+      'retry_max_elapsed_disinfect': '300000',
+      'retry_max_elapsed_decontaminate': '300000',
+      'retry_max_elapsed_detoxify': '300000',
+      'retry_max_elapsed_detox': '300000',
+      'retry_max_elapsed_cleanse': '300000',
+      'retry_max_elapsed_purify': '300000',
+      'retry_max_elapsed_sanitize': '300000',
+      'retry_max_elapsed_sterilize': '300000',
+      'retry_max_elapsed_disinfect': '300000',
+      'retry_max_elapsed_decontaminate': '300000',
+      'retry_max_elapsed_detoxify': '300000',
+      'retry_max_elapsed_detox': '300000'
+    }
+    
+    return examples[param.toLowerCase()] || `example_${param}`
+  })
+  
+  return `import axios from "axios"
+import { createApiKeyMiddleware } from "../../middleware/apikey.js"
+
+export default (app) => {
+  app.${method.toLowerCase()}("/${category}/${name}", createApiKeyMiddleware(), async (req, res) => {
+    try {
+${paramUsage}
+      
+${paramValidation}
+      
+      res.status(200).json({
+        status: true,
+        message: "${description}",
+        endpoint: "/${category}/${name}",
+        method: "${method}",
+        required_parameters: {
+          ${paramList.map((param, index) => `"${param}": "${paramExamples[index]}"`).join(',\n          ')}
+        },
+        ${optionalParamList.length > 0 ? `optional_parameters: {
+          ${optionalParamList.map(param => `"${param}": "example_${param}"`).join(',\n          ')}
+        },` : ''}
+        example: {
+          url: "https://your-domain.com/${category}/${name}${allParamList.length > 0 ? '?' + allParamList.map(p => `${p}=${paramList.includes(p) ? paramExamples[paramList.indexOf(p)] : `example_${p}`}`).join('&') : ''}",
+          method: "${method}",
+          ${method === 'GET' ? 'query' : 'body'}: {
+            ${allParamList.map((param, index) => `"${param}": "${paramList.includes(param) ? paramExamples[paramList.indexOf(param)] : `example_${param}`}"`).join(',\n            ')}
+          }
+        }
+      })
+      
+    } catch (error) {
+      console.error("${category}/${name} API Error:", error)
+      res.status(500).json({ 
+        status: false, 
+        error: error.message || "Internal server error" 
+      })
+    }
+  })
+}`
 }
 
 export function startDiscordBot() {

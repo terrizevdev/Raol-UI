@@ -90,6 +90,7 @@ The Discord bot provides powerful API management through slash commands:
 - **`/stats`** - View real-time API statistics with time period support
 - **`/maintenance`** - Toggle maintenance mode on/off
 - **`/apikey`** - Manage API keys (add, delete, toggle, list)
+- **`/endpoint`** - Manage API endpoints (add, delete, list, scan)
 
 ### Setting Up Discord Bot
 
@@ -150,9 +151,96 @@ Advanced API key management with categories:
 - **Toggle:** `toggle <enable/disable>` - Enable/disable API key requirement
 - **List:** `list` - List all API keys with details
 
+#### `/endpoint [subcommand]`
+Complete API endpoint management system:
+- **Add:** `add <name> <category> <method> [description] [parameters] [optional_parameters]`
+  - Categories: `ai`, `maker`, `random`, `tools`, `games`, `social`, `news`, `custom`
+  - Methods: `GET`, `POST`, `PUT`, `DELETE`
+  - Parameters: Required parameters (comma-separated)
+  - Optional Parameters: Optional parameters (comma-separated)
+  - Auto-generates endpoint files and updates documentation
+- **Delete:** `delete <name> <category>` - Delete endpoint and remove from docs
+- **List:** `list` - Show all available endpoints
+- **Scan:** `scan` - Scan folder structure for existing endpoints
+
 ### Auto Stats Updates
 
 The bot automatically updates statistics every 30 seconds when auto-stats is enabled via `/stats start_auto`. The stats are updated in the same channel where the command was used, with message editing to prevent spam.
+
+### Endpoint Management
+
+The Discord bot provides complete endpoint lifecycle management:
+
+#### Creating Endpoints
+```bash
+/endpoint add name:weather category:tools method:GET description:Get weather information parameters:location optional_parameters:format,units
+```
+
+This command will:
+- Create the endpoint file at `src/api/tools/weather.js`
+- Auto-generate parameter validation
+- Update `settings.json` for documentation
+- Make the endpoint immediately available at `/docs`
+
+#### Generated Template Features
+- **No Comments**: Clean code without `//` comments
+- **Smart Validation**: Required parameters are validated, optional ones are not
+- **Auto Examples**: Intelligent parameter examples based on parameter names
+- **Complete Documentation**: Full response with examples and usage
+- **Error Handling**: Proper error responses and logging
+
+#### Example Generated Code
+```javascript
+import axios from "axios"
+import { createApiKeyMiddleware } from "../../middleware/apikey.js"
+
+export default (app) => {
+  app.get("/tools/weather", createApiKeyMiddleware(), async (req, res) => {
+    try {
+      const location = req.query.location
+      const format = req.query.format
+      const units = req.query.units
+      
+      if (!location) {
+        return res.status(400).json({ 
+          status: false, 
+          error: "location is required" 
+        })
+      }
+      
+      res.status(200).json({
+        status: true,
+        message: "Get weather information",
+        endpoint: "/tools/weather",
+        method: "GET",
+        required_parameters: {
+          "location": "New York"
+        },
+        optional_parameters: {
+          "format": "example_format",
+          "units": "example_units"
+        },
+        example: {
+          url: "https://your-domain.com/tools/weather?location=New York&format=example_format&units=example_units",
+          method: "GET",
+          query: {
+            "location": "New York",
+            "format": "example_format",
+            "units": "example_units"
+          }
+        }
+      })
+      
+    } catch (error) {
+      console.error("tools/weather API Error:", error)
+      res.status(500).json({ 
+        status: false, 
+        error: error.message || "Internal server error" 
+      })
+    }
+  })
+}
+```
 
 ### Bot Activity Management
 
