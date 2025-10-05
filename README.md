@@ -3,18 +3,20 @@
 <div align="center">
   <img src="https://github.com/raolbyte/raolbyte/blob/main/banner.png" alt="Raol APIs Logo" width="120" height="120">
   
-  **Simple and easy to use API.**
+  **Simple and easy to use API with Discord Bot Integration.**
   
-  [![Version](https://img.shields.io/badge/version-v5.1.1-blue.svg)](https://github.com/raolbyte/Raol-UI)
+  [![Version](https://img.shields.io/badge/version-BETA%207.1.0-blue.svg)](https://github.com/raolbyte/Raol-UI)
   [![Node.js](https://img.shields.io/badge/node.js-%3E%3D%2018.0.0-green.svg)](https://nodejs.org/)
   [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
   [![Status](https://img.shields.io/badge/status-online-brightgreen.svg)](https://raol-apis.vercel.app)
+  [![Discord](https://img.shields.io/badge/discord-bot%20ready-7289da.svg)](https://discord.com/developers/applications)
 </div>
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Discord Bot Integration](#discord-bot-integration)
 - [Configuration](#configuration)
 - [API Key Management](#api-key-management)
 - [Rate Limiting](#rate-limiting)
@@ -43,12 +45,24 @@ npm install
 
 ### Environment Setup
 
-Create a `.env` file in the root directory (optional):
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file with your configuration:
 
 ```env
+# Discord Bot Configuration
+# Get your bot token from https://discord.com/developers/applications
+DISCORD_TOKEN=
+
+# Server Configuration
 PORT=3000
-NODE_ENV=production
 ```
+
+**Note:** The Discord bot is optional. If you don't provide a `DISCORD_TOKEN`, the API will work normally without Discord integration.
 
 ## Quick Start
 
@@ -66,6 +80,63 @@ npm run production
 ```
 
 The server will start on port 3000 (or the port specified in your environment variables).
+
+## Discord Bot Integration
+
+### Features
+
+The Discord bot provides powerful API management through slash commands:
+
+- **`/stats`** - View real-time API statistics with time period support
+- **`/maintenance`** - Toggle maintenance mode on/off
+- **`/apikey`** - Manage API keys (add, delete, toggle, list)
+
+### Setting Up Discord Bot
+
+1. **Create a Discord Application:**
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
+   - Create a new application
+   - Go to "Bot" section and create a bot
+   - Copy the bot token
+
+2. **Configure Bot Permissions:**
+   - Enable "Message Content Intent" in Bot settings
+   - Invite bot to your server with appropriate permissions
+
+3. **Add Token to Environment:**
+   ```env
+   DISCORD_TOKEN=your_actual_bot_token_here
+   ```
+
+### Discord Commands
+
+#### `/stats [time]`
+View API statistics with optional time period:
+- `5m` - Last 5 minutes
+- `15m` - Last 15 minutes  
+- `30m` - Last 30 minutes
+- `1h` - Last hour
+- `6h` - Last 6 hours
+- `12h` - Last 12 hours
+- `1d` - Last day
+- `3d` - Last 3 days
+- `7d` - Last week
+
+#### `/maintenance [action]`
+Toggle maintenance mode:
+- `on` - Enable maintenance mode
+- `off` - Disable maintenance mode
+
+#### `/apikey [subcommand]`
+Manage API keys:
+- `add <key> <name>` - Add new API key
+- `delete <key>` - Delete API key
+- `toggle <action>` - Enable/disable API key requirement
+- `list` - List all API keys
+
+### Auto Stats Updates
+
+The bot automatically updates statistics every 30 minutes in the channel where `/stats` was first used, with message editing to prevent spam.
 
 ## Configuration
 
