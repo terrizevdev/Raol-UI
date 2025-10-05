@@ -147,7 +147,7 @@ The `src/settings.json` file controls all aspects of your API service:
 ```json
 {
   "name": "Raol Api'S",
-  "version": "v5.1.1",
+  "version": "v7.1.0",
   "description": "Experience the next generation of API documentation...",
   "maintenance": {
     "enabled": false
