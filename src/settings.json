@@ -3,7 +3,8 @@
   "version": "v5.1.1",
   "description": "Simple and easy to use API documentation.",
   "maintenance": {
-    "enabled": false
+    "enabled": false,
+    "message": ""
   },
   "bannerImage": "/src/images/banner.jpg",
   "previewImage": "/src/images/preview.png",

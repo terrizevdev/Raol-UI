@@ -5,6 +5,10 @@ import cors from "cors"
 import path from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import { createRequire } from "module"
+import dotenv from "dotenv"
+import { startDiscordBot, updateStats } from "./src/discord.js"
+
+dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -40,6 +44,10 @@ app.use((req, res, next) => {
                          req.path.startsWith('/ai/') || 
                          req.path.startsWith('/random/') || 
                          req.path.startsWith('/maker/')
+    
+    if (isApiEndpoint) {
+      updateStats()
+    }
     
     if (isApiEndpoint && settings.apiSettings && settings.apiSettings.requireApikey === false) {
       return next()
@@ -377,6 +385,8 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Server is running on port ${PORT} `))
     })
+
+    startDiscordBot()
   } catch (err) {
     console.error(chalk.bgRed.white(` Server failed to start: ${err.message} `))
     process.exit(1)
