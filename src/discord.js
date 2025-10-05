@@ -166,7 +166,12 @@ const commands = [
         .setDescription('Add new API endpoint')
         .addStringOption(option =>
           option.setName('name')
-            .setDescription('Endpoint name (e.g., "weather", "translate")')
+            .setDescription('Display name for documentation (e.g., "Weather API", "Translate Text")')
+            .setRequired(true)
+        )
+        .addStringOption(option =>
+          option.setName('filename')
+            .setDescription('File name for endpoint (e.g., "weather", "translate")')
             .setRequired(true)
         )
         .addStringOption(option =>
@@ -768,16 +773,17 @@ async function handleEndpoint(interaction) {
 
 async function handleAddEndpoint(interaction) {
   const name = interaction.options.getString('name')
+  const filename = interaction.options.getString('filename')
   const category = interaction.options.getString('category')
   const method = interaction.options.getString('method')
   const description = interaction.options.getString('description') || `API endpoint for ${name}`
   const parameters = interaction.options.getString('parameters') || ''
   const optionalParameters = interaction.options.getString('optional_parameters') || ''
   
-  // Validate endpoint name
-  if (!/^[a-zA-Z0-9-_]+$/.test(name)) {
+  // Validate filename
+  if (!/^[a-zA-Z0-9-_]+$/.test(filename)) {
     await interaction.reply({ 
-      content: '❌ Invalid endpoint name! Only letters, numbers, hyphens, and underscores are allowed.', 
+      content: '❌ Invalid filename! Only letters, numbers, hyphens, and underscores are allowed.', 
       ephemeral: true 
     })
     return
@@ -786,41 +792,38 @@ async function handleAddEndpoint(interaction) {
   try {
     const apiFolder = path.join(__dirname, 'api')
     const categoryFolder = path.join(apiFolder, category)
-    const fileName = `${name}.js`
+    const fileName = `${filename}.js`
     const filePath = path.join(categoryFolder, fileName)
     
-    // Create category folder if it doesn't exist
     if (!fs.existsSync(categoryFolder)) {
       fs.mkdirSync(categoryFolder, { recursive: true })
     }
     
-    // Check if file already exists
     if (fs.existsSync(filePath)) {
       await interaction.reply({ 
-        content: `❌ Endpoint **${name}** already exists in category **${category}**!`, 
+        content: `❌ Endpoint **${filename}** already exists in category **${category}**!`, 
         ephemeral: true 
       })
       return
     }
     
-    // Generate endpoint template
-    const endpointTemplate = generateEndpointTemplate(name, category, method, description, parameters, optionalParameters)
+    const endpointTemplate = generateEndpointTemplate(filename, category, method, description, parameters, optionalParameters)
     
-    // Write file
     fs.writeFileSync(filePath, endpointTemplate)
     
-    // Update settings.json to include the new endpoint in documentation
-    await updateSettingsWithEndpoint(name, category, method, description, parameters, optionalParameters)
+    await updateSettingsWithEndpoint(name, filename, category, method, description, parameters, optionalParameters)
     
     const embed = new EmbedBuilder()
       .setTitle('🚀 Endpoint Created')
       .setColor(0x00ff00)
       .setDescription(`✅ API endpoint **${name}** created successfully!`)
       .addFields(
+        { name: 'Display Name', value: name, inline: true },
+        { name: 'Filename', value: filename, inline: true },
         { name: 'Category', value: category.charAt(0).toUpperCase() + category.slice(1), inline: true },
         { name: 'Method', value: method, inline: true },
-        { name: 'Path', value: `/${category}/${name}`, inline: true },
-        { name: 'File', value: `src/api/${category}/${fileName}`, inline: false },
+        { name: 'Path', value: `/${category}/${filename}`, inline: true },
+        { name: 'File', value: `src/api/${category}/${fileName}`, inline: true },
         { name: 'Description', value: description, inline: false }
       )
       .setTimestamp()
@@ -854,7 +857,6 @@ async function handleDeleteEndpoint(interaction) {
     const fileName = `${name}.js`
     const filePath = path.join(categoryFolder, fileName)
     
-    // Check if file exists
     if (!fs.existsSync(filePath)) {
       await interaction.reply({ 
         content: `❌ Endpoint **${name}** not found in category **${category}**!`, 
@@ -863,10 +865,8 @@ async function handleDeleteEndpoint(interaction) {
       return
     }
     
-    // Delete the file
     fs.unlinkSync(filePath)
     
-    // Update settings.json to remove the endpoint from documentation
     await removeEndpointFromSettings(name, category)
     
     const embed = new EmbedBuilder()
@@ -1042,13 +1042,11 @@ async function handleScanEndpoints(interaction) {
   }
 }
 
-// Helper function to update settings.json with new endpoint
-async function updateSettingsWithEndpoint(name, category, method, description, parameters, optionalParameters) {
+async function updateSettingsWithEndpoint(name, filename, category, method, description, parameters, optionalParameters) {
   try {
     const settingsPath = path.join(__dirname, 'settings.json')
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
     
-    // Category display names mapping
     const categoryDisplayNames = {
       'ai': 'Artificial Intelligence',
       'maker': 'Image Makers',
@@ -1062,7 +1060,6 @@ async function updateSettingsWithEndpoint(name, category, method, description, p
     
     const categoryDisplayName = categoryDisplayNames[category] || category.charAt(0).toUpperCase() + category.slice(1)
     
-    // Create parameter object for documentation
     const paramObj = {}
     if (parameters) {
       const paramList = parameters.split(',').map(p => p.trim())
@@ -1078,16 +1075,13 @@ async function updateSettingsWithEndpoint(name, category, method, description, p
       })
     }
     
-    // Create endpoint path with parameters
     const allParams = []
     if (parameters) allParams.push(...parameters.split(',').map(p => p.trim() + '='))
     if (optionalParameters) allParams.push(...optionalParameters.split(',').map(p => p.trim() + '='))
-    const endpointPath = `/${category}/${name}${allParams.length > 0 ? '?' + allParams.join('&') : ''}`
+    const endpointPath = `/${category}/${filename}${allParams.length > 0 ? '?' + allParams.join('&') : ''}`
     
-    // Find or create category
     let categoryIndex = settings.categories.findIndex(cat => cat.name === categoryDisplayName)
     if (categoryIndex === -1) {
-      // Create new category
       settings.categories.push({
         name: categoryDisplayName,
         items: []
@@ -1095,16 +1089,14 @@ async function updateSettingsWithEndpoint(name, category, method, description, p
       categoryIndex = settings.categories.length - 1
     }
     
-    // Add endpoint to category
     settings.categories[categoryIndex].items.push({
-      name: name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' '),
+      name: name,
       desc: description,
       path: endpointPath,
       status: "ready",
       params: paramObj
     })
     
-    // Write updated settings
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
     
   } catch (error) {
@@ -1114,12 +1106,11 @@ async function updateSettingsWithEndpoint(name, category, method, description, p
 }
 
 // Helper function to remove endpoint from settings.json
-async function removeEndpointFromSettings(name, category) {
+async function removeEndpointFromSettings(filename, category) {
   try {
     const settingsPath = path.join(__dirname, 'settings.json')
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
     
-    // Category display names mapping
     const categoryDisplayNames = {
       'ai': 'Artificial Intelligence',
       'maker': 'Image Makers',
@@ -1133,23 +1124,20 @@ async function removeEndpointFromSettings(name, category) {
     
     const categoryDisplayName = categoryDisplayNames[category] || category.charAt(0).toUpperCase() + category.slice(1)
     
-    // Find category and remove endpoint
     const categoryIndex = settings.categories.findIndex(cat => cat.name === categoryDisplayName)
     if (categoryIndex !== -1) {
       const itemIndex = settings.categories[categoryIndex].items.findIndex(item => 
-        item.name.toLowerCase().replace(/\s+/g, '-') === name.toLowerCase()
+        item.path.includes(`/${category}/${filename}`)
       )
       if (itemIndex !== -1) {
         settings.categories[categoryIndex].items.splice(itemIndex, 1)
         
-        // Remove category if no items left
         if (settings.categories[categoryIndex].items.length === 0) {
           settings.categories.splice(categoryIndex, 1)
         }
       }
     }
     
-    // Write updated settings
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
     
   } catch (error) {

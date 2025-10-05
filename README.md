@@ -153,13 +153,15 @@ Advanced API key management with categories:
 
 #### `/endpoint [subcommand]`
 Complete API endpoint management system:
-- **Add:** `add <name> <category> <method> [description] [parameters] [optional_parameters]`
+- **Add:** `add <name> <filename> <category> <method> [description] [parameters] [optional_parameters]`
+  - **Name:** Display name for documentation (e.g., "Weather API", "Translate Text")
+  - **Filename:** File name for endpoint (e.g., "weather", "translate")
   - Categories: `ai`, `maker`, `random`, `tools`, `games`, `social`, `news`, `custom`
   - Methods: `GET`, `POST`, `PUT`, `DELETE`
   - Parameters: Required parameters (comma-separated)
   - Optional Parameters: Optional parameters (comma-separated)
   - Auto-generates endpoint files and updates documentation
-- **Delete:** `delete <name> <category>` - Delete endpoint and remove from docs
+- **Delete:** `delete <filename> <category>` - Delete endpoint and remove from docs
 - **List:** `list` - Show all available endpoints
 - **Scan:** `scan` - Scan folder structure for existing endpoints
 
@@ -173,11 +175,13 @@ The Discord bot provides complete endpoint lifecycle management:
 
 #### Creating Endpoints
 ```bash
-/endpoint add name:weather category:tools method:GET description:Get weather information parameters:location optional_parameters:format,units
+/endpoint add name:"Weather API" filename:weather category:tools method:GET description:Get weather information parameters:location optional_parameters:format,units
 ```
 
 This command will:
-- Create the endpoint file at `src/api/tools/weather.js`
+- **Display Name:** "Weather API" (shown in documentation)
+- **Filename:** "weather" (creates `src/api/tools/weather.js`)
+- **Path:** `/tools/weather`
 - Auto-generate parameter validation
 - Update `settings.json` for documentation
 - Make the endpoint immediately available at `/docs`
