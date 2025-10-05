@@ -110,17 +110,31 @@ The Discord bot provides powerful API management through slash commands:
 
 ### Discord Commands
 
-#### `/stats [time]`
-View API statistics with optional time period:
-- `5m` - Last 5 minutes
-- `15m` - Last 15 minutes  
-- `30m` - Last 30 minutes
-- `1h` - Last hour
-- `6h` - Last 6 hours
-- `12h` - Last 12 hours
-- `1d` - Last day
-- `3d` - Last 3 days
-- `7d` - Last week
+#### `/help`
+Show available commands and help information with detailed descriptions.
+
+#### `/stats [action] [time]`
+View API statistics with advanced options:
+- **Actions:**
+  - `start_auto` - Start auto-updating stats (updates every 30 seconds)
+  - `stop_auto` - Stop auto-updating stats
+  - `view` - View current stats (default)
+- **Time Periods:**
+  - `5m` - Last 5 minutes
+  - `15m` - Last 15 minutes  
+  - `30m` - Last 30 minutes
+  - `1h` - Last hour
+  - `6h` - Last 6 hours
+  - `12h` - Last 12 hours
+  - `1d` - Last day
+  - `3d` - Last 3 days
+  - `7d` - Last week
+
+#### `/activity [action] [status]`
+Manage bot activity status:
+- `set_custom <status>` - Set custom bot status text
+- `reset_auto` - Reset to automatic status rotation
+- `show_current` - Show current activity status
 
 #### `/maintenance [action]`
 Toggle maintenance mode:
@@ -128,15 +142,25 @@ Toggle maintenance mode:
 - `off` - Disable maintenance mode
 
 #### `/apikey [subcommand]`
-Manage API keys:
-- `add <key> <name>` - Add new API key
-- `delete <key>` - Delete API key
-- `toggle <action>` - Enable/disable API key requirement
-- `list` - List all API keys
+Advanced API key management with categories:
+- **Add:** `add <key> <name> <category> <ratelimit>`
+  - Categories: `free`, `premium`, `vip`, `admin`
+  - Rate limits: `100/minute`, `500/minute`, `1000/minute`, `5000/day`, `10000/day`, `50000/day`, `unlimited`
+- **Delete:** `delete <key>` - Delete API key
+- **Toggle:** `toggle <enable/disable>` - Enable/disable API key requirement
+- **List:** `list` - List all API keys with details
 
 ### Auto Stats Updates
 
-The bot automatically updates statistics every 30 minutes in the channel where `/stats` was first used, with message editing to prevent spam.
+The bot automatically updates statistics every 30 seconds when auto-stats is enabled via `/stats start_auto`. The stats are updated in the same channel where the command was used, with message editing to prevent spam.
+
+### Bot Activity Management
+
+The Discord bot features intelligent activity management:
+- **Automatic Rotation:** Bot status changes every 30 seconds between different activities
+- **Custom Status:** Set custom status text using `/activity set_custom <text>`
+- **Activity Types:** Playing, Watching, Listening, Competing
+- **Auto Reset:** Use `/activity reset_auto` to return to automatic rotation
 
 ## Configuration
 

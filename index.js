@@ -278,7 +278,7 @@ app.get("/docs", (req, res) => {
   res.sendFile(path.join(__dirname, "page", "docs", "index.html"))
 })
 
-console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! ✓ "))
+console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! "))
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Total Routes Loaded: ${totalRoutes} `))
 
 app.use((err, req, res, next) => {

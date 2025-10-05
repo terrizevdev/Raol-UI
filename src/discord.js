@@ -186,7 +186,6 @@ client.once('ready', async () => {
     console.error('Error refreshing application commands:', error)
   }
 
-  // Set up automatic activity rotation
   setInterval(() => {
     if (!customActivity) {
       const activities = [
@@ -351,7 +350,6 @@ async function handleStats(interaction) {
       const message = await interaction.reply({ embeds: [embed], fetchReply: true })
       autoStatsMessage = message
       
-      // Update every 30 seconds as requested
       autoStatsInterval = setInterval(async () => {
         if (autoStatsChannel && autoStatsMessage) {
           try {
@@ -509,13 +507,11 @@ async function handleApiKey(interaction) {
         const category = interaction.options.getString('category')
         const ratelimit = interaction.options.getString('ratelimit')
         
-        // Check if key already exists in both arrays
         if (settings.apiKeys.some(k => k.key === key) || settings.apiSettings.apikey[key]) {
           await interaction.reply({ content: '❌ API key already exists!', ephemeral: true })
           return
         }
         
-        // Add to both arrays for compatibility
         settings.apiKeys.push({ 
           key, 
           name, 
@@ -592,10 +588,8 @@ async function handleApiKey(interaction) {
         break
         
       case 'list':
-        // Combine both sources of API keys
         const allApiKeys = []
         
-        // Add from apiKeys array
         settings.apiKeys.forEach(apiKey => {
           allApiKeys.push({
             ...apiKey,
@@ -603,7 +597,6 @@ async function handleApiKey(interaction) {
           })
         })
         
-        // Add from apiSettings.apikey object (default keys)
         Object.entries(settings.apiSettings.apikey).forEach(([key, config]) => {
           if (!settings.apiKeys.some(k => k.key === key)) {
             allApiKeys.push({
