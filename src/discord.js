@@ -97,7 +97,11 @@ const commands = [
       subcommand
         .setName('list')
         .setDescription('List all API keys')
-    )
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('restart')
+    .setDescription('Restart the API server')
 ]
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN)
@@ -153,6 +157,9 @@ client.on('interactionCreate', async interaction => {
         break
       case 'apikey':
         await handleApiKey(interaction)
+        break
+      case 'restart':
+        await handleRestart(interaction)
         break
     }
   } catch (error) {
@@ -363,6 +370,107 @@ async function handleApiKey(interaction) {
     }
   } catch (error) {
     await interaction.reply({ content: 'Error managing API keys.', ephemeral: true })
+  }
+}
+
+async function handleRestart(interaction) {
+  try {
+    const confirmEmbed = new EmbedBuilder()
+      .setTitle('⚠️ Server Restart Confirmation')
+      .setDescription('Are you sure you want to restart the API server?')
+      .setColor(0xff9900)
+      .addFields(
+        { name: 'Warning', value: 'This will temporarily disconnect all active connections', inline: false },
+        { name: 'Duration', value: 'Restart typically takes 2-5 seconds', inline: true },
+        { name: 'Status', value: 'All data will be preserved', inline: true }
+      )
+      .setFooter({ text: 'React with ✅ to confirm or ❌ to cancel' })
+      .setTimestamp()
+
+    const confirmMessage = await interaction.reply({ 
+      embeds: [confirmEmbed], 
+      fetchReply: true 
+    })
+
+    await confirmMessage.react('✅')
+    await confirmMessage.react('❌')
+
+    const filter = (reaction, user) => {
+      return ['✅', '❌'].includes(reaction.emoji.name) && user.id === interaction.user.id
+    }
+
+    try {
+      const collected = await confirmMessage.awaitReactions({ 
+        filter, 
+        max: 1, 
+        time: 30000, 
+        errors: ['time'] 
+      })
+
+      const reaction = collected.first()
+      
+      if (reaction.emoji.name === '❌') {
+        const cancelEmbed = new EmbedBuilder()
+          .setTitle('❌ Restart Cancelled')
+          .setDescription('Server restart has been cancelled.')
+          .setColor(0xff0000)
+          .setTimestamp()
+
+        await interaction.editReply({ embeds: [cancelEmbed], components: [] })
+        return
+      }
+
+      if (reaction.emoji.name === '✅') {
+        const restartEmbed = new EmbedBuilder()
+          .setTitle('🔄 Restarting Server...')
+          .setDescription('The API server is being restarted. Please wait...')
+          .setColor(0x0099ff)
+          .setTimestamp()
+
+        await interaction.editReply({ embeds: [restartEmbed], components: [] })
+
+        setTimeout(() => {
+          console.log('Discord bot initiated server restart')
+          process.exit(0)
+        }, 2000)
+
+        const successEmbed = new EmbedBuilder()
+          .setTitle('✅ Restart Initiated')
+          .setDescription('Server restart has been initiated successfully.')
+          .setColor(0x00ff00)
+          .setTimestamp()
+
+        await interaction.followUp({ embeds: [successEmbed], ephemeral: true })
+      }
+
+    } catch (error) {
+      if (error.name === 'TimeoutError') {
+        const timeoutEmbed = new EmbedBuilder()
+          .setTitle('⏰ Restart Timeout')
+          .setDescription('Restart confirmation timed out. Please try again.')
+          .setColor(0xff9900)
+          .setTimestamp()
+
+        await interaction.editReply({ embeds: [timeoutEmbed], components: [] })
+      } else {
+        throw error
+      }
+    }
+
+  } catch (error) {
+    console.error('Error in restart command:', error)
+    
+    try {
+      const errorEmbed = new EmbedBuilder()
+        .setTitle('❌ Restart Error')
+        .setDescription('An error occurred while processing the restart command.')
+        .setColor(0xff0000)
+        .setTimestamp()
+
+      await interaction.editReply({ embeds: [errorEmbed], components: [] })
+    } catch (replyError) {
+      console.error('Failed to send error message:', replyError)
+    }
   }
 }
 

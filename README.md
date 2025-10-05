@@ -90,6 +90,7 @@ The Discord bot provides powerful API management through slash commands:
 - **`/stats`** - View real-time API statistics with time period support
 - **`/maintenance`** - Toggle maintenance mode on/off
 - **`/apikey`** - Manage API keys (add, delete, toggle, list)
+- **`/restart`** - Restart the API server with confirmation
 
 ### Setting Up Discord Bot
 
@@ -133,6 +134,13 @@ Manage API keys:
 - `delete <key>` - Delete API key
 - `toggle <action>` - Enable/disable API key requirement
 - `list` - List all API keys
+
+#### `/restart`
+Restart the API server:
+- Interactive confirmation with ✅/❌ reactions
+- 30-second timeout for confirmation
+- Graceful shutdown with 2-second delay
+- Clear status updates throughout the process
 
 ### Auto Stats Updates
 
