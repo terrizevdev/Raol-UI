@@ -79,20 +79,6 @@
           }
         }
       ]
-    },
-    {
-      "name": "Tools",
-      "items": [
-        {
-          "name": "Baldog",
-          "desc": "hama ygy",
-          "path": "/tools/baldog?text=",
-          "status": "ready",
-          "params": {
-            "text": "Required: Description for text parameter"
-          }
-        }
-      ]
     }
   ],
   "apiKeys": [
