@@ -17,7 +17,7 @@
     "express",
     "nodejs"
   ],
-  "author": "VGX Team",
+  "author": "Raol Mukarrozi",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.6.0",

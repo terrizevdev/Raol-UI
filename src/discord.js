@@ -780,7 +780,6 @@ async function handleAddEndpoint(interaction) {
   const parameters = interaction.options.getString('parameters') || ''
   const optionalParameters = interaction.options.getString('optional_parameters') || ''
   
-  // Validate filename
   if (!/^[a-zA-Z0-9-_]+$/.test(filename)) {
     await interaction.reply({ 
       content: '❌ Invalid filename! Only letters, numbers, hyphens, and underscores are allowed.', 
@@ -932,7 +931,6 @@ async function handleListEndpoints(interaction) {
       .setDescription(`Found **${endpoints.length}** endpoint(s)`)
       .setTimestamp()
     
-    // Group endpoints by category
     const groupedEndpoints = {}
     endpoints.forEach(endpoint => {
       if (!groupedEndpoints[endpoint.category]) {
@@ -1105,7 +1103,6 @@ async function updateSettingsWithEndpoint(name, filename, category, method, desc
   }
 }
 
-// Helper function to remove endpoint from settings.json
 async function removeEndpointFromSettings(filename, category) {
   try {
     const settingsPath = path.join(__dirname, 'settings.json')
@@ -1151,22 +1148,18 @@ function generateEndpointTemplate(name, category, method, description, parameter
   const optionalParamList = optionalParameters ? optionalParameters.split(',').map(p => p.trim()) : []
   const allParamList = [...paramList, ...optionalParamList]
   
-  // Generate parameter validation (only for required parameters)
   const paramValidation = paramList.map(param => 
     `      if (!${param}) {
-        return res.status(400).json({ 
-          status: false, 
-          error: "${param} is required" 
-        })
-      }`
+      return res.status(400).json({ 
+        status: false, 
+        error: "${param} is required" 
+      })
+    }`
   ).join('\n')
   
-  // Generate parameter usage (for all parameters)
   const paramUsage = allParamList.map(param => 
     `      const ${param} = req.${method === 'GET' ? 'query' : 'body'}.${param}`
   ).join('\n')
-  
-  // Generate parameter examples for documentation
   const paramExamples = paramList.map(param => {
     const examples = {
       'text': 'Hello World',
@@ -1439,7 +1432,9 @@ ${paramValidation}
 
 export function startDiscordBot() {
   if (!process.env.DISCORD_TOKEN) {
-    console.log('Discord token not found. Skipping Discord bot initialization.')
+    setTimeout(() => {
+      console.log('Discord token not found. Skipping Discord bot initialization.')
+    }, 1000)
     return
   }
 
