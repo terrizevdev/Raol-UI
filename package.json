@@ -1,6 +1,6 @@
 {
   "name": "raol-apis",
-  "version": "5.1.1",
+  "version": "7.1.0",
   "description": "Simple and easy to use API documentation",
   "type": "module",
   "main": "index.js",
@@ -28,6 +28,6 @@
     "express": "^4.18.2"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   }
 }
