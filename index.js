@@ -5,6 +5,26 @@ import cors from "cors"
 import path from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import { createRequire } from "module"
+import dotenv from "dotenv"
+import { startDiscordBot, updateStats } from "./src/discord.js"
+
+// Node.js version check
+const nodeVersion = process.versions.node.split(".")[0]
+if (Number.parseInt(nodeVersion) < 20) {
+  console.error("\x1b[31m%s\x1b[0m", "╔════════════════════════════════════════════════════════╗")
+  console.error("\x1b[31m%s\x1b[0m", "║                   ERROR: NODE.JS VERSION               ║")
+  console.error("\x1b[31m%s\x1b[0m", "╚════════════════════════════════════════════════════════╝")
+  console.error("\x1b[31m%s\x1b[0m", `[ERROR] You are using Node.js v${process.versions.node}`)
+  console.error("\x1b[31m%s\x1b[0m", "[ERROR] Kyakuya requires Node.js v20 or higher to run properly")
+  console.error("\x1b[31m%s\x1b[0m", "[ERROR] Please update your Node.js installation and try again")
+  console.error("\x1b[31m%s\x1b[0m", "[ERROR] Visit https://nodejs.org to download the latest version")
+  console.error("\x1b[31m%s\x1b[0m", "╔════════════════════════════════════════════════════════╗")
+  console.error("\x1b[31m%s\x1b[0m", "║                  SHUTTING DOWN...                      ║")
+  console.error("\x1b[31m%s\x1b[0m", "╚════════════════════════════════════════════════════════╝")
+  process.exit(1)
+}
+
+dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -40,6 +60,10 @@ app.use((req, res, next) => {
                          req.path.startsWith('/ai/') || 
                          req.path.startsWith('/random/') || 
                          req.path.startsWith('/maker/')
+    
+    if (isApiEndpoint) {
+      updateStats()
+    }
     
     if (isApiEndpoint && settings.apiSettings && settings.apiSettings.requireApikey === false) {
       return next()
@@ -270,7 +294,7 @@ app.get("/docs", (req, res) => {
   res.sendFile(path.join(__dirname, "page", "docs", "index.html"))
 })
 
-console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! ✓ "))
+console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! "))
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Total Routes Loaded: ${totalRoutes} `))
 
 app.use((err, req, res, next) => {
@@ -374,9 +398,27 @@ const startServer = async () => {
   try {
     PORT = await findAvailablePort(PORT)
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(chalk.bgHex("#90EE90").hex("#333").bold(` Server is running on port ${PORT} `))
     })
+
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully')
+      server.close(() => {
+        console.log('Process terminated')
+        process.exit(0)
+      })
+    })
+
+    process.on('SIGINT', () => {
+      console.log('SIGINT received, shutting down gracefully')
+      server.close(() => {
+        console.log('Process terminated')
+        process.exit(0)
+      })
+    })
+
+    startDiscordBot()
   } catch (err) {
     console.error(chalk.bgRed.white(` Server failed to start: ${err.message} `))
     process.exit(1)

@@ -1246,7 +1246,6 @@
     </footer>
 
     <script>
-        // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1260,7 +1259,6 @@
             });
         });
 
-        // Scroll animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -1278,7 +1276,6 @@
             observer.observe(el);
         });
 
-        // Modal functionality
         const apiEndpoints = {
             users: {
                 title: 'GET /api/users',
@@ -1398,7 +1395,6 @@
                 if (value) params[key] = value;
             }
 
-            // Simulate API response
             const mockResponse = {
                 status: 200,
                 message: 'Success',
@@ -1414,26 +1410,22 @@
             document.getElementById('responseArea').textContent = JSON.stringify(mockResponse, null, 2);
         }
 
-        // FAQ toggle functionality
         function toggleFaq(button) {
             const faqItem = button.parentElement;
             const answer = faqItem.querySelector('.faq-answer');
             const isActive = faqItem.classList.contains('active');
             
-            // Close all other FAQ items
             document.querySelectorAll('.faq-item').forEach(item => {
                 item.classList.remove('active');
                 item.querySelector('.faq-answer').classList.remove('active');
             });
             
-            // Toggle current item
             if (!isActive) {
                 faqItem.classList.add('active');
                 answer.classList.add('active');
             }
         }
 
-        // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('apiModal');
             if (event.target === modal) {
@@ -1441,13 +1433,11 @@
             }
         }
 
-        // Mobile menu toggle
         function toggleMobileMenu() {
             const navLinks = document.querySelector('.nav-links');
             navLinks.classList.toggle('mobile-active');
         }
 
-        // Navbar scroll effect
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('.nav');
             

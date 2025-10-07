@@ -1,9 +1,10 @@
 {
   "name": "Raol Api'S",
-  "version": "v5.1.1",
+  "version": "v7.1.0",
   "description": "Simple and easy to use API documentation.",
   "maintenance": {
-    "enabled": false
+    "enabled": false,
+    "message": ""
   },
   "bannerImage": "/src/images/banner.jpg",
   "previewImage": "/src/images/preview.png",
@@ -21,6 +22,12 @@
       "admin": {
         "rateLimit": "unlimited",
         "enabled": true
+      },
+      "Raol": {
+        "rateLimit": "unlimited",
+        "enabled": true,
+        "category": "premium",
+        "name": "Raol"
       }
     }
   },
@@ -72,6 +79,16 @@
           }
         }
       ]
+    }
+  ],
+  "apiKeys": [
+    {
+      "key": "Raol",
+      "name": "Raol",
+      "category": "premium",
+      "ratelimit": "unlimited",
+      "active": true,
+      "createdAt": "2025-10-05T04:45:58.171Z"
     }
   ]
 }
