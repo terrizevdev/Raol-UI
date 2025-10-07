@@ -5,8 +5,8 @@
   
   **Simple and easy to use API with Discord Bot Integration.**
   
-  [![Version](https://img.shields.io/badge/version-BETA%207.1.0-blue.svg)](https://github.com/raolbyte/Raol-UI)
-  [![Node.js](https://img.shields.io/badge/node.js-%3E%3D%2018.0.0-green.svg)](https://nodejs.org/)
+  [![Version](https://img.shields.io/badge/version-LATEST%207.1.0-blue.svg)](https://github.com/raolbyte/Raol-UI)
+  [![Node.js](https://img.shields.io/badge/node.js-%3E%3D%2020.0.0-green.svg)](https://nodejs.org/)
   [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
   [![Status](https://img.shields.io/badge/status-online-brightgreen.svg)](https://raol-apis.vercel.app)
   [![Discord](https://img.shields.io/badge/discord-bot%20ready-7289da.svg)](https://discord.com/developers/applications)
@@ -27,8 +27,61 @@
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
+- Node.js >= 20.0.0
 - npm or yarn package manager
+
+### Node.js Installation (Ubuntu/Debian VPS)
+
+If you're running this on a VPS with Ubuntu/Debian, we recommend using NVM (Node Version Manager) for easy Node.js management:
+
+#### Install NVM
+
+```bash
+# Download and install nvm:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+# Reload your shell configuration:
+source ~/.bashrc
+
+# Or manually source nvm:
+. "$HOME/.nvm/nvm.sh"
+```
+
+#### Install Node.js using NVM
+
+```bash
+# Install the latest LTS version of Node.js:
+nvm install 22
+
+# Use the installed version:
+nvm use 22
+
+# Set as default:
+nvm alias default 22
+
+# Verify the Node.js version:
+node -v # Should print "v22.x.x"
+
+# Verify npm version:
+npm -v # Should print "10.x.x"
+```
+
+#### Alternative: Direct Node.js Installation
+
+If you prefer not to use NVM, you can install Node.js directly:
+
+```bash
+# Update package index
+sudo apt update
+
+# Install Node.js 20.x
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verify installation
+node -v
+npm -v
+```
 
 ### Clone the Repository
 
