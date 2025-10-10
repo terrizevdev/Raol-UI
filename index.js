@@ -61,7 +61,8 @@ app.use((req, res, next) => {
                          req.path.startsWith('/maker/')
     
     if (isApiEndpoint) {
-      updateStats()
+      const endpoint = req.path.replace('/api/', '').replace('/ai/', 'ai/').replace('/random/', 'random/').replace('/maker/', 'maker/')
+      updateStats(endpoint)
     }
     
     if (isApiEndpoint && settings.apiSettings && settings.apiSettings.requireApikey === false) {

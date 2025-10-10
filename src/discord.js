@@ -1,19 +1,24 @@
-import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, EmbedBuilder } from 'discord.js'
+import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, EmbedBuilder, PermissionFlagsBits, Events } from 'discord.js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
+import os from 'os'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 dotenv.config()
 
+const OWNER_ID = process.env.OWNER_ID || 'your_owner_id_here'
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildModeration
   ]
 })
 
@@ -250,6 +255,121 @@ const commands = [
       subcommand
         .setName('scan')
         .setDescription('Scan and show detected API paths from folder structure')
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('owner')
+    .setDescription('Owner-only commands')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('eval')
+        .setDescription('Execute JavaScript code')
+        .addStringOption(option =>
+          option.setName('code')
+            .setDescription('JavaScript code to execute')
+            .setRequired(true)
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('restart')
+        .setDescription('Restart the bot')
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('shutdown')
+        .setDescription('Shutdown the bot')
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('broadcast')
+        .setDescription('Send message to all guilds')
+        .addStringOption(option =>
+          option.setName('message')
+            .setDescription('Message to broadcast')
+            .setRequired(true)
+        )
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('automod')
+    .setDescription('Auto-moderation settings')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('setup')
+        .setDescription('Setup auto-moderation')
+        .addChannelOption(option =>
+          option.setName('log_channel')
+            .setDescription('Channel for moderation logs')
+            .setRequired(true)
+        )
+        .addIntegerOption(option =>
+          option.setName('spam_threshold')
+            .setDescription('Messages per minute before action')
+            .setRequired(false)
+            .setMinValue(1)
+            .setMaxValue(20)
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('toggle')
+        .setDescription('Toggle auto-moderation features')
+        .addStringOption(option =>
+          option.setName('feature')
+            .setDescription('Feature to toggle')
+            .setRequired(true)
+            .addChoices(
+              { name: 'Anti-Spam', value: 'antispam' },
+              { name: 'Auto-Delete Links', value: 'autodelete' },
+              { name: 'Caps Filter', value: 'caps' },
+              { name: 'Bad Words Filter', value: 'badwords' }
+            )
+        )
+        .addBooleanOption(option =>
+          option.setName('enabled')
+            .setDescription('Enable or disable the feature')
+            .setRequired(true)
+        )
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('autorole')
+    .setDescription('Auto-role management')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('add')
+        .setDescription('Add role to auto-assign')
+        .addRoleOption(option =>
+          option.setName('role')
+            .setDescription('Role to auto-assign')
+            .setRequired(true)
+        )
+        .addIntegerOption(option =>
+          option.setName('delay')
+            .setDescription('Delay in seconds before assigning role')
+            .setRequired(false)
+            .setMinValue(0)
+            .setMaxValue(300)
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('remove')
+        .setDescription('Remove role from auto-assign')
+        .addRoleOption(option =>
+          option.setName('role')
+            .setDescription('Role to remove from auto-assign')
+            .setRequired(true)
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('list')
+        .setDescription('List all auto-assign roles')
     )
 ]
 
@@ -258,6 +378,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN)
 let statsData = {
   totalRequests: 0,
   requestsByTime: new Map(),
+  topRequests: new Map(),
   startTime: Date.now(),
   lastReset: Date.now()
 }
@@ -266,6 +387,13 @@ let autoStatsChannel = null
 let autoStatsMessage = null
 let autoStatsInterval = null
 let customActivity = null
+
+let autoModSettings = new Map()
+let autoRoles = new Map()
+let userMessageCounts = new Map()
+let spamCooldowns = new Map()
+
+const badWords = ['spam', 'scam', 'hack', 'virus', 'malware', 'phishing']
 
 client.once('ready', async () => {
   console.log(`Discord bot logged in as ${client.user.tag}`)
@@ -284,15 +412,31 @@ client.once('ready', async () => {
   setInterval(() => {
     if (!customActivity) {
       const activities = [
-        { name: 'API requests', type: 3 },
+        { name: `${statsData.totalRequests} API requests`, type: 3 },
         { name: 'with RaolByte APIs', type: 0 },
         { name: 'the server status', type: 3 },
-        { name: 'API documentation', type: 3 }
+        { name: 'API documentation', type: 3 },
+        { name: `${client.guilds.cache.size} servers`, type: 3 },
+        { name: `${client.users.cache.size} users`, type: 3 },
+        { name: 'the code compile', type: 0 },
+        { name: 'the network traffic', type: 3 },
+        { name: 'the system logs', type: 3 },
+        { name: 'the database queries', type: 3 },
+        { name: 'the API endpoints', type: 3 },
+        { name: 'the error logs', type: 3 },
+        { name: 'the performance metrics', type: 3 },
+        { name: 'the security scans', type: 3 },
+        { name: 'the backup process', type: 3 },
+        { name: 'the cache updates', type: 3 },
+        { name: 'the rate limits', type: 3 },
+        { name: 'the authentication', type: 3 },
+        { name: 'the data validation', type: 3 },
+        { name: 'the response times', type: 3 }
       ]
       const randomActivity = activities[Math.floor(Math.random() * activities.length)]
       client.user.setActivity(randomActivity.name, { type: randomActivity.type })
     }
-  }, 30000) // Change every 30 seconds
+  }, 15000)
 })
 
 client.on('interactionCreate', async interaction => {
@@ -320,6 +464,15 @@ client.on('interactionCreate', async interaction => {
       case 'endpoint':
         await handleEndpoint(interaction)
         break
+      case 'owner':
+        await handleOwner(interaction)
+        break
+      case 'automod':
+        await handleAutoMod(interaction)
+        break
+      case 'autorole':
+        await handleAutoRole(interaction)
+        break
     }
   } catch (error) {
     console.error('Error handling interaction:', error)
@@ -327,7 +480,217 @@ client.on('interactionCreate', async interaction => {
   }
 })
 
-function updateStats() {
+client.on(Events.MessageCreate, async message => {
+  if (message.author.bot) return
+  
+  const guildId = message.guild?.id
+  if (!guildId) return
+  
+  const settings = autoModSettings.get(guildId)
+  if (!settings) return
+  
+  try {
+    if (settings.antispam) {
+      await handleAntiSpam(message, settings)
+    }
+    
+    if (settings.autodelete) {
+      await handleAutoDelete(message, settings)
+    }
+    
+    if (settings.caps) {
+      await handleCapsFilter(message, settings)
+    }
+    
+    if (settings.badwords) {
+      await handleBadWordsFilter(message, settings)
+    }
+  } catch (error) {
+    console.error('Error in auto-moderation:', error)
+  }
+})
+
+client.on(Events.GuildMemberAdd, async member => {
+  const guildId = member.guild.id
+  const roles = autoRoles.get(guildId)
+  
+  if (!roles || roles.length === 0) return
+  
+  try {
+    for (const roleData of roles) {
+      const role = member.guild.roles.cache.get(roleData.id)
+      if (role) {
+        if (roleData.delay > 0) {
+          setTimeout(async () => {
+            try {
+              await member.roles.add(role)
+              console.log(`Auto-assigned role ${role.name} to ${member.user.tag}`)
+            } catch (error) {
+              console.error(`Failed to assign role ${role.name}:`, error)
+            }
+          }, roleData.delay * 1000)
+        } else {
+          await member.roles.add(role)
+          console.log(`Auto-assigned role ${role.name} to ${member.user.tag}`)
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in auto-role assignment:', error)
+  }
+})
+
+async function handleAntiSpam(message, settings) {
+  const userId = message.author.id
+  const now = Date.now()
+  
+  if (!userMessageCounts.has(userId)) {
+    userMessageCounts.set(userId, { count: 1, resetTime: now + 60000 })
+    return
+  }
+  
+  const data = userMessageCounts.get(userId)
+  if (now > data.resetTime) {
+    data.count = 1
+    data.resetTime = now + 60000
+  } else {
+    data.count++
+    if (data.count > settings.spamThreshold) {
+      if (spamCooldowns.has(userId)) return
+      
+      spamCooldowns.set(userId, now + 300000)
+      setTimeout(() => spamCooldowns.delete(userId), 300000)
+      
+      try {
+        await message.delete()
+        await message.channel.send(`⚠️ ${message.author}, please slow down! You're sending messages too quickly.`)
+        
+        const logChannel = message.guild.channels.cache.get(settings.logChannel)
+        if (logChannel) {
+          const embed = new EmbedBuilder()
+            .setTitle('🛡️ Anti-Spam Action')
+            .setColor(0xff9900)
+            .setDescription(`User ${message.author} was flagged for spam`)
+            .addFields(
+              { name: 'User', value: `${message.author.tag} (${message.author.id})`, inline: true },
+              { name: 'Channel', value: message.channel.toString(), inline: true },
+              { name: 'Messages', value: `${data.count}/${settings.spamThreshold}`, inline: true }
+            )
+            .setTimestamp()
+          
+          await logChannel.send({ embeds: [embed] })
+        }
+      } catch (error) {
+        console.error('Error handling spam:', error)
+      }
+    }
+  }
+  
+  userMessageCounts.set(userId, data)
+}
+
+async function handleAutoDelete(message, settings) {
+  const content = message.content.toLowerCase()
+  const suspiciousPatterns = [
+    /discord\.gg\/\w+/,
+    /discord\.com\/invite\/\w+/,
+    /bit\.ly\/\w+/,
+    /tinyurl\.com\/\w+/,
+    /t\.me\/\w+/,
+    /telegram\.me\/\w+/
+  ]
+  
+  const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(content))
+  
+  if (isSuspicious) {
+    try {
+      await message.delete()
+      await message.channel.send(`⚠️ ${message.author}, suspicious links are not allowed!`)
+      
+      const logChannel = message.guild.channels.cache.get(settings.logChannel)
+      if (logChannel) {
+        const embed = new EmbedBuilder()
+          .setTitle('🛡️ Auto-Delete Action')
+          .setColor(0xff0000)
+          .setDescription(`Suspicious link deleted from ${message.author}`)
+          .addFields(
+            { name: 'User', value: `${message.author.tag} (${message.author.id})`, inline: true },
+            { name: 'Channel', value: message.channel.toString(), inline: true },
+            { name: 'Content', value: message.content.slice(0, 1000), inline: false }
+          )
+          .setTimestamp()
+        
+        await logChannel.send({ embeds: [embed] })
+      }
+    } catch (error) {
+      console.error('Error handling auto-delete:', error)
+    }
+  }
+}
+
+async function handleCapsFilter(message, settings) {
+  const content = message.content
+  const capsCount = (content.match(/[A-Z]/g) || []).length
+  const totalChars = content.replace(/\s/g, '').length
+  
+  if (totalChars > 10 && capsCount / totalChars > 0.7) {
+    try {
+      await message.delete()
+      await message.channel.send(`⚠️ ${message.author}, please don't use excessive caps!`)
+      
+      const logChannel = message.guild.channels.cache.get(settings.logChannel)
+      if (logChannel) {
+        const embed = new EmbedBuilder()
+          .setTitle('🛡️ Caps Filter Action')
+          .setColor(0xff9900)
+          .setDescription(`Excessive caps message deleted from ${message.author}`)
+          .addFields(
+            { name: 'User', value: `${message.author.tag} (${message.author.id})`, inline: true },
+            { name: 'Channel', value: message.channel.toString(), inline: true },
+            { name: 'Content', value: content.slice(0, 1000), inline: false }
+          )
+          .setTimestamp()
+        
+        await logChannel.send({ embeds: [embed] })
+      }
+    } catch (error) {
+      console.error('Error handling caps filter:', error)
+    }
+  }
+}
+
+async function handleBadWordsFilter(message, settings) {
+  const content = message.content.toLowerCase()
+  const foundBadWords = badWords.filter(word => content.includes(word))
+  
+  if (foundBadWords.length > 0) {
+    try {
+      await message.delete()
+      await message.channel.send(`⚠️ ${message.author}, inappropriate language is not allowed!`)
+      
+      const logChannel = message.guild.channels.cache.get(settings.logChannel)
+      if (logChannel) {
+        const embed = new EmbedBuilder()
+          .setTitle('🛡️ Bad Words Filter Action')
+          .setColor(0xff0000)
+          .setDescription(`Inappropriate message deleted from ${message.author}`)
+          .addFields(
+            { name: 'User', value: `${message.author.tag} (${message.author.id})`, inline: true },
+            { name: 'Channel', value: message.channel.toString(), inline: true },
+            { name: 'Detected Words', value: foundBadWords.join(', '), inline: false },
+            { name: 'Content', value: message.content.slice(0, 1000), inline: false }
+          )
+          .setTimestamp()
+        
+        await logChannel.send({ embeds: [embed] })
+      }
+    } catch (error) {
+      console.error('Error handling bad words filter:', error)
+    }
+  }
+}
+
+function updateStats(endpoint = 'unknown') {
   statsData.totalRequests++
   const now = Date.now()
   const timeKey = Math.floor(now / 60000)
@@ -336,6 +699,11 @@ function updateStats() {
     statsData.requestsByTime.set(timeKey, 0)
   }
   statsData.requestsByTime.set(timeKey, statsData.requestsByTime.get(timeKey) + 1)
+  
+  if (!statsData.topRequests.has(endpoint)) {
+    statsData.topRequests.set(endpoint, 0)
+  }
+  statsData.topRequests.set(endpoint, statsData.topRequests.get(endpoint) + 1)
 }
 
 function getTimeRange(timeStr) {
@@ -392,23 +760,327 @@ async function generateStatsEmbed(timeStr = '30m') {
     }
   }
   
-  const memoryUsage = Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+  const memoryUsage = process.memoryUsage()
+  const totalMemory = os.totalmem()
+  const freeMemory = os.freemem()
+  const usedMemory = totalMemory - freeMemory
+  const memoryPercent = Math.round((usedMemory / totalMemory) * 100)
+  
   const cpuUsage = process.cpuUsage()
+  const loadAvg = os.loadavg()
+  const cpuCount = os.cpus().length
+  
+  const topRequests = Array.from(statsData.topRequests.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
   
   const embed = new EmbedBuilder()
-    .setTitle('📊 API Statistics')
+    .setTitle('📊 Enhanced API Statistics')
     .setColor(0x00ff00)
     .setTimestamp()
     .addFields(
-      { name: 'Status', value: '🟢 Online', inline: true },
-      { name: 'Uptime', value: uptimeStr, inline: true },
-      { name: 'Memory Usage', value: `${memoryUsage} MB`, inline: true },
-      { name: 'Total Requests', value: statsData.totalRequests.toString(), inline: true },
-      { name: `Requests (${timeStr})`, value: requestsInPeriod.toString(), inline: true },
-      { name: 'CPU Usage', value: `${Math.round(cpuUsage.user / 1000000)}ms`, inline: true }
+      { name: '🟢 Status', value: 'Online', inline: true },
+      { name: '⏱️ Uptime', value: uptimeStr, inline: true },
+      { name: '📈 Total Requests', value: statsData.totalRequests.toString(), inline: true },
+      { name: `📊 Requests (${timeStr})`, value: requestsInPeriod.toString(), inline: true },
+      { name: '💾 RAM Usage', value: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB / ${Math.round(totalMemory / 1024 / 1024 / 1024)}GB (${memoryPercent}%)`, inline: true },
+      { name: '🖥️ CPU Load', value: `${loadAvg[0].toFixed(2)} (${cpuCount} cores)`, inline: true },
+      { name: '⚡ Process CPU', value: `${Math.round(cpuUsage.user / 1000000)}ms`, inline: true },
+      { name: '🌐 Node.js', value: `v${process.version}`, inline: true },
+      { name: '🏗️ Platform', value: `${os.platform()} ${os.arch()}`, inline: true }
     )
 
+  if (topRequests.length > 0) {
+    const topRequestsText = topRequests.map(([endpoint, count], index) => 
+      `${index + 1}. \`${endpoint}\` - ${count} requests`
+    ).join('\n')
+    embed.addFields({ name: '🔥 Top API Requests', value: topRequestsText, inline: false })
+  }
+
   return embed
+}
+
+function isOwner(userId) {
+  return userId === OWNER_ID
+}
+
+async function handleOwner(interaction) {
+  if (!isOwner(interaction.user.id)) {
+    await interaction.reply({ content: '❌ This command is restricted to the bot owner only.', ephemeral: true })
+    return
+  }
+
+  const subcommand = interaction.options.getSubcommand()
+  
+  try {
+    switch (subcommand) {
+      case 'eval':
+        await handleEval(interaction)
+        break
+      case 'restart':
+        await handleRestart(interaction)
+        break
+      case 'shutdown':
+        await handleShutdown(interaction)
+        break
+      case 'broadcast':
+        await handleBroadcast(interaction)
+        break
+    }
+  } catch (error) {
+    console.error('Error handling owner command:', error)
+    await interaction.reply({ content: '❌ Error executing owner command.', ephemeral: true })
+  }
+}
+
+async function handleEval(interaction) {
+  const code = interaction.options.getString('code')
+  
+  try {
+    const result = eval(code)
+    const embed = new EmbedBuilder()
+      .setTitle('🔧 Eval Result')
+      .setColor(0x00ff00)
+      .setDescription(`\`\`\`js\n${String(result).slice(0, 1000)}\`\`\``)
+      .setTimestamp()
+    
+    await interaction.reply({ embeds: [embed], ephemeral: true })
+  } catch (error) {
+    const embed = new EmbedBuilder()
+      .setTitle('❌ Eval Error')
+      .setColor(0xff0000)
+      .setDescription(`\`\`\`js\n${error.message}\`\`\``)
+      .setTimestamp()
+    
+    await interaction.reply({ embeds: [embed], ephemeral: true })
+  }
+}
+
+async function handleRestart(interaction) {
+  const embed = new EmbedBuilder()
+    .setTitle('🔄 Bot Restart')
+    .setColor(0xff9900)
+    .setDescription('Restarting bot...')
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed] })
+  process.exit(0)
+}
+
+async function handleShutdown(interaction) {
+  const embed = new EmbedBuilder()
+    .setTitle('🛑 Bot Shutdown')
+    .setColor(0xff0000)
+    .setDescription('Shutting down bot...')
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed] })
+  process.exit(1)
+}
+
+async function handleBroadcast(interaction) {
+  const message = interaction.options.getString('message')
+  const guilds = client.guilds.cache
+  
+  let successCount = 0
+  let failCount = 0
+  
+  for (const [guildId, guild] of guilds) {
+    try {
+      const systemChannel = guild.systemChannel || guild.channels.cache.find(ch => ch.type === 0)
+      if (systemChannel) {
+        await systemChannel.send(message)
+        successCount++
+      } else {
+        failCount++
+      }
+    } catch (error) {
+      failCount++
+    }
+  }
+  
+  const embed = new EmbedBuilder()
+    .setTitle('📢 Broadcast Complete')
+    .setColor(0x00ff00)
+    .setDescription(`Message sent to ${successCount} guilds. Failed: ${failCount}`)
+    .addFields(
+      { name: 'Message', value: message, inline: false }
+    )
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed], ephemeral: true })
+}
+
+async function handleAutoMod(interaction) {
+  const subcommand = interaction.options.getSubcommand()
+  
+  try {
+    switch (subcommand) {
+      case 'setup':
+        await handleAutoModSetup(interaction)
+        break
+      case 'toggle':
+        await handleAutoModToggle(interaction)
+        break
+    }
+  } catch (error) {
+    console.error('Error handling automod command:', error)
+    await interaction.reply({ content: '❌ Error managing auto-moderation.', ephemeral: true })
+  }
+}
+
+async function handleAutoModSetup(interaction) {
+  const logChannel = interaction.options.getChannel('log_channel')
+  const spamThreshold = interaction.options.getInteger('spam_threshold') || 5
+  
+  const guildId = interaction.guild.id
+  autoModSettings.set(guildId, {
+    logChannel: logChannel.id,
+    spamThreshold,
+    antispam: true,
+    autodelete: true,
+    caps: true,
+    badwords: true
+  })
+  
+  const embed = new EmbedBuilder()
+    .setTitle('🛡️ Auto-Moderation Setup')
+    .setColor(0x00ff00)
+    .setDescription('Auto-moderation has been configured!')
+    .addFields(
+      { name: 'Log Channel', value: `<#${logChannel.id}>`, inline: true },
+      { name: 'Spam Threshold', value: `${spamThreshold} messages/minute`, inline: true },
+      { name: 'Features', value: 'Anti-Spam, Auto-Delete Links, Caps Filter, Bad Words Filter', inline: false }
+    )
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed] })
+}
+
+async function handleAutoModToggle(interaction) {
+  const feature = interaction.options.getString('feature')
+  const enabled = interaction.options.getBoolean('enabled')
+  
+  const guildId = interaction.guild.id
+  if (!autoModSettings.has(guildId)) {
+    await interaction.reply({ content: '❌ Auto-moderation not set up. Use `/automod setup` first.', ephemeral: true })
+    return
+  }
+  
+  const settings = autoModSettings.get(guildId)
+  settings[feature] = enabled
+  autoModSettings.set(guildId, settings)
+  
+  const embed = new EmbedBuilder()
+    .setTitle('🛡️ Auto-Moderation Toggle')
+    .setColor(enabled ? 0x00ff00 : 0xff0000)
+    .setDescription(`${feature.charAt(0).toUpperCase() + feature.slice(1)} has been ${enabled ? 'enabled' : 'disabled'}.`)
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed] })
+}
+
+async function handleAutoRole(interaction) {
+  const subcommand = interaction.options.getSubcommand()
+  
+  try {
+    switch (subcommand) {
+      case 'add':
+        await handleAutoRoleAdd(interaction)
+        break
+      case 'remove':
+        await handleAutoRoleRemove(interaction)
+        break
+      case 'list':
+        await handleAutoRoleList(interaction)
+        break
+    }
+  } catch (error) {
+    console.error('Error handling autorole command:', error)
+    await interaction.reply({ content: '❌ Error managing auto-roles.', ephemeral: true })
+  }
+}
+
+async function handleAutoRoleAdd(interaction) {
+  const role = interaction.options.getRole('role')
+  const delay = interaction.options.getInteger('delay') || 0
+  
+  const guildId = interaction.guild.id
+  if (!autoRoles.has(guildId)) {
+    autoRoles.set(guildId, [])
+  }
+  
+  const roles = autoRoles.get(guildId)
+  if (roles.some(r => r.id === role.id)) {
+    await interaction.reply({ content: '❌ This role is already set for auto-assignment.', ephemeral: true })
+    return
+  }
+  
+  roles.push({ id: role.id, name: role.name, delay })
+  autoRoles.set(guildId, roles)
+  
+  const embed = new EmbedBuilder()
+    .setTitle('🎭 Auto-Role Added')
+    .setColor(0x00ff00)
+    .setDescription(`Role ${role} will be automatically assigned to new members.`)
+    .addFields(
+      { name: 'Role', value: role.toString(), inline: true },
+      { name: 'Delay', value: `${delay} seconds`, inline: true }
+    )
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed] })
+}
+
+async function handleAutoRoleRemove(interaction) {
+  const role = interaction.options.getRole('role')
+  
+  const guildId = interaction.guild.id
+  if (!autoRoles.has(guildId)) {
+    await interaction.reply({ content: '❌ No auto-roles configured for this server.', ephemeral: true })
+    return
+  }
+  
+  const roles = autoRoles.get(guildId)
+  const roleIndex = roles.findIndex(r => r.id === role.id)
+  
+  if (roleIndex === -1) {
+    await interaction.reply({ content: '❌ This role is not set for auto-assignment.', ephemeral: true })
+    return
+  }
+  
+  roles.splice(roleIndex, 1)
+  autoRoles.set(guildId, roles)
+  
+  const embed = new EmbedBuilder()
+    .setTitle('🎭 Auto-Role Removed')
+    .setColor(0xff0000)
+    .setDescription(`Role ${role} will no longer be automatically assigned.`)
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed] })
+}
+
+async function handleAutoRoleList(interaction) {
+  const guildId = interaction.guild.id
+  const roles = autoRoles.get(guildId) || []
+  
+  if (roles.length === 0) {
+    await interaction.reply({ content: '❌ No auto-roles configured for this server.', ephemeral: true })
+    return
+  }
+  
+  const rolesList = roles.map((role, index) => 
+    `${index + 1}. <@&${role.id}> (${role.delay}s delay)`
+  ).join('\n')
+  
+  const embed = new EmbedBuilder()
+    .setTitle('🎭 Auto-Roles List')
+    .setColor(0x0099ff)
+    .setDescription(rolesList)
+    .setTimestamp()
+  
+  await interaction.reply({ embeds: [embed] })
 }
 
 async function handleHelp(interaction) {
@@ -417,20 +1089,22 @@ async function handleHelp(interaction) {
     .setColor(0x0099ff)
     .setDescription('Here are all available commands for the RaolByte API bot:')
     .addFields(
-      { name: '📊 `/stats`', value: 'View API statistics and manage auto-updating stats', inline: false },
+      { name: '📊 `/stats`', value: 'View enhanced API statistics with top requests and system info', inline: false },
       { name: '🎮 `/activity`', value: 'Manage bot activity status (custom/auto)', inline: false },
       { name: '🔧 `/maintenance`', value: 'Toggle maintenance mode for the API', inline: false },
       { name: '🔑 `/apikey`', value: 'Manage API keys with categories and rate limits', inline: false },
-      { name: '🚀 `/endpoint`', value: 'Add, list, and manage API endpoints automatically', inline: false }
+      { name: '🚀 `/endpoint`', value: 'Add, list, and manage API endpoints automatically', inline: false },
+      { name: '👑 `/owner`', value: 'Owner-only commands (eval, restart, shutdown, broadcast)', inline: false },
+      { name: '🛡️ `/automod`', value: 'Auto-moderation settings (anti-spam, filters)', inline: false },
+      { name: '🎭 `/autorole`', value: 'Auto-role assignment for new members', inline: false }
     )
     .addFields(
-      { name: '📊 Stats Options', value: '• `action:Start auto stats (30s)` - Enable auto-updating stats\n• `action:Stop auto stats` - Disable auto-updating stats\n• `action:View current stats` - Show current statistics', inline: false },
-      { name: '🎮 Activity Options', value: '• `action:Set custom activity` - Set custom bot status\n• `action:Reset to auto` - Reset to automatic status\n• `action:Show current` - Show current activity', inline: false },
-      { name: '🔑 API Key Categories', value: '• **Free** - Basic access with limited rate limits\n• **Premium** - Enhanced access with higher limits\n• **VIP** - Priority access with premium limits\n• **Admin** - Full access with unlimited rate limits', inline: false },
-      { name: '🚀 Endpoint Options', value: '• `add` - Create new API endpoint with auto-detected path\n• `delete` - Delete an existing API endpoint\n• `list` - Show all available endpoints\n• `scan` - Scan folder structure for existing endpoints', inline: false }
+      { name: '📊 Enhanced Stats', value: '• Real-time system monitoring\n• Top API requests tracking\n• RAM and CPU usage\n• Platform information', inline: false },
+      { name: '🛡️ Auto-Moderation', value: '• Anti-spam protection\n• Auto-delete suspicious links\n• Caps filter\n• Bad words filter', inline: false },
+      { name: '🎭 Auto-Roles', value: '• Automatic role assignment\n• Configurable delays\n• Multiple roles support', inline: false }
     )
     .setTimestamp()
-    .setFooter({ text: 'RaolByte API Bot • Use /help for more information' })
+    .setFooter({ text: 'RaolByte API Bot • Enhanced with auto-moderation and auto-roles' })
 
   await interaction.reply({ embeds: [embed] })
 }
@@ -459,7 +1133,7 @@ async function handleStats(interaction) {
             console.error('Error updating auto stats:', error)
           }
         }
-      }, 30000) // 30 seconds
+      }, 30000)
       
       await interaction.followUp({ content: '✅ Auto stats enabled! Stats will update every 30 seconds.', ephemeral: true })
       break
@@ -497,7 +1171,7 @@ async function handleActivity(interaction) {
         }
         
         customActivity = status
-        await client.user.setActivity(status, { type: 3 }) // 3 = WATCHING
+        await client.user.setActivity(status, { type: 3 })
         
         const setEmbed = new EmbedBuilder()
           .setTitle('🎮 Activity Status')
