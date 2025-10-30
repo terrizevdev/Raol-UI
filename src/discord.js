@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename)
 dotenv.config()
 
 const OWNER_ID = process.env.OWNER_ID || 'your_owner_id_here'
-
+const DISCORD_TOKEN = 'MTQzMzMyNTg4OTEwOTg4NDk1OA.GuVwkB.se5aoVdPdgnjYdOF0puT0jOATGN_DZy1Hjf_i8'
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
